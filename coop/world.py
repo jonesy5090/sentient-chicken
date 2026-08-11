@@ -139,8 +139,10 @@ def step(w: World, motor: jax.Array, key: jax.Array,
     at_food = (d_food < cfg.peck_radius) & (w.food_amount[None, :] > 0.01)
     pecking = motor[:, spec.M_PECK] > 0.5
     fed = jnp.any(at_food, axis=-1) & pecking
+    call_effort = jnp.sum(motor[:, list(spec.CALL_MOTOR_IDX)], axis=-1)
     hunger = jnp.clip(
         w.hunger + cfg.dt * (1.0 / cfg.hunger_fill_s
+                             + call_effort * cfg.call_energy_cost
                              - fed * cfg.peck_food_rate * w.hunger),
         0.0, 1.0)
 

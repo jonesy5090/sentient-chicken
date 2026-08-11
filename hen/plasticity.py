@@ -66,6 +66,21 @@ class PlasticConfig(NamedTuple):
     strike_penalty: float = 1.0
     baseline_tau_s: float = 20.0
 
+    # Weight on flockmates' welfare in a hen's own reward signal. This is kin
+    # selection, which is the standard explanation for why alarm calling evolves in
+    # group-living birds at all: warning a relative propagates your own genes. A
+    # flock of hens is typically related.
+    #
+    # It is needed here for a specific reason. Under purely individual reward a call
+    # can never pay -- the caller bears the energetic cost and the *listener* gets
+    # the benefit -- so a hen would learn to fall silent and H3 could not be tested.
+    #
+    # Note what this does NOT do: nothing here rewards calling *when an audience is
+    # present*. It rewards flockmates doing well, and it charges for calling. That
+    # audience-conditional calling is the optimal policy is the hypothesis, not the
+    # instruction.
+    kin_weight: float = 0.5
+
     # Consolidation. The forward pass already reads W every step; writing it too is
     # what costs, so eligibility accumulates continuously and consolidates every
     # `interval` steps. Measured: interval=10 costs 3x throughput, 50 costs ~25%,
@@ -114,12 +129,24 @@ def reward(w_prev, w_next, cfg: CoopConfig, pc: PlasticConfig) -> jax.Array:
     Drive *reduction* is positive. There is no task term: the hen is rewarded for
     being fed, watered, warm and uneaten, and any foraging strategy she develops has
     to be discovered from that alone.
+
+    A fraction `kin_weight` of the flock's mean welfare is added to each hen's own.
+    See `PlasticConfig.kin_weight` -- without it a call can never repay its energetic
+    cost, because the caller pays and the listener benefits.
     """
     d_drive = ((w_prev.hunger - w_next.hunger)
                + (w_prev.thirst - w_next.thirst)
                + (w_prev.cold - w_next.cold)) / cfg.dt
     struck = w_next.n_struck - w_prev.n_struck
-    return d_drive * pc.reward_scale - struck * pc.strike_penalty / cfg.dt
+    own = d_drive * pc.reward_scale - struck * pc.strike_penalty / cfg.dt
+
+    if pc.kin_weight == 0.0:
+        return own
+
+    # Mean over the *other* hens: (sum - self) / (n - 1).
+    n = own.shape[0]
+    others = (jnp.sum(own) - own) / jnp.maximum(n - 1, 1)
+    return own + pc.kin_weight * others
 
 
 def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,

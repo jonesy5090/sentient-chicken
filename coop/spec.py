@@ -136,6 +136,14 @@ class CoopConfig(NamedTuple):
     huddle_warm_rate: float = 4.0e-4  # per second, per flockmate within huddle_radius
     huddle_max: int = 3               # a hen needs 2-3 close neighbours to stay warm
 
+    # Calling costs energy. Without a cost there is no reason for a hen ever to stay
+    # quiet, so there is no gradient from which audience-sensitivity could emerge --
+    # she would simply call whenever the reflex fired, forever, for free. Vocalising
+    # is genuinely metabolically costly in birds, but this value is set for
+    # learnability within a short run rather than for metabolic realism: at typical
+    # call amplitudes it roughly doubles the rate at which a hen gets hungry.
+    call_energy_cost: float = 8.0e-4  # hunger per second per unit of call amplitude
+
     # Predation
     hawk_period_s: float = 900.0      # a hawk passes over roughly every 15 min
     hawk_dive_s: float = 12.0
