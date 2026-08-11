@@ -206,13 +206,14 @@ Worth writing down now, while it is still cheap to be honest:
   pallium overriding good reflexes. There is an optimum, and it plausibly maps onto
   the trade-off real precocial birds face between hatching competent and staying
   plastic. Worth a proper sweep rather than a single tuned value.
-- **A longer, better-powered contrast**: 1 day of chicken time with 8 seeds,
-  pre-registered on both hunger and predator exposure. ~4 h wall clock. Only worth
-  running once E003 shows the effect exists at all.
-- **Predator exposure as a metric.** E001 showed a large but unpowered difference
-  (1755 vs 3075 exposure-steps). It may be a better-powered readout than hunger,
-  since it is driven by discrete costly events rather than a slow scalar. Worth
-  promoting to primary if it survives a powered test.
+- **Does the learning effect grow over a realistic rearing?** H2 is supported at 20
+  min of chicken time. A hen learns her surroundings over days, so the interesting
+  question is whether the effect compounds or plateaus. 1 day, 8 seeds, ~4 h wall
+  clock. Lower priority than H3, which is cheap and tests something the model was
+  never told.
+- ~~**Predator exposure as a metric.**~~ Retired. Uninformative in both E003 and E004
+  (SEs of 1460-2469 on means of 13-44). E001's apparent 43% difference was noise, as
+  it was flagged at the time.
 
 ---
 

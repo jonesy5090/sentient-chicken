@@ -98,20 +98,17 @@ small-sample luck, and it cleared anyway because precision improved faster than 
 estimate fell. E003 also caught a bug in the *analysis*: the harness had used a 2-SE
 threshold, which at four seeds would have called p≈0.09 a result.
 
-**Not refuted, because the test could not have refuted it** — and
-[E002](experiments/E002-can-the-pallium-reach-a-muscle.md) established why. The
-cortical readout was learning at 2e-3, at which rate `|W_out|` grew 1.00x over ten
-minutes: **the readout was frozen, so nothing the pallium learned could reach a
-muscle.** E001 was measuring a hen incapable of acting on what she had learned.
+**What the null turned out to be.** The cortical readout was learning at 2e-3, at
+which rate `|W_out|` grew 1.00x over ten minutes — frozen. E001 was measuring a hen
+incapable of acting on anything she had learned. E002 also found a ceiling that was
+not anticipated: at `eta_out=2e-1` cortical drive overwhelms the innate arc and
+behaviour gets *worse*, because a hen who overrides her reflexes with an untrained
+pallium is worse off than one who does not. The default is now 2e-2, near the
+optimum.
 
-E002 also found a ceiling that was not anticipated: at `eta_out=2e-1` cortical drive
-overwhelms the innate arc and behaviour gets *worse*, because a hen who overrides her
-reflexes with an untrained pallium is worse off than one who does not. The default is
-now 2e-2, near the optimum — cortical influence roughly half the reflex arc.
-
-**E003** reruns the E001 contrast with only that value changed. Two suspects remain
-if it does not move: synaptic scaling cancelling the learning signal, and a reward
-prediction error too small and continuous to accumulate structure.
+**Remaining scope limits.** Supported at 20 min of chicken time and for a single
+learning-rate setting. Untested: whether the effect grows over a realistic rearing
+(days), and whether it survives the growth rule (see H2a).
 
 ---
 
@@ -210,5 +207,9 @@ scalar, not a report. See `docs/ethics.md` §6.
 
 | date | change |
 |---|---|
-| phase 0 | H1, H1a recorded as SUPPORTED; tree established |
+| phase 0 | H1, H1a recorded as `SUPPORTED`; tree established |
 | phase 1 | H2 opened, experiment harness built |
+| E001 | H2 null recorded. Churn without behavioural consequence. |
+| E002 | Diagnosed the null: readout frozen. `eta_out` 2e-3 → 2e-2. |
+| E003 | Effect appeared (t=2.50), short of threshold. Analysis bug found and fixed. |
+| E004 | H2 → `SUPPORTED` (t=3.93, p≈0.002). H2a opened. Predator exposure retired. |

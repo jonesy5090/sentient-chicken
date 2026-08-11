@@ -26,9 +26,13 @@ a drifted README is itself a finding.
 ## The one rule
 
 **Built is not proven.** This project's characteristic failure is conflating "the code
-runs" with "the hypothesis is supported". Phase 1 plasticity restructures thousands of
-synapses and has no demonstrated behavioural effect; those are different facts and a
-status report that blurs them is worse than none.
+runs" with "the hypothesis is supported". Phase 1 plasticity restructured thousands of
+synapses for three experiments before any of it changed behaviour — E001 was a null
+with a busy connectome. Those are different facts and a status report that blurs them
+is worse than none.
+
+Do not use a worked example from this file as evidence of current state; it will go
+stale. Read the tree.
 
 So: every claim in section 2 is tagged as either **built** (code exists, tests pass)
 or **proven** (an experiment with a pre-registered prediction returned a result).

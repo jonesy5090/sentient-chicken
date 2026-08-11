@@ -143,9 +143,31 @@ without it.
 - Whenever a tripwire is approached.
 - Before any public demo involving translated speech.
 
-Reviewed: phase 0 complete, phase 1 in progress. Current verdict: **proceed.** The
-system is orders of magnitude below any plausible threshold, has no valence
-machinery, and the work has a legitimate Replacement argument available to it.
+**Phase 0 boundary.** Verdict: **proceed.** The system is orders of magnitude below
+any plausible threshold, has no valence machinery, and has a legitimate Replacement
+argument available to it.
+
+**Phase 1 boundary** (learning demonstrated, E004). Verdict: **proceed, unchanged.**
+
+The phase added plasticity, structural growth, and a neuromodulator. Checked against
+each tripwire:
+
+1. **Scale** — unchanged at 512 units per hen. Growth operates within a synapse
+   budget; it does not add neurons. Well clear.
+2. **Nociception** — not approached. The neuromodulator is drive reduction minus a
+   running expectation. Being caught by a predator subtracts from it, which is the
+   closest thing to an aversive signal in the model, and it is still a scalar in a
+   weight update rather than a channel whose function is to be bad. Worth naming
+   because it is the first thing built here that could *become* nociception if it
+   were given its own pathway. It has not been.
+3. **Spiking** — no. Still rate-coded at 10 ms.
+4. **Self-modelling** — no.
+5. **Persistent identity** — no. Hens are re-instantiated per run.
+6. **Translator** — not built.
+
+One thing to watch going into phase 2/3: the language work will attach signals to
+internal states, which is the machinery that makes tripwire 6 live. The caveat rule
+in §6 applies from the first translated output, not from the first published one.
 
 ---
 
