@@ -138,9 +138,7 @@ justification behind it.
 
 ## H3 — learned usage reproduces the audience effect without being programmed
 
-**Status: NOT STARTED** (phase 2/3) — **next up.** H2 clearing is what unblocks it:
-every hypothesis below this point needs a learning rule with a demonstrated
-behavioural effect, and that now exists.
+**Status: UNDER TEST** (phase 2/3) — one null recorded.
 
 Real cockerels alarm- and food-call far more readily with a hen present, graded by
 audience type (conspecific > other species > empty cage). Call *production* is innate
@@ -154,6 +152,25 @@ told about. It is the strongest available validation that the learning rule is
 capturing something real, and it is cheap — the behaviour is already measurable.
 
 **Falsifier:** calling rate independent of audience after rearing.
+
+**Evidence — [E005](experiments/E005-does-the-audience-effect-emerge.md): null.** The
+food-call effect rose in the mean (+0.032) but the between-seed spread swamps it
+(t=0.64). The alarm-call effect went *against* prediction (−0.031, t=1.43) and did so
+more consistently than the food effect went with it. The assay itself is sound: the
+fixed control is flat to three decimals in every cell.
+
+**Leading suspect — structural, same class as E002.** The kin term adds
+`kin_weight × mean(other hens' reward)`, which is nearly identical for every hen in
+the flock. For a hen to learn that *her call helped*, the modulator must move
+*because she called*; a flock average moves the same way for the silent bird beside
+her. So the reward gives the flock a reason for calls to exist and gives no
+individual a way to discover she is responsible for one — leaving the energy **cost**
+as the only component correlated with her own calling, which predicts suppression,
+which is the sign observed.
+
+**E006**: weight the kin term by audibility, so a hen's reward reflects the flockmates
+who could actually hear her. `coop/sensing.py` already computes the attenuation matrix.
+Better biology too — kin selection operates on the relatives you actually help.
 
 ---
 
@@ -213,3 +230,4 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E002 | Diagnosed the null: readout frozen. `eta_out` 2e-3 → 2e-2. |
 | E003 | Effect appeared (t=2.50), short of threshold. Analysis bug found and fixed. |
 | E004 | H2 → `SUPPORTED` (t=3.93, p≈0.002). H2a opened. Predator exposure retired. |
+| E005 | H3 null. Kin reward cannot assign credit to the caller; E006 opened. |
