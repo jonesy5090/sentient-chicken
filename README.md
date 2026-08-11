@@ -141,6 +141,10 @@ Not yet built: plasticity, structural growth, spatial memory, social hierarchy, 
 the language channel. Phase 1 is Hebbian and neuromodulated learning on the cortical
 pathway only — the reflex arc stays fixed for life, as it does in a real bird.
 
+The controlled experiment this is all building toward — whether a flock with a
+communication channel can reach a goal a capacity-matched flock without one cannot —
+is specified in [`docs/backlog.md`](docs/backlog.md).
+
 ## Sources
 
 Chicken regional neuron counts: [Frontiers in Neuroanatomy
