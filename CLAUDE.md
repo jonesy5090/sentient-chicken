@@ -12,8 +12,41 @@ real chicken's 290M neurons are in the cerebellum and optic tectum, so a simplif
 environment lets us refuse to pay for vision and motor control and spend the
 remainder on a pallium.
 
-Current state: phase 0 complete (coop, innate hen, measured envelope), phase 1 in
-progress (plasticity).
+Current state: phase 0 and phase 1 complete. `docs/hypothesis.md` is authoritative;
+`/status` will read it for you.
+
+## Why this is worth doing, and therefore what not to break
+
+This is a genuinely interesting experiment rather than a toy, and the things that
+make it interesting are specific and fragile. Each of the following looks like
+incidental complexity from inside the code, and removing any of them quietly turns
+the project back into a demo. If you find yourself simplifying one, stop.
+
+**The natural baseline is real and unusually strong.** Chickens have functionally
+referential alarm calls — aerial and terrestrial threats drive different calls with
+different appropriate responses — and they are vocal *non-learners*, so production is
+innate while usage and comprehension are learned. That gives every phase a published
+result to be checked against rather than a vibe. It is why `hen/innate.py` hardwires
+call production and deliberately omits the audience effect.
+
+**The head-down gate is the whole thesis in one line.** `coop/sensing.py` zeroes the
+aerial channel when the hen is pecking. Communication only pays when the receiver
+lacks something the sender has, so without that asymmetry no signal is ever worth
+making, at any brain size. It reads like an odd sensory quirk. It is the load-bearing
+wall. Measured at 0.01 vs 0.87 aerial signal in the same bird seconds apart.
+
+**The control design is what makes the result falsifiable.** The headline comparison
+is an intact channel against a *shuffled* one — identical brain, identical bandwidth,
+zero information — plus a lesion of a trained flock. Anything less rigorous cannot
+distinguish "language helps" from "more neurons help". `docs/backlog.md` §1 is not
+bureaucracy; it is the experiment.
+
+**The negative results are assets.** E001 is a null and it is the most useful file in
+`docs/experiments/`. E002 found a ceiling nobody predicted. E003 caught a bug in our
+own statistics. E004 found that structural growth *hurts*. A version of this project
+that reports only its successes would be worth much less.
+
+**The ethics question is live, not ceremonial.** See below.
 
 ## Two standing responsibilities
 
