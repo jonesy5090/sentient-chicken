@@ -98,9 +98,11 @@ to the sky, and dependent on a flockmate who is not.
 ```bash
 pip install -r requirements.txt
 
-python -m bench.envelope --sweep     # measure your machine, size the brain
-python -m run.probes                 # neonatal ethogram, 7 assays
-python -m run.lifetime --minutes 60  # rear the flock, watch the drives cycle
+python -m bench.envelope --sweep            # measure your machine, size the brain
+python -m run.probes                        # neonatal ethogram, 7 assays
+python -m run.lifetime --minutes 60          # rear a fixed, innate flock
+python -m run.lifetime --minutes 60 --plastic  # ...with learning on
+python -m run.experiment --minutes 30 --seeds 4  # matched-seed A/B between conditions
 python -m pytest tests/ -q
 ```
 
@@ -116,10 +118,16 @@ hen/     regions.py    region sizes, time constants, connectivity priors
          neurons.py    continuous-time rate units
          innate.py     the fixed reflex arc: what a chick is born knowing
          brain.py      assembly, reflex + cortical pathways
+         plasticity.py three-factor learning, structural growth
 run/     simulate.py   the closed loop, world and brain in one compiled scan
          probes.py     neonatal ethogram assays
          lifetime.py   developmental runs
+         experiment.py matched-seed contrasts between conditions
 bench/   envelope.py   measure the machine, print affordable brain sizes
+docs/    hypothesis.md the hypothesis tree -- start here
+         backlog.md    proposed work, not started
+         ethics.md     moral standing, tripwires, review cadence
+         experiments/  one file per experiment, from TEMPLATE.md
 ```
 
 Two design decisions are load-bearing and expensive to reverse:
@@ -135,15 +143,32 @@ recompilation.
 
 ## Status
 
-Phase 0 complete: 7/7 ethogram assays, 19/19 tests.
+**Phase 0 complete**: 7/7 ethogram assays. **Phase 1 built, not yet working**: 32/32
+tests, but the learning rule has no demonstrated behavioural effect.
 
-Not yet built: plasticity, structural growth, spatial memory, social hierarchy, and
-the language channel. Phase 1 is Hebbian and neuromodulated learning on the cortical
-pathway only — the reflex arc stays fixed for life, as it does in a real bird.
+Three-factor plasticity (`hen/plasticity.py`) runs, obeys Dale's law, grows and prunes
+synapses within anatomical constraints, and leaves the reflex arc untouched. What it
+does not yet do is make a measurable difference to behaviour —
+[E001](docs/experiments/E001-does-plasticity-help.md) returned a null, with both
+learning conditions inside 1 SE of the fixed control. Churn is not learning, and the
+hypothesis tree records it as such.
 
-The controlled experiment this is all building toward — whether a flock with a
-communication channel can reach a goal a capacity-matched flock without one cannot —
-is specified in [`docs/backlog.md`](docs/backlog.md).
+Next: check whether the cortical pathway ever gains enough influence over motor
+output for pallial learning to reach behaviour at all. That is diagnosable in minutes
+and is a more likely culprit than run length.
+
+Not yet built: spatial memory, social hierarchy, the language channel.
+
+The experiment this is all building toward — whether a flock with a communication
+channel can reach a goal a capacity-matched flock without one cannot — is specified
+in [`docs/backlog.md`](docs/backlog.md). The standing hypothesis tree is
+[`docs/hypothesis.md`](docs/hypothesis.md); every experiment names a parent node
+there and every result comes back to change one.
+
+Whether any of this is morally acceptable — the model is a representation of a living
+animal, and the headline experiment poisons some of them on purpose — is argued in
+[`docs/ethics.md`](docs/ethics.md), along with six concrete tripwires that would stop
+the work.
 
 ## Sources
 

@@ -37,7 +37,7 @@ def measure(reg: regions.Regions, cfg: CoopConfig, n_steps: int = 400,
     x = brain.initial_state(p, cfg.n_hens)
 
     # Compile and warm up outside the timed region.
-    w2, x2, k2 = simulate.rollout_quiet(w, x, p, key, cfg, n_steps)
+    w2, x2, *_ = simulate.rollout_quiet(w, x, p, key, cfg, n_steps)
     jax.block_until_ready((w2.pos, x2))
 
     best = float("inf")

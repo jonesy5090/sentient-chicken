@@ -177,13 +177,37 @@ Worth writing down now, while it is still cheap to be honest:
 
 ## 7. Order of work
 
-1. Phase 1 plasticity (prerequisite -- none of this is testable without learning).
+1. **Phase 1 plasticity — built, not yet working.** The rule runs and restructures the
+   connectome but has no demonstrated behavioural effect
+   ([E001](experiments/E001-does-plasticity-help.md) is a null). Nothing below is
+   testable until this is fixed, so it blocks everything.
 2. Condition harness: the six-way ladder as a config, sharing one simulation path.
+   `run/experiment.py` has the matched-seed skeleton; it currently knows three
+   conditions, not six.
 3. T1 shared vigilance — validates the harness against a known biological effect.
 4. Rotation-period sweep to locate the social-learning band.
 5. T2 poisoned feeder — the headline experiment.
 6. Playback and lesion assays.
 7. T3 safe corridor.
+
+## 8. Open items from experiments
+
+From [E001](experiments/E001-does-plasticity-help.md):
+
+- **Does the cortical pathway ever influence behaviour?** Measure the ratio of
+  cortical to reflex drive at the motor output across a run. The readout starts at
+  0.05 scale; if it never grows, no amount of pallial learning can reach a muscle and
+  the run length is irrelevant. Cheap to check and the most likely culprit — **do
+  this before E002.**
+- **Is synaptic scaling cancelling the learning signal?** It pulls row sums back
+  toward innate values at every consolidation. Ablate it and compare weight drift.
+- **E002**: rerun the phase 1 contrast at 1 day of chicken time with 8 seeds,
+  pre-registered on both hunger and predator exposure. ~4 h wall clock. Only worth
+  running after the two diagnostics above.
+- **Predator exposure as a metric.** E001 showed a large but unpowered difference
+  (1755 vs 3075 exposure-steps). It may be a better-powered readout than hunger,
+  since it is driven by discrete costly events rather than a slow scalar. Worth
+  promoting to primary if it survives a powered test.
 
 ---
 

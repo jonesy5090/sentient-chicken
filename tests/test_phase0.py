@@ -92,7 +92,7 @@ def test_reset_seeds_differ():
 def test_long_run_stays_finite(flock):
     """Ten minutes of chicken time with no drift, saturation or NaN."""
     w, x, p = flock
-    w2, x2, _ = simulate.rollout_quiet(w, x, p, jax.random.key(3), CFG, 60_000)
+    w2, x2, *_ = simulate.rollout_quiet(w, x, p, jax.random.key(3), CFG, 60_000)
     assert bool(jnp.all(jnp.isfinite(x2)))
     assert float(jnp.max(jnp.abs(x2))) < 50.0
     assert bool(jnp.all(jnp.isfinite(w2.pos)))
@@ -101,7 +101,7 @@ def test_long_run_stays_finite(flock):
 
 def test_hens_stay_inside_the_run(flock):
     w, x, p = flock
-    w2, _, _ = simulate.rollout_quiet(w, x, p, jax.random.key(4), CFG, 5_000)
+    w2, *_ = simulate.rollout_quiet(w, x, p, jax.random.key(4), CFG, 5_000)
     assert float(jnp.min(w2.pos)) >= 0.0
     assert float(jnp.max(w2.pos)) <= CFG.size
 

@@ -17,7 +17,7 @@ import jax
 import jax.numpy as jnp
 
 from coop import spec, world
-from hen import brain, connectome, regions
+from hen import brain, connectome, plasticity, regions
 from run import simulate
 
 
@@ -30,10 +30,16 @@ def main() -> None:
                     help="seconds of biological time per reported row")
     ap.add_argument("--hens", type=int, default=spec.DEFAULT_COOP.n_hens)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--plastic", action="store_true",
+                    help="enable phase 1 learning (default: a fixed, innate hen)")
+    ap.add_argument("--no-growth", action="store_true",
+                    help="learning without structural growth")
     args = ap.parse_args()
 
     seconds = args.days * 86400.0 if args.days else args.minutes * 60.0
     cfg = spec.DEFAULT_COOP._replace(n_hens=args.hens)
+    pc = plasticity.PlasticConfig(enabled=args.plastic,
+                                  growth_enabled=not args.no_growth)
 
     key = jax.random.key(args.seed)
     w = world.reset(key, cfg)
@@ -48,14 +54,14 @@ def main() -> None:
           f"({int(seconds / cfg.dt):,} steps)\n")
 
     t0 = time.perf_counter()
-    w_end, x_end, _k, s = simulate.simulate(
-        w, x, p, jax.random.fold_in(key, 2), cfg, seconds, args.chunk)
+    w_end, x_end, p_end, _ps, _k, s = simulate.simulate(
+        w, x, p, jax.random.fold_in(key, 2), cfg, seconds, args.chunk, pc)
     jax.block_until_ready(w_end.pos)
     wall = time.perf_counter() - t0
 
     hdr = (f"{'t (min)':>8} {'hunger':>7} {'cold':>6} {'head-down':>10} "
            f"{'contact':>8} {'food':>6} {'aerial':>7} {'ground':>7} "
-           f"{'fed':>7} {'struck':>7}")
+           f"{'fed':>8} {'struck':>7} {'reward':>8} {'synapses':>9}")
     print(hdr)
     print("-" * len(hdr))
     n = len(s.t_s)
@@ -64,7 +70,14 @@ def main() -> None:
               f"{float(s.cold[i]):>6.2f} {float(s.head_down[i]):>10.2f} "
               f"{float(s.calls[i, 0]):>8.2f} {float(s.calls[i, 1]):>6.2f} "
               f"{float(s.calls[i, 2]):>7.2f} {float(s.calls[i, 3]):>7.2f} "
-              f"{float(s.fed[i]):>7.0f} {float(s.struck[i]):>7.0f}")
+              f"{float(s.fed[i]):>8.0f} {float(s.struck[i]):>7.0f} "
+              f"{float(s.reward[i]):>8.3f} {float(s.synapses[i]):>9.0f}")
+
+    if args.plastic:
+        d = plasticity.divergence_from_genome(p_end)
+        print(f"\nconnectome drift: {float(d['grown'].mean()):.0f} synapses grown, "
+              f"{float(d['pruned'].mean()):.0f} pruned "
+              f"(from {int(jnp.sum(p.mask)):,} innate)")
 
     print(f"\nwall clock      : {wall:.1f} s")
     print(f"real-time factor: {seconds / wall:.0f}x")

@@ -25,7 +25,8 @@ from hen.regions import Regions
 
 class BrainParams(NamedTuple):
     W: jax.Array          # (H, N, N) recurrent weights, Dale-signed and masked
-    mask: jax.Array       # (N, N) bool -- genetic; phase 1 grows into it
+    mask: jax.Array       # (N, N) bool -- the innate connectome, kept as a reference
+    growable: jax.Array   # (N, N) bool -- where an axon could ever reach
     W_in: jax.Array       # (N, OBS_DIM) sensory afferents (shared, fixed)
     W_out: jax.Array      # (H, MOTOR_DIM, n_motor) cortical motor readout
     b: jax.Array          # (N,) resting bias
@@ -59,6 +60,11 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     mask = jax.random.uniform(k_mask, (n, n)) < jnp.asarray(p_ij)
     mask = mask & ~jnp.eye(n, dtype=bool)                    # no autapses
 
+    # Where a synapse could ever appear. Phase 1 growth is confined to this: axons
+    # only reach regions their tract projects to, so a hypothalamic neuron cannot
+    # sprout onto the sensory stub however well correlated the two happen to be.
+    growable = jnp.asarray(p_ij > 0.0) & ~jnp.eye(n, dtype=bool)
+
     # --- Dale's law: a neuron's outgoing weights all share its sign ---
     n_exc = int(round(regions.EXCITATORY_FRACTION * n))
     dale = jnp.asarray(np.where(np.arange(n) < n_exc, 1.0, -1.0), dtype=jnp.float32)
@@ -91,6 +97,7 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     return BrainParams(
         W=w,
         mask=mask,
+        growable=growable,
         W_in=jnp.asarray(w_in),
         W_out=w_out,
         b=jnp.full((n,), -2.0),

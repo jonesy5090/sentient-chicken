@@ -1,4 +1,4 @@
-"""The closed loop: world -> senses -> brain -> motor -> world.
+"""The closed loop: world -> senses -> brain -> motor -> world, with learning.
 
 Everything runs inside a single `jax.lax.scan`, world included. That is the most
 consequential performance decision in the project: a NumPy environment driving a JAX
@@ -7,9 +7,13 @@ magnitude. The JAX RL environments (XLand-MiniGrid, Craftax, Navix) reach millio
 steps per second precisely by refusing to leave the accelerator, and the same applies
 on CPU, where the win comes from XLA fusing the whole step into one kernel chain.
 
+Weights live in the scan carry, so a rollout returns a *changed hen*. Plasticity is
+switched by a static config field, which means the non-plastic control conditions
+compile to a loop with no learning code in it at all rather than one that multiplies
+by zero -- the control is genuinely a different program, not a disabled branch.
+
 Long runs are chunked so that a 30-day rearing does not try to materialise a trace
-with 260 million entries. Per-chunk summaries give a time series at whatever
-resolution `chunk_s` sets.
+with 260 million entries.
 """
 
 from functools import partial
@@ -20,7 +24,10 @@ import jax.numpy as jnp
 
 from coop import sensing, spec, world
 from coop.spec import CoopConfig
-from hen import brain
+from hen import brain, neurons, plasticity
+from hen.plasticity import PlasticConfig
+
+NO_PLASTICITY = PlasticConfig(enabled=False)
 
 
 class Trace(NamedTuple):
@@ -40,40 +47,77 @@ class Summary(NamedTuple):
     head_down: jax.Array    # (C,) fraction of time with the beak down
     struck: jax.Array       # (C,) cumulative predator contacts, flock total
     fed: jax.Array
+    reward: jax.Array       # (C,) mean neuromodulator input
+    synapses: jax.Array     # (C,) mean live synapses per hen
 
 
-def _one_step(carry, _, p, cfg):
-    w, x, key = carry
-    key, k = jax.random.split(key)
+def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
+    w, x, p, ps, key = carry
+    key, k_world, k_grow = jax.random.split(key, 3)
+
     obs = sensing.observe(w, cfg)
     x, motor = brain.step(x, obs, p, cfg.dt)
-    w = world.step(w, motor, k, cfg)
-    return (w, x, key), (motor, obs)
+    w_next = world.step(w, motor, k_world, cfg)
+
+    if not pc.enabled:
+        return (w_next, x, p, ps, key), (motor, obs, jnp.zeros(()))
+
+    r = neurons.rate(x)
+    reward = plasticity.reward(w, w_next, cfg, pc)
+    ps = plasticity.update_traces(ps, r, motor, reward, cfg, pc)
+
+    # Reward prediction error: what just happened, minus what she had come to expect.
+    m = reward - ps.baseline
+
+    p = jax.lax.cond(
+        w_next.t % pc.interval == 0,
+        lambda: plasticity.consolidate(p, ps, m, pc),
+        lambda: p)
+
+    if pc.growth_enabled:
+        p = jax.lax.cond(
+            w_next.t % pc.growth_interval == 0,
+            lambda: plasticity.restructure(p, ps, k_grow, pc),
+            lambda: p)
+
+    return (w_next, x, p, ps, key), (motor, obs, jnp.mean(reward))
 
 
-@partial(jax.jit, static_argnames=("cfg", "n_steps"))
-def rollout(w, x, p, key, cfg: CoopConfig, n_steps: int):
+@partial(jax.jit, static_argnames=("cfg", "pc", "n_steps"))
+def rollout(w, x, p, key, cfg: CoopConfig, n_steps: int,
+            ps=None, pc: PlasticConfig = NO_PLASTICITY):
     """Short run with a full per-step trace. Use for probes, not for lifetimes."""
-    (w, x, key), (motor, obs) = jax.lax.scan(
-        partial(_one_step, p=p, cfg=cfg), (w, x, key), None, length=n_steps)
-    return w, x, key, Trace(motor=motor, obs=obs)
+    if ps is None:
+        ps = plasticity.initial_state(p, w.pos.shape[0], pc)
+    (w, x, p, ps, key), (motor, obs, _) = jax.lax.scan(
+        partial(_one_step, cfg=cfg, pc=pc), (w, x, p, ps, key),
+        None, length=n_steps)
+    return w, x, p, ps, key, Trace(motor=motor, obs=obs)
 
 
-@partial(jax.jit, static_argnames=("cfg", "n_steps"))
-def rollout_quiet(w, x, p, key, cfg: CoopConfig, n_steps: int):
+@partial(jax.jit, static_argnames=("cfg", "pc", "n_steps"))
+def rollout_quiet(w, x, p, key, cfg: CoopConfig, n_steps: int,
+                  ps=None, pc: PlasticConfig = NO_PLASTICITY):
     """Same dynamics, no trace retained. This is what the benchmark times."""
+    if ps is None:
+        ps = plasticity.initial_state(p, w.pos.shape[0], pc)
+
     def body(carry, _):
-        carry, _out = _one_step(carry, None, p, cfg)
+        carry, _out = _one_step(carry, None, cfg, pc)
         return carry, None
-    (w, x, key), _ = jax.lax.scan(body, (w, x, key), None, length=n_steps)
-    return w, x, key
+
+    (w, x, p, ps, key), _ = jax.lax.scan(
+        body, (w, x, p, ps, key), None, length=n_steps)
+    return w, x, p, ps, key
 
 
-@partial(jax.jit, static_argnames=("cfg", "n_chunks", "chunk_steps"))
-def _chunked(w, x, p, key, cfg: CoopConfig, n_chunks: int, chunk_steps: int):
+@partial(jax.jit, static_argnames=("cfg", "pc", "n_chunks", "chunk_steps"))
+def _chunked(w, x, p, ps, key, cfg: CoopConfig, pc: PlasticConfig,
+             n_chunks: int, chunk_steps: int):
     def chunk(carry, _):
-        (w, x, key), (motor, obs) = jax.lax.scan(
-            partial(_one_step, p=p, cfg=cfg), carry, None, length=chunk_steps)
+        carry, (motor, _obs, reward) = jax.lax.scan(
+            partial(_one_step, cfg=cfg, pc=pc), carry, None, length=chunk_steps)
+        w, _x, p, _ps, _k = carry
         s = Summary(
             t_s=w.t.astype(jnp.float32) * cfg.dt,
             motor=jnp.mean(motor, axis=(0, 1)),
@@ -85,14 +129,20 @@ def _chunked(w, x, p, key, cfg: CoopConfig, n_chunks: int, chunk_steps: int):
                 motor[:, :, list(spec.HEAD_DOWN_ACTIONS)], axis=-1)),
             struck=jnp.sum(w.n_struck),
             fed=jnp.sum(w.n_fed),
+            reward=jnp.mean(reward),
+            synapses=jnp.mean(jnp.sum(p.W != 0.0, axis=(1, 2))),
         )
-        return (w, x, key), s
-    return jax.lax.scan(chunk, (w, x, key), None, length=n_chunks)
+        return carry, s
+    return jax.lax.scan(chunk, (w, x, p, ps, key), None, length=n_chunks)
 
 
-def simulate(w, x, p, key, cfg: CoopConfig, seconds: float, chunk_s: float = 60.0):
+def simulate(w, x, p, key, cfg: CoopConfig, seconds: float, chunk_s: float = 60.0,
+             pc: PlasticConfig = NO_PLASTICITY, ps=None):
     """Run for `seconds` of biological time, summarising every `chunk_s`."""
+    if ps is None:
+        ps = plasticity.initial_state(p, w.pos.shape[0], pc)
     chunk_steps = max(1, int(round(chunk_s / cfg.dt)))
     n_chunks = max(1, int(round(seconds / chunk_s)))
-    (w, x, key), summary = _chunked(w, x, p, key, cfg, n_chunks, chunk_steps)
-    return w, x, key, summary
+    (w, x, p, ps, key), summary = _chunked(
+        w, x, p, ps, key, cfg, pc, n_chunks, chunk_steps)
+    return w, x, p, ps, key, summary

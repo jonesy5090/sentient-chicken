@@ -76,7 +76,7 @@ def _staged(cfg: CoopConfig, *, pos, heading, food=None, water=None,
 def _run(cfg: CoopConfig, w, steps: int = 120):
     p = _connectome(cfg.n_hens)
     x = brain.initial_state(p, cfg.n_hens)
-    w_end, _x, _k, trace = simulate.rollout(
+    w_end, _x, _p, _ps, _k, trace = simulate.rollout(
         w, x, p, jax.random.key(7), cfg, steps)
     return w_end, trace
 
