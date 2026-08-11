@@ -63,7 +63,8 @@ of the time.
 
 ## H2 — three-factor plasticity produces measurable behavioural improvement
 
-**Status: UNDER TEST** (phase 1)
+**Status: SUPPORTED** (phase 1) — *for learning without structural growth, at 20 min
+of chicken time.* Growth is explicitly not supported; see H2a.
 
 **Prediction:** a flock learning under a reward-prediction-error rule regulates its
 drives better over a rearing run than a genome-matched, coop-matched flock that
@@ -86,14 +87,16 @@ only that fixed, and the effect tripled — mean hunger now *falls* across a run
 (0.321 → 0.295) where the fixed control *rises* (0.306 → 0.370), with feeding rate up
 from 5.2% to 6.5% of timesteps.
 
-**It still has not cleared significance.** t=2.50 against a threshold of 3.18 at n=4
-(p≈0.09). E003 also found and fixed a bug in the *analysis*: the harness had been
-using a 2-SE threshold, which at four seeds would have called this a result. Needs
-replication at 12 seeds — cheap, and the next step.
+**[E004](experiments/E004-replication-at-twelve-seeds.md) settles it at twelve seeds:
+−0.063 ± 0.016 SE, t=3.93 against a 2.23 threshold, p≈0.002.** Both pre-registered
+predictions held. The learning hen feeds on 7.4% of timesteps against the control's
+6.3%.
 
-**Structural growth is the weaker condition in both runs** (t=0.77 vs t=2.50) and
-ends with nearly twice the synapses. Continuous rewiring may be destabilising what is
-learned. This inverts the naive expectation and needs its own experiment.
+The effect size shrank 30% from E003's four-seed estimate (−0.090 → −0.063), which
+the pre-registration had flagged as a possibility — E003's estimate *was* inflated by
+small-sample luck, and it cleared anyway because precision improved faster than the
+estimate fell. E003 also caught a bug in the *analysis*: the harness had used a 2-SE
+threshold, which at four seeds would have called p≈0.09 a result.
 
 **Not refuted, because the test could not have refuted it** — and
 [E002](experiments/E002-can-the-pallium-reach-a-muscle.md) established why. The
@@ -112,9 +115,35 @@ prediction error too small and continuous to accumulate structure.
 
 ---
 
+## H2a — does structural growth *hurt* learning?
+
+**Status: NOT STARTED** — opened by E004, and it inverts the design's expectation.
+
+Growth was the weaker condition in all three runs of the phase 1 contrast (E001
+t=1.00 vs 0.78; E003 0.77 vs 2.50; E004 1.75 vs 3.93), and E004 attached a cost to
+it: the no-growth hen reaches significance with **21,148 synapses**, having pruned
+42% of her innate connectome, while the growth hen ends with **40,753** and does not
+clear.
+
+**Prediction:** the growth rule adds synapses on coactivity, which is orthogonal to
+whether those synapses help, so continuous rewiring destabilises what has been
+learned. Behavioural improvement should fall monotonically with growth rate above
+some small optimum.
+
+**Falsifier:** a growth-rate sweep showing a flat or rising relationship, which would
+make the three-run ordering a coincidence of the on/off contrast.
+
+**Note:** the default stays `growth_enabled=True` until this is settled. Three runs
+of a binary contrast is not enough to overturn a default with a biological
+justification behind it.
+
+---
+
 ## H3 — learned usage reproduces the audience effect without being programmed
 
-**Status: NOT STARTED** (phase 2/3)
+**Status: NOT STARTED** (phase 2/3) — **next up.** H2 clearing is what unblocks it:
+every hypothesis below this point needs a learning rule with a demonstrated
+behavioural effect, and that now exists.
 
 Real cockerels alarm- and food-call far more readily with a hen present, graded by
 audience type (conspecific > other species > empty cage). Call *production* is innate

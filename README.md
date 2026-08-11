@@ -147,25 +147,32 @@ recompilation.
 
 ## Status
 
-**Phase 0 complete**: 7/7 ethogram assays. **Phase 1 learning: positive but not yet
-significant.** 32/32 tests.
+**Phase 0 complete**: 7/7 ethogram assays. **Phase 1 complete**: learning has a
+demonstrated behavioural effect. 32/32 tests.
 
-A hen that learns now regulates herself better than a genome-matched, coop-matched hen
-that cannot: mean hunger *falls* across a run (0.321 → 0.295) where the fixed control
-*rises* (0.306 → 0.370), with feeding rate up from 5.2% to 6.5% of timesteps. That
-took three experiments — a null ([E001](docs/experiments/E001-does-plasticity-help.md)),
-a diagnostic that found the cortical readout frozen so nothing the pallium learned
-could reach a muscle ([E002](docs/experiments/E002-can-the-pallium-reach-a-muscle.md)),
-and a rerun with only that fixed ([E003](docs/experiments/E003-does-the-fixed-readout-rescue-learning.md)).
+A hen who learns regulates her drives measurably better than a genome-matched,
+coop-matched hen who cannot. Mean hunger *falls* across a run (0.308 → 0.272) where
+the fixed control's *rises* (0.303 → 0.330), and she feeds on 7.4% of timesteps
+against the control's 6.3%. Twelve matched seeds: **−0.063 ± 0.016 SE, t=3.93 against
+a 2.23 threshold, p≈0.002**
+([E004](docs/experiments/E004-replication-at-twelve-seeds.md), pre-registered).
 
-**It has not cleared significance** — t=2.50 against a 3.18 threshold at four seeds,
-p≈0.09. E003 also caught a bug in the analysis rather than the simulation: the harness
-had been using a 2-SE threshold, which at n=4 would have manufactured a result.
-Replication at 12 seeds is the next step.
+That took four experiments and the route is worth reading, because three of them were
+about being wrong:
 
-An unanticipated finding: **structural growth is the weaker condition in both runs**,
-ending with nearly twice the synapses. Continuous rewiring may be destabilising what
-is learned, which inverts the naive expectation that more plasticity is better.
+| | |
+|---|---|
+| [E001](docs/experiments/E001-does-plasticity-help.md) | Null. Thousands of synapses rewiring, no behavioural effect. |
+| [E002](docs/experiments/E002-can-the-pallium-reach-a-muscle.md) | Found why: the cortical readout was frozen, so nothing the pallium learned could reach a muscle. Also found a *ceiling* — too much cortical influence makes behaviour worse, because a hen who overrides her reflexes with an untrained pallium is worse off than one who doesn't. |
+| [E003](docs/experiments/E003-does-the-fixed-readout-rescue-learning.md) | Effect appeared, t=2.50. Not significant — and caught a bug in the *analysis*: a 2-SE threshold that at four seeds would have manufactured a result. |
+| [E004](docs/experiments/E004-replication-at-twelve-seeds.md) | Replication at twelve seeds. Clears. Effect size shrank 30% from E003, exactly as the pre-registration warned it might. |
+
+**An unanticipated finding.** Structural growth was the weaker condition in all three
+runs, and now has a cost attached: the no-growth hen reaches significance with
+**21,148 synapses**, having pruned 42% of her innate connectome, while the growth hen
+ends with **40,753** and does not clear. Continuous rewiring may be destabilising what
+is learned — which inverts the expectation that more plasticity is better. Opened as
+H2a; the default is left on until a growth-*rate* sweep settles it properly.
 
 Not yet built: spatial memory, social hierarchy, the language channel.
 

@@ -177,10 +177,9 @@ Worth writing down now, while it is still cheap to be honest:
 
 ## 7. Order of work
 
-1. **Phase 1 plasticity — built, not yet working.** The rule runs and restructures the
-   connectome but has no demonstrated behavioural effect
-   ([E001](experiments/E001-does-plasticity-help.md) is a null). Nothing below is
-   testable until this is fixed, so it blocks everything.
+1. ~~**Phase 1 plasticity**~~ — **done.** Learning has a demonstrated behavioural
+   effect ([E004](experiments/E004-replication-at-twelve-seeds.md): t=3.93, p≈0.002).
+   This was the prerequisite for everything below it.
 2. Condition harness: the six-way ladder as a config, sharing one simulation path.
    `run/experiment.py` has the matched-seed skeleton; it currently knows three
    conditions, not six.
@@ -196,9 +195,12 @@ Worth writing down now, while it is still cheap to be honest:
   [E002](experiments/E002-can-the-pallium-reach-a-muscle.md):** it does, but only
   once the readout can learn. At the E001 setting `|W_out|` grew 1.00x — frozen.
   `eta_out` raised 2e-3 → 2e-2.
-- **Is synaptic scaling cancelling the learning signal?** It pulls row sums back
-  toward innate values at every consolidation. Ablate it and compare weight drift.
-  Still open; second suspect if E003 does not move.
+- ~~**Is synaptic scaling cancelling the learning signal?**~~ Moot — E003/E004 found
+  the effect once the readout could learn, so scaling was not the blocker.
+- **H2a: does structural growth hurt learning?** Weaker in all three runs of the
+  contrast, and E004 attached a cost: no-growth reaches significance with 21,148
+  synapses (pruning 42% of the innate connectome) while growth ends with 40,753 and
+  does not clear. Needs a growth-*rate* sweep, not another on/off contrast.
 - **The innate/learned control balance is a parameter worth studying, not tuning.**
   E002 found that too much cortical influence makes behaviour *worse* — an untrained
   pallium overriding good reflexes. There is an optimum, and it plausibly maps onto
