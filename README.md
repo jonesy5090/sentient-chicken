@@ -3,10 +3,14 @@
 A neural model of a hen in a coop, built to find out what happens when you give the
 bird language.
 
-This is **phase 0**: the coop, a measured performance envelope, and a hen that is
-convincingly newly hatched — reflexive, stupid, and not yet learning anything.
-Nothing here is plastic. That is the point: you cannot tell whether an animal has
-learned something without first knowing exactly what it was born with.
+**Phase 0** built the coop, a measured performance envelope, and a hen that is
+convincingly newly hatched — reflexive, stupid, and born knowing only a fixed set of
+reflexes. **Phase 1** adds learning on top of that, without touching it: you cannot
+tell whether an animal has learned something without first knowing exactly what it
+was born with.
+
+See [Status](#status) for what has actually been *proven*, which is less than what
+has been built.
 
 ## The premise, and its honest form
 
