@@ -116,8 +116,25 @@ def main() -> None:
     _report(table, "predator exposure", lambda v: v["struck"], seeds)
 
     print("\nnegative = better (drives regulated, or less time exposed to predators)")
-    print("effects within 2 SE are noise -- say so rather than reading the sign")
+    print(f"threshold is the two-tailed t at p=0.05 with {len(seeds) - 1} df "
+          f"({_t_critical(len(seeds) - 1):.2f}), not 2 SE -- "
+          f"read 'suggestive' as 'run more seeds', not as a result")
     print(f"wall clock: {time.perf_counter() - t0:.0f} s")
+
+
+# Two-tailed t critical values at p=0.05, indexed by degrees of freedom.
+# At the seed counts this project can afford, "exceeds 2 SE" is far too lenient --
+# with 4 seeds (3 df) the threshold is 3.18, not 2. Using 2 SE at n=4 would call
+# p=0.09 a result.
+_T_CRIT = {1: 12.71, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447,
+           7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228, 12: 2.179, 15: 2.131,
+           20: 2.086, 30: 2.042}
+
+
+def _t_critical(df: int) -> float:
+    if df in _T_CRIT:
+        return _T_CRIT[df]
+    return 1.96 if df > 30 else _T_CRIT[min(_T_CRIT, key=lambda k: abs(k - df))]
 
 
 def _report(table: dict, label: str, pick, seeds) -> None:
@@ -127,17 +144,25 @@ def _report(table: dict, label: str, pick, seeds) -> None:
     arrivals, so the per-seed difference cancels most of the between-coop variance.
     """
     control = pick(table[PHASE1[0].name])
+    n = len(seeds)
     for cond in PHASE1[1:]:
         delta = pick(table[cond.name]) - control
         mean = float(jnp.mean(delta))
-        if len(seeds) > 1:
-            se = float(jnp.std(delta, ddof=1)) / (len(seeds) ** 0.5)
-            verdict = "better" if mean < 0 else "worse"
-            sig = "  <-- exceeds 2 SE" if abs(mean) > 2 * se else "  (within noise)"
-            print(f"{label:<18} {cond.name:<22} {mean:+.3f} +/- {se:.3f} SE "
-                  f"{verdict}{sig}")
-        else:
+        if n < 2:
             print(f"{label:<18} {cond.name:<22} {mean:+.3f} (single seed)")
+            continue
+        se = float(jnp.std(delta, ddof=1)) / (n ** 0.5)
+        t = abs(mean) / (se + 1e-12)
+        crit = _t_critical(n - 1)
+        verdict = "better" if mean < 0 else "worse"
+        if t > crit:
+            flag = f"  SIGNIFICANT (t={t:.2f} > {crit:.2f})"
+        elif t > 1.0:
+            flag = f"  suggestive only (t={t:.2f}, need {crit:.2f})"
+        else:
+            flag = f"  noise (t={t:.2f})"
+        print(f"{label:<18} {cond.name:<22} {mean:+.3f} +/- {se:.3f} SE "
+              f"{verdict}{flag}")
 
 
 if __name__ == "__main__":

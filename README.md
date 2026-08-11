@@ -143,19 +143,25 @@ recompilation.
 
 ## Status
 
-**Phase 0 complete**: 7/7 ethogram assays. **Phase 1 built, not yet working**: 32/32
-tests, but the learning rule has no demonstrated behavioural effect.
+**Phase 0 complete**: 7/7 ethogram assays. **Phase 1 learning: positive but not yet
+significant.** 32/32 tests.
 
-Three-factor plasticity (`hen/plasticity.py`) runs, obeys Dale's law, grows and prunes
-synapses within anatomical constraints, and leaves the reflex arc untouched. What it
-does not yet do is make a measurable difference to behaviour —
-[E001](docs/experiments/E001-does-plasticity-help.md) returned a null, with both
-learning conditions inside 1 SE of the fixed control. Churn is not learning, and the
-hypothesis tree records it as such.
+A hen that learns now regulates herself better than a genome-matched, coop-matched hen
+that cannot: mean hunger *falls* across a run (0.321 → 0.295) where the fixed control
+*rises* (0.306 → 0.370), with feeding rate up from 5.2% to 6.5% of timesteps. That
+took three experiments — a null ([E001](docs/experiments/E001-does-plasticity-help.md)),
+a diagnostic that found the cortical readout frozen so nothing the pallium learned
+could reach a muscle ([E002](docs/experiments/E002-can-the-pallium-reach-a-muscle.md)),
+and a rerun with only that fixed ([E003](docs/experiments/E003-does-the-fixed-readout-rescue-learning.md)).
 
-Next: check whether the cortical pathway ever gains enough influence over motor
-output for pallial learning to reach behaviour at all. That is diagnosable in minutes
-and is a more likely culprit than run length.
+**It has not cleared significance** — t=2.50 against a 3.18 threshold at four seeds,
+p≈0.09. E003 also caught a bug in the analysis rather than the simulation: the harness
+had been using a 2-SE threshold, which at n=4 would have manufactured a result.
+Replication at 12 seeds is the next step.
+
+An unanticipated finding: **structural growth is the weaker condition in both runs**,
+ending with nearly twice the synapses. Continuous rewiring may be destabilising what
+is learned, which inverts the naive expectation that more plasticity is better.
 
 Not yet built: spatial memory, social hierarchy, the language channel.
 
@@ -164,6 +170,13 @@ channel can reach a goal a capacity-matched flock without one cannot — is spec
 in [`docs/backlog.md`](docs/backlog.md). The standing hypothesis tree is
 [`docs/hypothesis.md`](docs/hypothesis.md); every experiment names a parent node
 there and every result comes back to change one.
+
+**For a current status**, run the `status` skill (`/status`), which answers three
+standing questions from the docs: what we are trying to achieve, what has been built
+versus what has actually been *proven*, and what is next. That distinction is the
+whole point — this project has thousands of synapses restructuring themselves with no
+demonstrated behavioural effect, and a status report that blurs the two is worse than
+none.
 
 Whether any of this is morally acceptable — the model is a representation of a living
 animal, and the headline experiment poisons some of them on purpose — is argued in

@@ -11,11 +11,25 @@ to contribute yet. Learning, when it arrives in phase 1, will act only on the
 cortical pathway; the reflex arc stays fixed for life, as it does in a real bird.
 """
 
+from typing import NamedTuple
+
 import jax
 import jax.numpy as jnp
 
 from hen import neurons
 from hen.connectome import BrainParams
+
+
+class Drives(NamedTuple):
+    """The two pathways' contributions to the motor output, kept separable.
+
+    Their ratio is the diagnostic that says whether the pallium can influence
+    behaviour at all. If `cortical` stays negligible against `reflex`, then whatever
+    the pallium learns cannot reach a muscle, and no amount of rearing time will
+    change that.
+    """
+    reflex: jax.Array      # (H, MOTOR_DIM)
+    cortical: jax.Array    # (H, MOTOR_DIM)
 
 
 def initial_state(p: BrainParams, n_hens: int) -> jax.Array:
@@ -24,7 +38,7 @@ def initial_state(p: BrainParams, n_hens: int) -> jax.Array:
 
 
 def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float):
-    """Returns (x_next, motor) with motor in [0, 1], shape (H, MOTOR_DIM)."""
+    """Returns (x_next, motor, drives); motor in [0, 1], shape (H, MOTOR_DIM)."""
     current = obs @ p.W_in.T
     x, _ = neurons.ctrnn_step(x, p.W, current, p.b, p.tau, dt)
 
@@ -35,4 +49,4 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float):
 
     reflex = obs @ p.reflex.T
     motor = jax.nn.sigmoid(reflex + cortical + p.b_motor[None, :])
-    return x, motor
+    return x, motor, Drives(reflex=reflex, cortical=cortical)

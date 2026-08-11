@@ -192,18 +192,21 @@ Worth writing down now, while it is still cheap to be honest:
 
 ## 8. Open items from experiments
 
-From [E001](experiments/E001-does-plasticity-help.md):
-
-- **Does the cortical pathway ever influence behaviour?** Measure the ratio of
-  cortical to reflex drive at the motor output across a run. The readout starts at
-  0.05 scale; if it never grows, no amount of pallial learning can reach a muscle and
-  the run length is irrelevant. Cheap to check and the most likely culprit — **do
-  this before E002.**
+- ~~**Does the cortical pathway ever influence behaviour?**~~ **Answered by
+  [E002](experiments/E002-can-the-pallium-reach-a-muscle.md):** it does, but only
+  once the readout can learn. At the E001 setting `|W_out|` grew 1.00x — frozen.
+  `eta_out` raised 2e-3 → 2e-2.
 - **Is synaptic scaling cancelling the learning signal?** It pulls row sums back
   toward innate values at every consolidation. Ablate it and compare weight drift.
-- **E002**: rerun the phase 1 contrast at 1 day of chicken time with 8 seeds,
+  Still open; second suspect if E003 does not move.
+- **The innate/learned control balance is a parameter worth studying, not tuning.**
+  E002 found that too much cortical influence makes behaviour *worse* — an untrained
+  pallium overriding good reflexes. There is an optimum, and it plausibly maps onto
+  the trade-off real precocial birds face between hatching competent and staying
+  plastic. Worth a proper sweep rather than a single tuned value.
+- **A longer, better-powered contrast**: 1 day of chicken time with 8 seeds,
   pre-registered on both hunger and predator exposure. ~4 h wall clock. Only worth
-  running after the two diagnostics above.
+  running once E003 shows the effect exists at all.
 - **Predator exposure as a metric.** E001 showed a large but unpowered difference
   (1755 vs 3075 exposure-steps). It may be a better-powered readout than hunger,
   since it is driven by discrete costly events rather than a slow scalar. Worth

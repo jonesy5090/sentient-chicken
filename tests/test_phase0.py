@@ -130,7 +130,7 @@ def test_blind_hen_does_nothing_purposeful(flock):
     """
     _, x, p = flock
     obs = jnp.zeros((CFG.n_hens, spec.OBS_DIM))
-    _, motor = brain.step(x, obs, p, CFG.dt)
+    _, motor, _ = brain.step(x, obs, p, CFG.dt)
     for ch in (spec.M_PECK, spec.M_CROUCH, spec.M_FLEE, spec.M_SCRATCH,
                spec.M_CALL_CONTACT, spec.M_CALL_FOOD,
                spec.M_CALL_AERIAL, spec.M_CALL_GROUND):

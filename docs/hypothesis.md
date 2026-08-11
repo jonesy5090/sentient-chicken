@@ -77,21 +77,38 @@ mean the rule is producing connectome churn without behavioural consequence — 
 is a real possibility and the reason this is stated as a hypothesis rather than a
 feature.
 
-**Evidence so far — [E001](experiments/E001-does-plasticity-help.md): null.** Both
-learning conditions moved in the predicted direction and neither exceeded 1 SE
-(−0.031 ± 0.040 and −0.017 ± 0.017 across 4 matched seeds). Structural change
-occurred — ~12k synapses grown and ~12k pruned from 36.5k innate — but churn is not
-evidence, which is precisely what this hypothesis exists to distinguish.
+**Evidence — positive but underpowered.**
+[E001](experiments/E001-does-plasticity-help.md) returned a null.
+[E002](experiments/E002-can-the-pallium-reach-a-muscle.md) found why: the cortical
+readout was frozen, so nothing the pallium learned could reach a muscle.
+[E003](experiments/E003-does-the-fixed-readout-rescue-learning.md) reran E001 with
+only that fixed, and the effect tripled — mean hunger now *falls* across a run
+(0.321 → 0.295) where the fixed control *rises* (0.306 → 0.370), with feeding rate up
+from 5.2% to 6.5% of timesteps.
 
-**Not refuted, because the test could not have refuted it.** The run covered 20
-minutes of chicken time against a 3-day critical period: 0.5% of the window the rule
-is parameterised for. E002 is pre-registered at 1 day and 8 seeds.
+**It still has not cleared significance.** t=2.50 against a threshold of 3.18 at n=4
+(p≈0.09). E003 also found and fixed a bug in the *analysis*: the harness had been
+using a 2-SE threshold, which at four seeds would have called this a result. Needs
+replication at 12 seeds — cheap, and the next step.
 
-**Prior suspects, in order**, before blaming run length any further: (1) the cortical
-readout may never gain enough influence over motor output for pallial learning to
-reach behaviour at all; (2) synaptic scaling may be cancelling the learning signal;
-(3) the reward prediction error is small and nearly continuous. The first is
-diagnosable in minutes and should be checked before spending four hours on E002.
+**Structural growth is the weaker condition in both runs** (t=0.77 vs t=2.50) and
+ends with nearly twice the synapses. Continuous rewiring may be destabilising what is
+learned. This inverts the naive expectation and needs its own experiment.
+
+**Not refuted, because the test could not have refuted it** — and
+[E002](experiments/E002-can-the-pallium-reach-a-muscle.md) established why. The
+cortical readout was learning at 2e-3, at which rate `|W_out|` grew 1.00x over ten
+minutes: **the readout was frozen, so nothing the pallium learned could reach a
+muscle.** E001 was measuring a hen incapable of acting on what she had learned.
+
+E002 also found a ceiling that was not anticipated: at `eta_out=2e-1` cortical drive
+overwhelms the innate arc and behaviour gets *worse*, because a hen who overrides her
+reflexes with an untrained pallium is worse off than one who does not. The default is
+now 2e-2, near the optimum — cortical influence roughly half the reflex arc.
+
+**E003** reruns the E001 contrast with only that value changed. Two suspects remain
+if it does not move: synaptic scaling cancelling the learning signal, and a reward
+prediction error too small and continuous to accumulate structure.
 
 ---
 

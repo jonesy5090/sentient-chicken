@@ -50,6 +50,12 @@ scalar. Name things for what they are.
 The failure mode for a project like this is drifting into testing whatever is
 convenient and calling the accumulation a result.
 
+**The `status` skill** (`.claude/skills/status/`) answers the three standing
+questions — what we are trying to achieve, what has been built versus what has been
+*proven*, and what is next — from these files rather than from memory. Use it when
+asked where the project is, and before starting significant new work, to check the
+work ladders up to the tree.
+
 - `docs/hypothesis.md` is the tree. Every experiment names a parent node.
 - `docs/backlog.md` is what is proposed but not started, with the reasoning.
 - `docs/experiments/` holds one file per experiment, from `TEMPLATE.md`. Sections 1–5

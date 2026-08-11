@@ -50,7 +50,15 @@ class PlasticConfig(NamedTuple):
     # Learning rate and the critical period. Plasticity is highest at hatch and
     # decays with age, so early experience shapes the connectome disproportionately.
     eta: float = 4e-3
-    eta_out: float = 2e-3
+    # The readout rate is 10x the recurrent one, and that asymmetry is load-bearing.
+    # The pallium starts near-silent by design (readout_scale=0.05), so it has to
+    # *earn* influence over behaviour before anything it learns can reach a muscle.
+    # Measured over 10 min of chicken time (E002): at 2e-3 the readout does not grow
+    # at all (1.00x) and cortical drive stays at 0.16 of the reflex arc; at 2e-2 it
+    # grows 1.17x and reaches 0.51. At 2e-1 cortical drive overwhelms the innate arc
+    # (1.72x) and behaviour gets worse -- a hen who overrides her reflexes with an
+    # untrained pallium is worse off than one who does not.
+    eta_out: float = 2e-2
     critical_period_s: float = 3 * 86400.0
 
     # Neuromodulation

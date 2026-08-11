@@ -49,6 +49,9 @@ class Summary(NamedTuple):
     fed: jax.Array
     reward: jax.Array       # (C,) mean neuromodulator input
     synapses: jax.Array     # (C,) mean live synapses per hen
+    reflex_drive: jax.Array    # (C,) mean |innate arc| at the motor output
+    cortical_drive: jax.Array  # (C,) mean |pallial readout| at the motor output
+    w_out_norm: jax.Array      # (C,) mean |W_out|
 
 
 def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
@@ -56,11 +59,16 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
     key, k_world, k_grow = jax.random.split(key, 3)
 
     obs = sensing.observe(w, cfg)
-    x, motor = brain.step(x, obs, p, cfg.dt)
+    x, motor, drives = brain.step(x, obs, p, cfg.dt)
     w_next = world.step(w, motor, k_world, cfg)
 
+    # Pathway magnitudes, carried out of the loop so a run can report whether the
+    # cortical pathway ever gained influence over behaviour.
+    mags = jnp.stack([jnp.mean(jnp.abs(drives.reflex)),
+                      jnp.mean(jnp.abs(drives.cortical))])
+
     if not pc.enabled:
-        return (w_next, x, p, ps, key), (motor, obs, jnp.zeros(()))
+        return (w_next, x, p, ps, key), (motor, obs, jnp.zeros(()), mags)
 
     r = neurons.rate(x)
     reward = plasticity.reward(w, w_next, cfg, pc)
@@ -80,7 +88,7 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
             lambda: plasticity.restructure(p, ps, k_grow, pc),
             lambda: p)
 
-    return (w_next, x, p, ps, key), (motor, obs, jnp.mean(reward))
+    return (w_next, x, p, ps, key), (motor, obs, jnp.mean(reward), mags)
 
 
 @partial(jax.jit, static_argnames=("cfg", "pc", "n_steps"))
@@ -89,7 +97,7 @@ def rollout(w, x, p, key, cfg: CoopConfig, n_steps: int,
     """Short run with a full per-step trace. Use for probes, not for lifetimes."""
     if ps is None:
         ps = plasticity.initial_state(p, w.pos.shape[0], pc)
-    (w, x, p, ps, key), (motor, obs, _) = jax.lax.scan(
+    (w, x, p, ps, key), (motor, obs, _, _) = jax.lax.scan(
         partial(_one_step, cfg=cfg, pc=pc), (w, x, p, ps, key),
         None, length=n_steps)
     return w, x, p, ps, key, Trace(motor=motor, obs=obs)
@@ -115,7 +123,7 @@ def rollout_quiet(w, x, p, key, cfg: CoopConfig, n_steps: int,
 def _chunked(w, x, p, ps, key, cfg: CoopConfig, pc: PlasticConfig,
              n_chunks: int, chunk_steps: int):
     def chunk(carry, _):
-        carry, (motor, _obs, reward) = jax.lax.scan(
+        carry, (motor, _obs, reward, mags) = jax.lax.scan(
             partial(_one_step, cfg=cfg, pc=pc), carry, None, length=chunk_steps)
         w, _x, p, _ps, _k = carry
         s = Summary(
@@ -131,6 +139,9 @@ def _chunked(w, x, p, ps, key, cfg: CoopConfig, pc: PlasticConfig,
             fed=jnp.sum(w.n_fed),
             reward=jnp.mean(reward),
             synapses=jnp.mean(jnp.sum(p.W != 0.0, axis=(1, 2))),
+            reflex_drive=jnp.mean(mags[:, 0]),
+            cortical_drive=jnp.mean(mags[:, 1]),
+            w_out_norm=jnp.mean(jnp.abs(p.W_out)),
         )
         return carry, s
     return jax.lax.scan(chunk, (w, x, p, ps, key), None, length=n_chunks)
