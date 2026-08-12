@@ -113,6 +113,7 @@ class PlasticConfig(NamedTuple):
     pred_enabled: bool = False      # opt-in, so it is a contrast rather than a change
     pred_gain: float = 1.0          # how strongly prediction augments perception
     eta_pred: float = 5e-3
+    tau_lag: float = 1.5            # seconds; bridges cue to outcome
     pred_max: float = 0.05          # per-synapse cap on the top-down projection
 
     # Structural growth
@@ -129,6 +130,7 @@ class PlasticState(NamedTuple):
     z_slow: jax.Array      # (H, N) postsynaptic trace
     z_motor: jax.Array     # (H, MOTOR_DIM) motor output trace
     z_err: jax.Array       # (H, OBS_DIM) masked prediction error trace
+    z_lag: jax.Array       # (H, N) slow trace: what the brain was doing before
     baseline: jax.Array    # (H,) running expectation of reward
     age_s: jax.Array       # scalar, seconds since hatch
     innate_row_sum: jax.Array   # (H, N) reference total input weight per neuron
@@ -143,6 +145,7 @@ def initial_state(p: BrainParams, n_hens: int, pc: PlasticConfig) -> PlasticStat
         z_slow=jnp.zeros((n_hens, n)),
         z_motor=jnp.zeros((n_hens, p.W_out.shape[1])),
         z_err=jnp.zeros((n_hens, p.W_pred.shape[1])),
+        z_lag=jnp.zeros((n_hens, n)),
         baseline=jnp.zeros((n_hens,)),
         age_s=jnp.array(0.0),
         innate_row_sum=row_sum,
@@ -201,8 +204,10 @@ def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,
     a_m = cfg.dt / pc.tau_motor
     a_b = cfg.dt / pc.baseline_tau_s
     err = ps.z_err if pred_err is None else ps.z_err + a_s * (pred_err - ps.z_err)
+    a_l = cfg.dt / pc.tau_lag
     return ps._replace(
         z_err=err,
+        z_lag=ps.z_lag + a_l * (r - ps.z_lag),
         z_fast=ps.z_fast + a_f * (r - ps.z_fast),
         z_slow=ps.z_slow + a_s * (r - ps.z_slow),
         z_motor=ps.z_motor + a_m * (motor - ps.z_motor),
@@ -256,7 +261,10 @@ def consolidate(p: BrainParams, ps: PlasticState, m: jax.Array,
         # channels that were actually observable. Factored into traces for the same
         # reason as the recurrent rule -- storing a per-synapse error would double the
         # memory traffic of a simulation that is already bandwidth bound.
-        d_pred = eta_pred_of(ps, pc) * ps.z_err[:, :, None] * ps.z_slow[:, None, :]
+        # Error now, against what the brain was doing a moment ago, and only from
+        # neurons allowed to source a prediction.
+        d_pred = (eta_pred_of(ps, pc) * ps.z_err[:, :, None]
+                  * (ps.z_lag * p.pred_src[None, :])[:, None, :])
         w_pred = jnp.clip(p.W_pred + d_pred, -pc.pred_max, pc.pred_max)
 
     return p._replace(W=w, W_out=w_out, W_pred=w_pred)

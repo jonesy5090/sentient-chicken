@@ -200,6 +200,54 @@ absent.
 
 The no-cue baseline did not rise, so the hallucination failure mode has not occurred.
 
+**[E009](experiments/E009-lagged-pallial-association.md): fixed both, still null — and
+found the actual blocker.** With a lagged pallial source and up to 90x predator
+density, comprehension stayed at zero while baseline crouching with *no cue* nearly
+doubled (0.078 → 0.147). The projection learns the **base rate** of aerial threat
+rather than a contingency on the call. Measuring the representation says why:
+
+```
+                mean|rate|   shift: call     shift: hawk
+sensory stub      0.4218     0.0949 (22.5%)  0.0819 (19.4%)
+pallium           0.8577     0.0277 ( 3.2%)  0.0235 ( 2.7%)
+```
+
+The call reaches the brain with *more* afferent weight than the hawk channel. But the
+pallium sits at mean rate 0.86 — deep in the flat part of the sigmoid — and the two
+percepts differ from each other there by under 1% of the mean. **No associative rule
+can be cue-specific when sourced from a representation that does not distinguish the
+cues**, and with nothing to condition on, the base rate is the best available
+prediction. See H2d.
+
+---
+
+## H2d — the pallium does not form separable representations of distinct stimuli
+
+**Status: SUPPORTED as a limitation** — measured in
+[E009](experiments/E009-lagged-pallial-association.md). **This is the blocker behind
+H2b, H2c and everything downstream.**
+
+Hearing an alarm call and seeing a hawk drive pallial states that differ by 0.008 —
+under 1% of the mean rate. The network runs saturated (mean pallial rate 0.83, where
+the sigmoid slope is ~0.12) and the two stimuli project onto overlapping random
+subsets of the sensory stub with nothing downstream to decorrelate them.
+
+A gain sweep shows saturation is real but not the whole story: dropping the recurrent
+gain from 0.9 to 0.6 moves the mean rate to 0.21 and improves *relative* separability
+fourfold, but absolute separability barely moves and collapses below 0.6.
+
+**E002, E007, E008 and E009 were all attempts to fix the routing of learning.** The
+blocker is upstream of routing: there is not enough in the pallial state to route.
+
+**Caveat this raises for an existing result.** H2's supported finding (E004, t=3.93)
+was obtained in the saturated regime. Drive regulation evidently only needs coarse
+modulation, which a saturated network can still supply — but it should be re-run once
+the operating point is fixed, and may well get stronger.
+
+**Not yet changed.** The gain default stays 0.9, because changing it invalidates the
+comparison basis for every result so far. It should be a deliberate re-baselining with
+H2 re-run, not a quiet tweak.
+
 ---
 
 ## H3 — learned usage reproduces the audience effect without being programmed

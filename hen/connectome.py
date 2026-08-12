@@ -30,6 +30,7 @@ class BrainParams(NamedTuple):
     W_in: jax.Array       # (N, OBS_DIM) sensory afferents (shared, fixed)
     W_out: jax.Array      # (H, MOTOR_DIM, n_motor) cortical motor readout
     W_pred: jax.Array     # (H, OBS_DIM, N) top-down associative projection
+    pred_src: jax.Array   # (N,) bool -- which neurons may source a prediction
     b: jax.Array          # (N,) resting bias
     tau: jax.Array        # (N,) membrane time constants, seconds
     reflex: jax.Array     # (MOTOR_DIM, OBS_DIM) innate arc, fixed
@@ -98,6 +99,14 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     # what is in front of her. Every association she ever has is one she formed.
     w_pred = jnp.zeros((n_hens, spec.OBS_DIM, n))
 
+    # Predictions come from the pallium only, never from the sensory stub. E008 found
+    # the first version was circular: sourced from the whole brain, it learned "when
+    # in hawk-state, predict hawk", because the sensory stub carries the hawk percept
+    # directly and dominates the association. Association cortex, one step removed
+    # from the relay, is also where top-down predictions come from in a real brain.
+    p_lo, p_hi = reg.bounds(regions.PALLIUM)
+    pred_src = jnp.zeros((n,), dtype=bool).at[p_lo:p_hi].set(True)
+
     tau = jnp.asarray(np.asarray(regions.REGION_TAU, dtype=np.float32)[rid])
 
     return BrainParams(
@@ -107,6 +116,7 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         W_in=jnp.asarray(w_in),
         W_out=w_out,
         W_pred=w_pred,
+        pred_src=pred_src,
         b=jnp.full((n,), -2.0),
         tau=tau,
         reflex=jnp.asarray(innate.reflex_matrix()),

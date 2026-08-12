@@ -39,7 +39,8 @@ def initial_state(p: BrainParams, n_hens: int) -> jax.Array:
 
 
 def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
-         key: jax.Array = None, sigma: float = 0.0, pred_gain: float = 0.0):
+         key: jax.Array = None, sigma: float = 0.0, pred_gain: float = 0.0,
+         pred_from: jax.Array = None):
     """Returns (x_next, motor, drives); motor in [0, 1], shape (H, MOTOR_DIM).
 
     `sigma` adds Gaussian noise to the motor drive before the output nonlinearity.
@@ -74,7 +75,13 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
     #
     # relu, so association can only add percepts, never suppress real ones; clipped to
     # the observation's own range so a hen cannot perceive more vividly than reality.
-    predicted = jnp.einsum("hon,hn->ho", p.W_pred, neurons.rate(x))
+    # Sourced from a lagged pallial trace when one is supplied. E008 found the
+    # instantaneous version was an autoencoder -- it mapped the current state to the
+    # current observation, so during a hawk event it learned to predict the hawk from
+    # the hawk. A lag makes it map what the brain was doing *before* to what is
+    # observed *now*, which is the cue-to-outcome direction association needs.
+    src = neurons.rate(x) if pred_from is None else pred_from
+    predicted = jnp.einsum("hon,hn->ho", p.W_pred, src * p.pred_src[None, :])
     reflex_in = jnp.clip(obs + pred_gain * jax.nn.relu(predicted), 0.0, 1.0)
     reflex = reflex_in @ p.reflex.T
     drive = reflex + cortical + p.b_motor[None, :]

@@ -68,7 +68,8 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
     sigma = pc.explore_sigma / (1.0 + age_s / pc.explore_tau_s)
 
     obs = sensing.observe(w, cfg)
-    x, motor, drives = brain.step(x, obs, p, cfg.dt, k_explore, sigma, pc.pred_gain)
+    x, motor, drives = brain.step(x, obs, p, cfg.dt, k_explore, sigma,
+                                  pc.pred_gain, ps.z_lag if pc.pred_enabled else None)
     w_next = world.step(w, motor, k_world, cfg)
 
     # Pathway magnitudes, carried out of the loop so a run can report whether the
