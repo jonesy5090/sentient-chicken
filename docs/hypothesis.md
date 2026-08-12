@@ -96,11 +96,23 @@ survive 81–86%.
 So connectome destruction and behavioural harm were two separate things that merely
 appeared together — E013's mechanism story linked them and was wrong twice over.
 
-**An ablation locates the harm in the learned readout.** Freezing `W_out` recovers
-most of it (+0.088 → +0.046) and returns feeding to the control's rate, while
-recurrent learning continues and prunes just as much. It is not plasticity as such,
-not structural change, and not exploration (t=0.32) — it is the growing cortical
-influence over motor output.
+**[E015](experiments/E015-decomposing-the-harm.md) decomposes the harm between the
+two learned pathways:**
+
+| what learns | harm vs fixed | synapses |
+|---|---|---|
+| recurrent only | +0.010 | 28,383 |
+| readout only | +0.021 | 36,369 |
+| **both** | **+0.052** | 30,109 |
+
+The readout is about twice as harmful as the recurrent weights — and **the two
+together are superadditive**, +0.052 against the +0.031 independence would predict.
+Plausibly a moving-target problem: the readout chases a pallial representation that
+is being rewritten underneath it. Labelled a hypothesis, not a mechanism.
+
+**Pruning is nearly free**: the recurrent-only condition loses 22% of the connectome
+for +0.010. That retires the last of E013's original story — the harm is not the loss
+of synapses. It is not exploration either (t=0.32).
 
 **Which makes this a consequence of H2d.** The pallium cannot represent distinctions,
 `eta_out` grows a readout from that degenerate representation, and the cortical
@@ -519,3 +531,4 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E012 | Isolated it: not the gain, not the noise -- **`call_energy_cost` from E005 swamps H2's metric.** |
 | E013 | Call cost moved to its own `vigour` budget. **Clean test: learning is significantly WORSE. H2 refuted at this timescale.** |
 | E014 | Units bug found: a strike contributed -100 to reward. Connectome recovers; **behaviour does not**. Harm localised to the learned readout, implicating H2d. |
+| E015 | Harm decomposed: readout +0.021, recurrent +0.010, both **+0.052 — superadditive**. Pruning nearly free. |

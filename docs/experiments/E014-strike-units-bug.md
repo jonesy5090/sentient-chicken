@@ -115,8 +115,10 @@ surviving synapses — and the behaviour did not move at all: +0.081 → +0.082.
 | learning (full) | +0.088 | 4.9 | 30,109 |
 | **learning, `W_out` frozen** | **+0.046** | **5.6** | 28,383 |
 
-*(a fourth condition freezing the recurrent weights did not finish inside the time
-budget and is outstanding)*
+*(the fourth condition finished later — see
+[E015](E015-decomposing-the-harm.md), which corrects the inference below: recurrent
+learning alone is mildly harmful (+0.010), not neutral, and the two pathways are
+superadditive)*
 
 **Freezing the motor readout removes most of the harm** and returns feeding to the
 control's rate — while recurrent learning continues, and prunes just as much
@@ -163,8 +165,10 @@ predictions is 1-for-4, so it gets measured rather than assumed.
 - **H2d is promoted to the critical path.** It is now implicated in H2's failure, not
   just H2b's and H2c's. Every open problem in the project traces back to a pallium
   that cannot tell its inputs apart.
-- **Outstanding**: the recurrent-frozen arm of the ablation, to confirm that recurrent
-  learning alone is genuinely neutral rather than mildly harmful.
+- ~~**Outstanding**: the recurrent-frozen arm.~~ Closed by
+  [E015](E015-decomposing-the-harm.md): recurrent learning alone is **mildly harmful**
+  (+0.010), not neutral — the inference in §7 was stated more firmly than an
+  unfinished run supported.
 - **A guard is warranted**: nothing tests that reward components stay within an order
   of magnitude of each other. A single strike contributing 150x the drive terms should
   have been caught by construction, not by an eight-experiment detour.
