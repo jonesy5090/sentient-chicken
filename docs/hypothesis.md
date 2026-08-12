@@ -63,8 +63,14 @@ of the time.
 
 ## H2 — three-factor plasticity produces measurable behavioural improvement
 
-**Status: SUPPORTED** (phase 1) — *for learning without structural growth, at 20 min
-of chicken time.* Growth is explicitly not supported; see H2a.
+**Status: UNDER TEST** — downgraded from `SUPPORTED` by
+[E010](experiments/E010-rebaseline-at-corrected-gain.md).
+
+E004's result was real, replicated and pre-registered, but it was obtained with the
+network saturated (gain 0.9). At the corrected operating point the effect collapses
+from **t=3.93 to t=0.08**, and it does not transfer. A result that holds only in a
+regime where a hen cannot tell an alarm call from a hawk is not a result about
+learning. Both facts are recorded below; neither is withdrawn.
 
 **Prediction:** a flock learning under a reward-prediction-error rule regulates its
 drives better over a rearing run than a genome-matched, coop-matched flock that
@@ -106,9 +112,36 @@ behaviour gets *worse*, because a hen who overrides her reflexes with an untrain
 pallium is worse off than one who does not. The default is now 2e-2, near the
 optimum.
 
-**Remaining scope limits.** Supported at 20 min of chicken time and for a single
-learning-rate setting. Untested: whether the effect grows over a realistic rearing
-(days), and whether it survives the growth rule (see H2a).
+**[E010](experiments/E010-rebaseline-at-corrected-gain.md) re-ran E004 unchanged
+except for the gain, and the effect vanished:**
+
+| | E004 (gain 0.9) | E010 (gain 0.70) |
+|---|---|---|
+| learning, no growth | −0.063 ± 0.016, **t=3.93** | −0.002 ± 0.028, **t=0.08** |
+| fixed control, final hunger | 0.330 | **0.655** |
+
+**Every hen also got worse**, control included — final hunger roughly doubled. The
+change did not selectively remove learning; it degraded the whole flock and took the
+signal with it.
+
+**The mechanism is E002's finding in disguise.** At gain 0.9 the saturated pallium
+emitted a near-constant output, so the cortical readout acted as a harmless fixed
+*bias*. At 0.70 the pallium is responsive, so an *untrained* readout injects real
+variability into the motor drive — and E002 already showed that untrained cortical
+influence makes behaviour worse. Saturation had been accidentally protecting
+behaviour.
+
+So `readout_scale` and `eta_out`, both tuned by E002 **against a saturated network**,
+are now stale. E010 is best read as "the readout parameters are wrong", not "learning
+does not work" — learning still feeds more (6.1% vs 5.6%) and takes 21% less predator
+exposure, neither significantly.
+
+**Next: E011** re-runs E002's readout sweep at gain 0.70, then H2 is re-tested. Only
+after that does a null mean anything about learning.
+
+**Standing lesson**: parameters tuned under a defect inherit the defect. E002's sweep
+was correct at the time and silently encoded an assumption about the operating point
+that outlived it.
 
 ---
 
@@ -409,3 +442,6 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E005 | H3 null. Kin reward cannot assign credit to the caller; E006 opened. |
 | E006 | H3 null again. Comprehension is zero: no exploration. H2b opened, blocking H3-H5. |
 | E007 | Exploration added; comprehension still zero. H2b refined: the learned pathway cannot *initiate*, only modulate. Architectural fork opened. |
+| E008 | Top-down association built; first version was an autoencoder, tested nothing. |
+| E009 | Lagged/pallial association, still null. Found the pallium saturated: H2d opened. |
+| E010 | Gain 0.9 -> 0.70. **H2 collapses (t=3.93 -> 0.08) and is downgraded.** Readout params stale. |
