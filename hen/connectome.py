@@ -45,12 +45,39 @@ def _region_of(reg: Regions) -> np.ndarray:
 
 def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           n_hens: int = spec.DEFAULT_COOP.n_hens,
-          gain: float = 0.9, readout_scale: float = 0.05) -> BrainParams:
+          gain: float = 0.70, readout_scale: float = 0.05) -> BrainParams:
     """Sample a newly hatched flock.
 
     `readout_scale` is small on purpose: at hatch the cortical pathway is near-silent
     and behaviour is dominated by the innate reflex arc. The pallium is present and
     connected, but it has nothing to say yet.
+
+    `gain` was 0.9 for E001-E009 and that was a mistake, found in
+    docs/experiments/E009. At 0.9 the pallium runs at a mean rate of 0.83 -- deep in
+    the flat part of the sigmoid, slope ~0.12 -- and the states for "heard an alarm
+    call" and "saw a hawk" differ by under 1% of the mean. A saturated network cannot
+    represent distinctions, and nothing downstream can learn from a representation
+    that does not distinguish.
+
+    Measured across genomes, relative separability of those two percepts:
+
+        gain   mean pallial rate   separability (% of mean rate)
+        0.60         0.212               3.3%
+        0.70         0.271               7.5%
+        0.75         0.349              14.2%   <- measured optimum
+        0.78         0.497               6.2%
+        0.90         0.830               0.9%   <- the old default
+
+    0.70 rather than the peak at 0.75, deliberately. The peak sits about 0.03 from a
+    transition: by 0.78 the mean rate has jumped to 0.50 and separability has
+    collapsed. Weights move during learning, so a value that has to be held to two
+    decimal places is not a value to build on. 0.70 keeps 8x the old separability, and
+    its mean rate is tight across genomes (0.26-0.28) where 0.78's is not (0.42-0.59).
+
+    Separability varies a lot between genomes at any gain (3.5%-25.5% at 0.70), which
+    is individual variation in how well a given hen's wiring separates her world. That
+    is interesting rather than a defect, but it means per-seed results are noisy and
+    contrasts need replicates.
     """
     k_mask, k_w, k_in = jax.random.split(key, 3)
     n = reg.total
