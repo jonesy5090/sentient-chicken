@@ -71,20 +71,41 @@ Learning does not merely fail to help; it makes hens **significantly worse**
 control's 6.2%. Exploration is exonerated: the noise-only control is
 indistinguishable from fixed (t=0.32).
 
-**The smoking gun is the synapse count.** Learning ends with 19,088 of 36,373 innate
-synapses — **48% of the connectome destroyed** — and forages worse for it. The reward
-prediction error hovers near zero by construction, so updates approximate a random
-walk; synaptic scaling pulls magnitudes down and the Dale clamp floors them at zero,
-from which there is no path back. **A rule that cannot recover a pruned synapse is a
-ratchet**, and over 20 minutes it strips half the innate wiring.
+~~**The smoking gun is the synapse count.** Learning ends with 19,088 of 36,373
+innate synapses, destroying 48% of the connectome. The reward prediction error hovers
+near zero, so updates approximate a random walk that the Dale clamp makes
+irreversible — a ratchet.~~
+
+**Struck through: E014 disproved this in two ways.** The erosion was a units bug (a
+strike contributing −100 to reward), not a random walk — and fixing it recovered the
+connectome without moving the behaviour at all. Pruning and harm merely co-occurred.
 
 **E004 is reinterpreted, not withdrawn.** In the saturated regime the readout could
 only apply a constant bias to the motor drive, so the same erosion could not reach
 behaviour and what learning tuned was an offset that happened to help. A tuned offset
 is not a learned policy.
 
-**The next question is not "retune" but "why does the rule erode".** That is a design
-flaw, not a hyperparameter. Candidates recorded in E013 §8.
+**[E014](experiments/E014-strike-units-bug.md) found the erosion's cause and it did
+not rescue H2.** Reward subtracted `struck * strike_penalty / dt` — but being caught
+is a discrete *event*, not a rate, so at dt=0.01 a single strike contributed **−100**,
+about 150x what the drive terms contribute. Erosion tracked strikes exactly (seeds
+with zero strikes lost 17%; seeds with thousands lost 50–75%). Fixed, all seeds
+survive 81–86%.
+
+**The behaviour did not move**: +0.081 → +0.082, still significantly worse (t=3.46).
+So connectome destruction and behavioural harm were two separate things that merely
+appeared together — E013's mechanism story linked them and was wrong twice over.
+
+**An ablation locates the harm in the learned readout.** Freezing `W_out` recovers
+most of it (+0.088 → +0.046) and returns feeding to the control's rate, while
+recurrent learning continues and prunes just as much. It is not plasticity as such,
+not structural change, and not exploration (t=0.32) — it is the growing cortical
+influence over motor output.
+
+**Which makes this a consequence of H2d.** The pallium cannot represent distinctions,
+`eta_out` grows a readout from that degenerate representation, and the cortical
+pathway transmits structured state-dependent noise into an already-competent motor
+system. Exploration noise is harmless because it is zero-mean; this is not.
 
 ---
 
@@ -497,3 +518,4 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E011 | Readout sweep. Control did not improve as predicted; that tell exposed E010's confound. |
 | E012 | Isolated it: not the gain, not the noise -- **`call_energy_cost` from E005 swamps H2's metric.** |
 | E013 | Call cost moved to its own `vigour` budget. **Clean test: learning is significantly WORSE. H2 refuted at this timescale.** |
+| E014 | Units bug found: a strike contributed -100 to reward. Connectome recovers; **behaviour does not**. Harm localised to the learned readout, implicating H2d. |

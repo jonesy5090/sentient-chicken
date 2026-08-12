@@ -131,10 +131,23 @@ with **19,088 of her 36,373 innate synapses. She has destroyed 48% of the brain 
 was born with**, and forages worse for it: feeding 4.7% of the time against the
 control's 6.2%.
 
-The cause looks like a design flaw rather than a bad setting. The reward signal hovers
-near zero by construction, so weight changes approximate a random walk; weights that
-drift to zero are removed and **cannot come back**. A rule that cannot recover a
-pruned connection is a ratchet, and over twenty minutes it strips half the wiring.
+**E014 then found why the brain was being destroyed — and it was a units error.**
+Being caught by a predator is a one-off event, but the code treated it as a *rate* and
+divided it by the timestep. That turned a single strike into a reward signal 150 times
+larger than anything else the hen experiences, and every synapse got slammed at once.
+Hens in coops that happened to see no predators were fine; hens that were hunted lost
+three quarters of their brains.
+
+Fixing it restored the connectome. **It did not change the behaviour at all** — the
+hens still forage worse, by exactly the same margin. So the brain damage and the bad
+behaviour were two separate problems that merely happened together, and the second one
+is still open.
+
+An ablation narrowed it down: freezing just the connection from the "thinking" brain to
+the muscles removes most of the harm, while everything else keeps learning normally.
+The pallium is broadcasting *confident nonsense* — and that traces straight back to the
+saturation finding, because a brain that cannot tell an alarm call from a hawk has
+nothing sensible to broadcast.
 
 That also reframes the earlier success. In the saturated brain, the learned pathway
 could only apply a *constant offset* to behaviour — so the same erosion was invisible,

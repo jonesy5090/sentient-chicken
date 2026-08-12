@@ -87,12 +87,84 @@ stated per condition, 12 matched seeds, 20 min, gain 0.70, vigour budget.
 
 ## 6. Result
 
-_Pending._
+12 matched seeds, 20 min, identical to E013 except the units fix.
+
+| condition | hunger change | fed % | synapses | (E013) |
+|---|---|---|---|---|
+| fixed (innate only) | +0.018 | 6.2 | 36,373 | +0.018 |
+| noise only | +0.014 | 6.2 | 36,373 | +0.014 |
+| learning, no growth | **+0.082** | 4.8 | **30,058** | +0.081 / 19,088 |
+| learning + growth | +0.063 | 5.3 | 54,521 | +0.095 / 40,731 |
+
+```
+learning, no growth  +0.064 +/- 0.018 SE   t=3.46   SIGNIFICANT, WORSE
+learning + growth    +0.045 +/- 0.019 SE   t=2.38   SIGNIFICANT, WORSE
+noise only           -0.004 +/- 0.013 SE   t=0.32   noise
+```
+
+**The third pre-registered outcome.** The connectome recovered — 19,088 → 30,058
+surviving synapses — and the behaviour did not move at all: +0.081 → +0.082.
+
+### Follow-up ablation: where does the harm come from?
+
+6 seeds, freezing one learned pathway at a time:
+
+| condition | hunger change | fed % | synapses |
+|---|---|---|---|
+| fixed | +0.036 | 5.6 | 36,369 |
+| learning (full) | +0.088 | 4.9 | 30,109 |
+| **learning, `W_out` frozen** | **+0.046** | **5.6** | 28,383 |
+
+*(a fourth condition freezing the recurrent weights did not finish inside the time
+budget and is outstanding)*
+
+**Freezing the motor readout removes most of the harm** and returns feeding to the
+control's rate — while recurrent learning continues, and prunes just as much
+(28,383 synapses).
 
 ## 7. Interpretation
 
-_Pending._
+**The units bug was real and is fixed, and it was not the cause of the behavioural
+harm.** Two symptoms that E013 treated as one thing are dissociated: the connectome
+destruction tracked strikes and is gone; the behavioural harm tracked neither and
+remains, unchanged to three decimal places.
+
+That is the second time E013's mechanism story has been wrong, and it is worth being
+blunt about the pattern: *pruning and harm looked causally linked because they
+appeared together, and they are not.*
+
+**The harm is in the learned readout.** Freezing `W_out` recovers most of it. Learning
+the recurrent weights — including whatever pruning that entails — is close to
+harmless. So it is not plasticity as such, nor structural change, nor exploration
+(t=0.32). It is specifically the growing cortical influence over the motor output.
+
+**This connects H2 to [H2d](E009-lagged-pallial-association.md), and the chain is
+coherent.** The pallium cannot represent distinctions — states for "heard an alarm"
+and "saw a hawk" differ by under 1% of mean rate. `eta_out` then grows a readout
+*from that uninformative representation*, so the cortical pathway comes to transmit
+structured, state-dependent noise into a motor system that was already competent.
+E002 measured this ceiling from the other side: cortical influence that is not
+well-trained makes behaviour worse.
+
+Exploration noise is harmless because it is zero-mean and uncorrelated. A learned
+readout from a degenerate representation is neither.
+
+**The prediction that follows:** fixing the representation (H2d) should make learning
+stop being harmful *before* it makes learning helpful. That is testable and is the
+right next step — but it is a prediction, and this project's record on mechanism
+predictions is 1-for-4, so it gets measured rather than assumed.
 
 ## 8. Consequence
 
-_Pending._
+- **H2 stays `REFUTED at this timescale`.** The re-test did not rescue it.
+- **The units fix stands on its own merits** — a discrete event scaled by 1/dt was
+  simply wrong, and the connectome recovery is real even though the behaviour did not
+  follow.
+- **H2d is promoted to the critical path.** It is now implicated in H2's failure, not
+  just H2b's and H2c's. Every open problem in the project traces back to a pallium
+  that cannot tell its inputs apart.
+- **Outstanding**: the recurrent-frozen arm of the ablation, to confirm that recurrent
+  learning alone is genuinely neutral rather than mildly harmful.
+- **A guard is warranted**: nothing tests that reward components stay within an order
+  of magnitude of each other. A single strike contributing 150x the drive terms should
+  have been caught by construction, not by an eight-experiment detour.

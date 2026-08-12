@@ -188,3 +188,31 @@ def test_disabled_plasticity_leaves_weights_untouched_even_with_noise(flock):
     _w, _x, p1, *_ = _run(flock, pc)
     assert jnp.array_equal(p0.W, p1.W)
     assert jnp.array_equal(p0.W_out, p1.W_out)
+
+
+def test_reward_components_are_commensurate(flock):
+    """No single reward component may dwarf the others.
+
+    E014: `struck * strike_penalty / dt` treated a discrete event as a rate, so one
+    predator strike contributed -100 against a feeding step worth ~0.5 -- about 150x
+    -- and the modulator slammed every eligible synapse at once. It took eight
+    experiments to find, and it should have been caught by construction.
+
+    The comparison is against a real *feeding* step, not against baseline hunger
+    drift. Drift is tiny by design, and measuring against it would flag a healthy
+    reward as broken -- which it did on the first version of this test.
+    """
+    w, _, _ = flock
+    pc = PlasticConfig()
+    # One timestep of successful feeding, as coop/world.py computes it.
+    eaten = CFG.dt * CFG.peck_food_rate * w.hunger
+    fed = w._replace(hunger=w.hunger - eaten)
+    struck = w._replace(n_struck=w.n_struck + 1.0)
+
+    r_fed = abs(float(jnp.mean(plasticity.reward(w, fed, CFG, pc))))
+    r_struck = abs(float(jnp.mean(plasticity.reward(w, struck, CFG, pc))))
+    ratio = r_struck / max(r_fed, 1e-9)
+    assert ratio < 20.0, (
+        f"a strike is worth {ratio:.0f}x a step of feeding; reward components must "
+        "stay within an order of magnitude, or the modulator is dominated by one "
+        "event and learning becomes a shock response")
