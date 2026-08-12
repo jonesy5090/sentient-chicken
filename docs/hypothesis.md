@@ -184,8 +184,9 @@ predicts suppression, which is the sign seen on the alarm channel in both experi
 ## H2b — the learning rule cannot acquire behaviours outside the innate repertoire
 
 **Status: SUPPORTED as a limitation** — established by
-[E006](experiments/E006-audibility-weighted-kin-reward.md). **This blocks H3, H4 and
-H5.**
+[E006](experiments/E006-audibility-weighted-kin-reward.md), refined by
+[E007](experiments/E007-exploration-does-not-rescue-comprehension.md). **This blocks
+H3, H4 and H5.**
 
 The three-factor rule strengthens synapses that were active when the modulator moved.
 It has no way to reinforce an action that never happened — and the model is
@@ -204,11 +205,34 @@ already performs — approach food, peck, huddle. The limit binds the moment the
 question is about acquiring something genuinely new, which is every hypothesis from
 here on.
 
-**Fix (E007):** decaying motor exploration noise. Behavioural variability in young
-animals is well documented and is the substrate reinforcement acts on, so this is a
-correction toward the biology rather than a workaround. Re-measure **comprehension**
-first — it is the cheap mechanical readout, and if it does not move, nothing
-downstream will.
+**[E007](experiments/E007-exploration-does-not-rescue-comprehension.md) refines this
+and the refinement matters.** Exploration was added and comprehension did not move —
+nor did it with 30x the predator density, nor with both. The measurement that
+explains it:
+
+```
+drive needed for crouch > 0.5     : +2.50
+innate reflex, hawk overhead      : +8.00
+cortical drive to crouch, playback: +0.002   -- roughly 170x short
+```
+
+**The real limit is that the learned pathway can modulate behaviour but cannot
+initiate it.** Exploration cannot help, because the problem is not that the action is
+never sampled — it is that once sampled, the learned pathway has no way to reproduce
+it. There is nothing for the credit to attach to.
+
+**This is the same tension E002 found, seen from the other side.** E002: cortical
+influence too high and behaviour degrades, because an untrained pallium overrides good
+reflexes. E007: cortical influence low enough to be safe, and nothing new can be
+learned. The two pathways sum into one motor drive and compete on a single axis, so
+there is no setting that satisfies both.
+
+**Open architectural decision** — additive competition versus multiplicative gating.
+If the cortical pathway set a per-channel *gain on the reflex arc* instead of adding
+its own drive, a learned signal could recruit an innate behaviour without generating
+it from nothing, and could not run away because it only scales existing responses.
+That is closer to how learned modulation of tectal circuits is thought to work. It is
+a change to the core architecture and has not been made.
 
 ---
 
@@ -270,3 +294,4 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E004 | H2 → `SUPPORTED` (t=3.93, p≈0.002). H2a opened. Predator exposure retired. |
 | E005 | H3 null. Kin reward cannot assign credit to the caller; E006 opened. |
 | E006 | H3 null again. Comprehension is zero: no exploration. H2b opened, blocking H3-H5. |
+| E007 | Exploration added; comprehension still zero. H2b refined: the learned pathway cannot *initiate*, only modulate. Architectural fork opened. |

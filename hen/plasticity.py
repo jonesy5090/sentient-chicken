@@ -95,6 +95,17 @@ class PlasticConfig(NamedTuple):
     w_max: float = 0.5
     scaling_strength: float = 0.02  # synaptic scaling back toward innate total
 
+    # Exploration. Young animals are behaviourally variable, and that variability is
+    # the substrate reinforcement acts on -- a deterministic policy can only ever be
+    # rewarded for actions it already takes. E006 established that without this the
+    # hen cannot acquire any stimulus-response pairing her innate reflex arc does not
+    # already visit, which blocks every hypothesis about learned communication.
+    #
+    # Decays with age on the same schedule as the critical period: a chick explores,
+    # an adult exploits.
+    explore_sigma: float = 0.6      # s.d. on the motor drive, at hatch
+    explore_tau_s: float = 3600.0   # halves roughly every hour of chicken time
+
     # Structural growth
     growth_enabled: bool = True
     growth_interval: int = 10_000   # steps (100 s of chicken time)

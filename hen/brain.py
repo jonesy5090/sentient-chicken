@@ -37,8 +37,25 @@ def initial_state(p: BrainParams, n_hens: int) -> jax.Array:
     return jnp.broadcast_to(p.b[None, :], (n_hens, p.b.shape[0])).copy()
 
 
-def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float):
-    """Returns (x_next, motor, drives); motor in [0, 1], shape (H, MOTOR_DIM)."""
+def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
+         key: jax.Array = None, sigma: float = 0.0):
+    """Returns (x_next, motor, drives); motor in [0, 1], shape (H, MOTOR_DIM).
+
+    `sigma` adds Gaussian noise to the motor drive before the output nonlinearity.
+    Without it the hen is deterministic — same state, same action, forever — and a
+    reinforcement rule cannot strengthen an action that never occurs. E006 found this
+    is what stops comprehension emerging: to learn "crouch when you hear an alarm",
+    she has to crouch on hearing one at least once, and crouching is only ever driven
+    by *seeing* a hawk.
+
+    The noise goes on the motor drive rather than on the membrane state deliberately.
+    `z_motor` traces the motor output, so noise placed here is captured by the
+    eligibility trace, and an exploratory action that happens to pay off gets credited
+    to the synapses that produced it. Noise on the membrane would explore the
+    dynamics but blur that credit.
+
+    Assays pass sigma=0: they measure the learned policy, not the noise around it.
+    """
     current = obs @ p.W_in.T
     x, _ = neurons.ctrnn_step(x, p.W, current, p.b, p.tau, dt)
 
@@ -48,5 +65,9 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float):
     cortical = jnp.einsum("hmn,hn->hm", p.W_out, motor_stub)
 
     reflex = obs @ p.reflex.T
-    motor = jax.nn.sigmoid(reflex + cortical + p.b_motor[None, :])
-    return x, motor, Drives(reflex=reflex, cortical=cortical)
+    drive = reflex + cortical + p.b_motor[None, :]
+    # `sigma` is traced under jit (it decays with the world clock), so this cannot be
+    # a Python conditional. A caller that wants no noise at all passes key=None.
+    if key is not None:
+        drive = drive + sigma * jax.random.normal(key, drive.shape)
+    return x, jax.nn.sigmoid(drive), Drives(reflex=reflex, cortical=cortical)

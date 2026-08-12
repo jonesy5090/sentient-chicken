@@ -27,7 +27,10 @@ from coop.spec import CoopConfig
 from hen import brain, neurons, plasticity
 from hen.plasticity import PlasticConfig
 
-NO_PLASTICITY = PlasticConfig(enabled=False)
+# No learning and no exploration: a fixed, deterministic hen. This is what assays
+# run under -- they measure the policy, and noise would measure the policy plus the
+# noise. It is also the control condition for every contrast.
+NO_PLASTICITY = PlasticConfig(enabled=False, explore_sigma=0.0)
 
 
 class Trace(NamedTuple):
@@ -56,10 +59,16 @@ class Summary(NamedTuple):
 
 def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
     w, x, p, ps, key = carry
-    key, k_world, k_grow = jax.random.split(key, 3)
+    key, k_world, k_grow, k_explore = jax.random.split(key, 4)
+
+    # Exploration decays with age on the same schedule as the critical period: a
+    # chick is behaviourally variable, an adult is not. Age comes from the world
+    # clock rather than the plastic state so it is defined in every condition.
+    age_s = w.t.astype(jnp.float32) * cfg.dt
+    sigma = pc.explore_sigma / (1.0 + age_s / pc.explore_tau_s)
 
     obs = sensing.observe(w, cfg)
-    x, motor, drives = brain.step(x, obs, p, cfg.dt)
+    x, motor, drives = brain.step(x, obs, p, cfg.dt, k_explore, sigma)
     w_next = world.step(w, motor, k_world, cfg)
 
     # Pathway magnitudes, carried out of the loop so a run can report whether the
