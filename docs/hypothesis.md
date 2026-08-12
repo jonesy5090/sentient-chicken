@@ -86,8 +86,12 @@ is not a learned policy.
 **The next question is not "retune" but "why does the rule erode".** That is a design
 flaw, not a hyperparameter. Candidates recorded in E013 §8.
 
-**Superseded status history below.** Old status: `UNDER TEST` — downgraded by E010, whose evidence was then found to be
-**confounded**. Re-deciding on [E012](experiments/E012-corrected-phase-1-contrast.md).
+---
+
+### Status history (superseded; kept because the route matters)
+
+Previously `UNDER TEST` — downgraded by E010, whose evidence was then found to be
+**confounded**.
 
 E010 reported the effect collapsing from t=3.93 to t=0.08 after the gain correction.
 That run had also, silently, given every condition — *including the fixed control* —
@@ -113,9 +117,9 @@ In the corrected 12-seed contrast, learning does not beat the fixed control
 (noise-only: +0.018). But that contrast runs *with* the call cost, so its metric is
 compromised too.
 
-**Status stays `UNDER TEST` and no run yet tests H2 cleanly.** E013 re-runs the
-contrast at `call_energy_cost=0`, reproducing E004's environment with the corrected
-gain — the test that should have followed E009.
+At that point no run had yet tested H2 cleanly. E013 did, by moving the call cost to
+its own budget — and returned the significant negative result recorded at the top of
+this section.
 
 **Prediction:** a flock learning under a reward-prediction-error rule regulates its
 drives better over a rearing run than a genome-matched, coop-matched flock that

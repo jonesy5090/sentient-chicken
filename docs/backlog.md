@@ -177,9 +177,12 @@ Worth writing down now, while it is still cheap to be honest:
 
 ## 7. Order of work
 
-1. ~~**Phase 1 plasticity**~~ — **done.** Learning has a demonstrated behavioural
-   effect ([E004](experiments/E004-replication-at-twelve-seeds.md): t=3.93, p≈0.002).
-   This was the prerequisite for everything below it.
+1. **Phase 1 plasticity — REOPENED, and it blocks everything below.**
+   [E013](experiments/E013-clean-test-of-h2.md) is the first clean test and learning
+   comes out *significantly worse* than no learning (t=3.85), having destroyed 48% of
+   the innate connectome. E004's positive result is best explained as an artefact of
+   the saturated regime. Nothing below is worth running until a rule exists that does
+   not erode the bird.
 2. Condition harness: the six-way ladder as a config, sharing one simulation path.
    `run/experiment.py` has the matched-seed skeleton; it currently knows three
    conditions, not six.
@@ -197,20 +200,24 @@ Worth writing down now, while it is still cheap to be honest:
   `eta_out` raised 2e-3 → 2e-2.
 - ~~**Is synaptic scaling cancelling the learning signal?**~~ Moot — E003/E004 found
   the effect once the readout could learn, so scaling was not the blocker.
-- **H2a: does structural growth hurt learning?** Weaker in all three runs of the
-  contrast, and E004 attached a cost: no-growth reaches significance with 21,148
-  synapses (pruning 42% of the innate connectome) while growth ends with 40,753 and
-  does not clear. Needs a growth-*rate* sweep, not another on/off contrast.
+- **H2a: does structural growth hurt learning?** Weaker in *all five* runs that have
+  compared them, now including E013 (+0.077 vs +0.062, both significantly worse than
+  no learning). Growth has never helped in any regime. Largely subsumed by the
+  erosion question above.
 - **The innate/learned control balance is a parameter worth studying, not tuning.**
   E002 found that too much cortical influence makes behaviour *worse* — an untrained
   pallium overriding good reflexes. There is an optimum, and it plausibly maps onto
   the trade-off real precocial birds face between hatching competent and staying
   plastic. Worth a proper sweep rather than a single tuned value.
-- **Does the learning effect grow over a realistic rearing?** H2 is supported at 20
-  min of chicken time. A hen learns her surroundings over days, so the interesting
-  question is whether the effect compounds or plateaus. 1 day, 8 seeds, ~4 h wall
-  clock. Lower priority than H3, which is cheap and tests something the model was
-  never told.
+- **Why does the rule erode?** (E013) The zero-floor on weight magnitude makes
+  pruning irreversible, so any near-zero-mean update process monotonically destroys
+  structure — a ratchet, not a hyperparameter. Candidates: a floor under innate
+  weights so learning modulates rather than erodes; a sparse, large reward signal
+  instead of a continuous near-zero one; recoverable pruning. **This is now the top
+  item in the project.**
+- ~~**Does the learning effect grow over a realistic rearing?**~~ Moot until a
+  non-destructive rule exists. Running longer with the current rule strips more of
+  the connectome, not less.
 - ~~**Predator exposure as a metric.**~~ Retired. Uninformative in both E003 and E004
   (SEs of 1460-2469 on means of 13-44). E001's apparent 43% difference was noise, as
   it was flagged at the time.
