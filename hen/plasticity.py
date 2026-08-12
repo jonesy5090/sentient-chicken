@@ -164,9 +164,14 @@ def reward(w_prev, w_next, cfg: CoopConfig, pc: PlasticConfig) -> jax.Array:
     See `PlasticConfig.kin_weight` -- without it a call can never repay its energetic
     cost, because the caller pays and the listener benefits.
     """
+    # Drives are costs, so reduction is positive. Vigour is a resource, so its
+    # *loss* is the cost -- this is what makes calling expensive enough for
+    # audience-sensitivity to have anything to emerge from, without charging it to
+    # hunger and destroying H2's metric (E012).
     d_drive = ((w_prev.hunger - w_next.hunger)
                + (w_prev.thirst - w_next.thirst)
-               + (w_prev.cold - w_next.cold)) / cfg.dt
+               + (w_prev.cold - w_next.cold)
+               + (w_next.vigour - w_prev.vigour)) / cfg.dt
     struck = w_next.n_struck - w_prev.n_struck
     own = d_drive * pc.reward_scale - struck * pc.strike_penalty / cfg.dt
 

@@ -136,13 +136,19 @@ class CoopConfig(NamedTuple):
     huddle_warm_rate: float = 4.0e-4  # per second, per flockmate within huddle_radius
     huddle_max: int = 3               # a hen needs 2-3 close neighbours to stay warm
 
-    # Calling costs energy. Without a cost there is no reason for a hen ever to stay
-    # quiet, so there is no gradient from which audience-sensitivity could emerge --
-    # she would simply call whenever the reflex fired, forever, for free. Vocalising
-    # is genuinely metabolically costly in birds, but this value is set for
-    # learnability within a short run rather than for metabolic realism: at typical
-    # call amplitudes it roughly doubles the rate at which a hen gets hungry.
-    call_energy_cost: float = 8.0e-4  # hunger per second per unit of call amplitude
+    # Calling costs energy, and that cost lives in its own budget rather than in
+    # hunger. It was charged to hunger from E005 until E012, which is how it came to
+    # triple the rate hunger accumulates and destroy the metric H2 is measured on --
+    # a parameter added for one hypothesis silently changing the measurement basis of
+    # another. `vigour` keeps the cost real without touching the foraging drive.
+    #
+    # Two things make the cost bite. It enters the reward signal, so calling is
+    # genuinely expensive and audience-sensitivity has a gradient to emerge from; and
+    # it attenuates the call that flockmates actually hear, because a tired bird
+    # cannot call loudly. The second makes vocal effort self-limiting without any
+    # arbitrary cap.
+    call_vigour_drain: float = 1.5e-2   # per second per unit of call amplitude
+    vigour_recovery_s: float = 90.0     # seconds to recover fully from empty
 
     # Predation
     hawk_period_s: float = 900.0      # a hawk passes over roughly every 15 min

@@ -23,6 +23,7 @@ class World(NamedTuple):
     hunger: jax.Array       # (H,) in [0, 1]
     thirst: jax.Array       # (H,)
     cold: jax.Array         # (H,)
+    vigour: jax.Array       # (H,) in [0, 1]; vocal energy, 1 = rested
     head_down: jax.Array    # (H,) in [0, 1], from the previous motor vector
     speed: jax.Array        # (H,) metres/sec last step
     calls: jax.Array        # (H, N_CALLS) amplitudes emitted last step
@@ -61,6 +62,7 @@ def reset(key: jax.Array, cfg: CoopConfig = spec.DEFAULT_COOP) -> World:
         hunger=jnp.full((h,), 0.3),
         thirst=jnp.full((h,), 0.2),
         cold=jnp.full((h,), 0.2),
+        vigour=jnp.ones((h,)),
         head_down=jnp.zeros((h,)),
         speed=jnp.zeros((h,)),
         calls=jnp.zeros((h, spec.N_CALLS)),
@@ -139,11 +141,16 @@ def step(w: World, motor: jax.Array, key: jax.Array,
     at_food = (d_food < cfg.peck_radius) & (w.food_amount[None, :] > 0.01)
     pecking = motor[:, spec.M_PECK] > 0.5
     fed = jnp.any(at_food, axis=-1) & pecking
-    call_effort = jnp.sum(motor[:, list(spec.CALL_MOTOR_IDX)], axis=-1)
     hunger = jnp.clip(
         w.hunger + cfg.dt * (1.0 / cfg.hunger_fill_s
-                             + call_effort * cfg.call_energy_cost
                              - fed * cfg.peck_food_rate * w.hunger),
+        0.0, 1.0)
+
+    # --- Vocal effort, on its own budget. Calling spends vigour; silence restores it.
+    call_effort = jnp.sum(motor[:, list(spec.CALL_MOTOR_IDX)], axis=-1)
+    vigour = jnp.clip(
+        w.vigour + cfg.dt * (1.0 / cfg.vigour_recovery_s
+                             - call_effort * cfg.call_vigour_drain),
         0.0, 1.0)
 
     # --- Drinking ---
@@ -180,10 +187,13 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         heading=kin.heading,
         speed=kin.speed,
         head_down=kin.head_down,
-        calls=motor[:, list(spec.CALL_MOTOR_IDX)],
+        # What flockmates actually hear: a spent bird cannot call loudly, which
+        # makes vocal effort self-limiting without an arbitrary cap.
+        calls=motor[:, list(spec.CALL_MOTOR_IDX)] * vigour[:, None],
         hunger=hunger,
         thirst=thirst,
         cold=cold,
+        vigour=vigour,
         food_amount=w.food_amount,   # patches are not depleted in phase 0
         hawk_pos=hawk_pos, hawk_on=hawk_on, hawk_t=hawk_t,
         fox_pos=fox_pos, fox_on=fox_on, fox_t=fox_t,
