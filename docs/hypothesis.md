@@ -72,9 +72,27 @@ the exploration noise added in E007 after E004 was run. It compared *(new gain +
 noise)* against *(old gain, no noise)* and blamed the gain. See the invalidity notice
 on [E010](experiments/E010-rebaseline-at-corrected-gain.md).
 
-The status stays `UNDER TEST` rather than reverting to `SUPPORTED`: E004's evidence
-was gathered in the saturated regime and that concern is untouched by the confound.
-E012 settles it with exploration stated explicitly and a noise-only control.
+**[E012](experiments/E012-corrected-phase-1-contrast.md) isolated the real cause, and
+it was neither the gain nor the noise.** With one variable changed at a time:
+
+| gain | call cost | hunger change |
+|---|---|---|
+| 0.90 | 0 | +0.060 ← the E004 configuration |
+| 0.70 | 0 | **+0.033** ← corrected gain is *better* |
+| 0.70 | 8e-4 | +0.224 ← current |
+
+The gain is nearly neutral. **`call_energy_cost` — added in E005 for H3 — explains
+essentially all of the degradation**, because it triples the rate hunger accumulates
+and so swamps the very metric H2 is measured on.
+
+In the corrected 12-seed contrast, learning does not beat the fixed control
+(+0.016 ± 0.040, t=0.40) and roughly cancels the cost of its own exploration
+(noise-only: +0.018). But that contrast runs *with* the call cost, so its metric is
+compromised too.
+
+**Status stays `UNDER TEST` and no run yet tests H2 cleanly.** E013 re-runs the
+contrast at `call_energy_cost=0`, reproducing E004's environment with the corrected
+gain — the test that should have followed E009.
 
 **Prediction:** a flock learning under a reward-prediction-error rule regulates its
 drives better over a rearing run than a genome-matched, coop-matched flock that
@@ -448,4 +466,6 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E007 | Exploration added; comprehension still zero. H2b refined: the learned pathway cannot *initiate*, only modulate. Architectural fork opened. |
 | E008 | Top-down association built; first version was an autoencoder, tested nothing. |
 | E009 | Lagged/pallial association, still null. Found the pallium saturated: H2d opened. |
-| E010 | Gain 0.9 -> 0.70. **H2 collapses (t=3.93 -> 0.08) and is downgraded.** Readout params stale. |
+| E010 | Gain 0.9 -> 0.70; H2 appears to collapse. **Later found confounded — invalid.** |
+| E011 | Readout sweep. Control did not improve as predicted; that tell exposed E010's confound. |
+| E012 | Isolated it: not the gain, not the noise -- **`call_energy_cost` from E005 swamps H2's metric.** |

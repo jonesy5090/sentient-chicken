@@ -14,6 +14,13 @@
 > So E010 compared *(new gain + noise)* against *(old gain, no noise)* and attributed
 > the entire collapse to the gain. That is not supported by the run.
 >
+> **Amended after [E012](E012-corrected-phase-1-contrast.md): the noise was not the
+> main confound either.** Isolating one variable at a time shows the gain is nearly
+> neutral (and slightly *favourable*), the noise costs +0.018, and essentially the
+> whole degradation comes from **`call_energy_cost`** — added in E005 for H3, which
+> triples the rate hunger accumulates and swamps the metric H2 is measured on. Two
+> wrong attributions preceded the right one; both are recorded in E012 §2.
+>
 > The tell was in [E011](E011-retune-the-readout.md): the fixed control did not improve
 > as `readout_scale` fell toward zero. At `readout_scale = 0.005` the cortical term is
 > ~0, so the gain *cannot* affect a fixed hen at all — yet she was still doing badly.
