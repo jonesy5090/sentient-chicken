@@ -65,12 +65,63 @@ stated per condition.
 
 ## 6. Result
 
-_Pending._
+6 matched seeds, 20 min. The fixed anchor reproduced +0.036 / 5.6% exactly.
+
+| condition | hunger change | harm vs fixed | fed % | synapses |
+|---|---|---|---|---|
+| fixed | +0.036 | — | 5.6 | 36,369 |
+| simultaneous | +0.088 | +0.052 | 4.9 | 30,109 |
+| staged, **pallium first** | +0.095 | +0.059 | 5.0 | 30,214 |
+| staged, **muscles first** | **+0.052** | **+0.016** | 5.0 | 31,631 |
+
+```
+vs simultaneous:  pallium first   +0.007 +/- 0.028 SE   t=0.25   noise
+                  muscles first   -0.036 +/- 0.010 SE   SIGNIFICANT
+```
 
 ## 7. Interpretation
 
-_Pending._
+**The prediction is falsified, and the condition included as a *control* is the one
+that worked.**
+
+Pallium-first — the order the moving-target story predicted would help — is
+indistinguishable from learning both at once (t=0.25). Muscles-first cuts the harm by
+**69%**, from +0.052 to +0.016, and clears significance.
+
+**So the moving-target reading is wrong as stated.** If the problem were the readout
+chasing a representation that keeps changing, letting the representation settle first
+would help. It does not. Something order-dependent is going on, but not that.
+
+**A simpler reading fits all of it: the harm is dominated by whichever pathway learned
+last, and the readout is the harmful one.**
+
+- Pallium-first *ends* on readout learning — the expensive pathway (+0.021 alone in
+  E015) — and lands at +0.059.
+- Muscles-first *ends* on pallium learning — the cheap pathway (+0.010 alone) — and
+  lands at +0.016, close to that figure.
+
+On this account staging does not fix an interaction at all. It just determines which
+pathway gets the last word, and the readout having the last word is what costs.
+
+That is a hypothesis, and this project's record on mechanism hypotheses is now 1-for-6.
+It makes a sharp, cheap prediction: **a short final stage of pallium-only learning,
+appended to any schedule, should absorb most of the harm regardless of what came
+before.** If that holds it is a real effect; if it does not, this reading joins the
+others.
+
+**What it does not do is rescue H2.** Muscles-first is still worse than a hen who
+cannot learn at all (+0.016 against 0.000). Learning has gone from clearly harmful to
+mildly harmful. That is progress in understanding, not a working learning rule.
 
 ## 8. Consequence
 
-_Pending._
+- **H2 unchanged**: `REFUTED at this timescale`.
+- **E015's moving-target explanation is withdrawn.** The ordering effect is real and
+  significant but runs opposite to what that story predicts.
+- **New leading hypothesis, explicitly labelled as one**: harm is dominated by the
+  pathway that learns last. Testable by appending a short pallium-only stage to an
+  otherwise simultaneous schedule.
+- **This is a workaround, not a fix.** Even at its best, staging leaves the hen worse
+  than not learning. The underlying problem is still that the pallium cannot tell its
+  inputs apart (H2d), and no scheduling trick addresses that.
+- **H2d remains the critical path**, now with one more experiment pointing at it.

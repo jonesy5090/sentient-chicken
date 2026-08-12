@@ -218,12 +218,15 @@ Worth writing down now, while it is still cheap to be honest:
   predator strike worth −100 in reward. Fixed; the connectome recovers. It was **not**
   the cause of the behavioural harm, and pruning turns out to be nearly free (E015:
   22% of the connectome lost for +0.010).
-- **Why is learning harmful, and why superadditively?** (E015) Readout learning costs
-  +0.021, recurrent +0.010, both together +0.052 against the +0.031 independence
-  predicts. Leading hypothesis is a moving target — the readout chases a
-  representation being rewritten underneath it. **Cheap and directly actionable test:
-  stage the learning.** Let the representation settle with the readout frozen, then
-  train the readout against a stable pallium. **Top item.**
+- ~~**Is the superadditivity a moving-target problem?**~~ **No (E016).** Staging was
+  tested and the prediction was falsified: letting the pallium settle first does
+  nothing (t=0.25), while doing the readout first cuts harm 69% (+0.052 → +0.016,
+  significant). The moving-target story is withdrawn.
+- **Does the pathway that learns *last* dominate the harm?** (E016) That is the new
+  reading, and it makes a sharp cheap test: append a short pallium-only stage to an
+  otherwise simultaneous schedule and see whether it absorbs the harm regardless of
+  what came before. Worth one run — but note this is a **workaround**, not a fix.
+  Even at its best, staging leaves the hen worse than not learning at all.
 - **Fix the representation (H2d).** Both pathways learn from or into a pallium whose
   states for "heard an alarm" and "saw a hawk" differ by under 1% of mean rate. The
   gain correction helped 8x and was not enough; absolute separability barely moved.

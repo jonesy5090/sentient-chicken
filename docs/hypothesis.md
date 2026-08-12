@@ -107,8 +107,15 @@ two learned pathways:**
 
 The readout is about twice as harmful as the recurrent weights — and **the two
 together are superadditive**, +0.052 against the +0.031 independence would predict.
-Plausibly a moving-target problem: the readout chases a pallial representation that
-is being rewritten underneath it. Labelled a hypothesis, not a mechanism.
+
+~~Plausibly a moving-target problem: the readout chases a pallial representation being
+rewritten underneath it.~~ **Withdrawn by
+[E016](experiments/E016-staged-learning.md)**, which staged the two pathways and got
+the opposite of what that predicts: letting the pallium settle *first* does not help
+at all (t=0.25), while doing the readout first cuts the harm 69% (+0.052 → +0.016,
+significant). **New reading — labelled a hypothesis:** harm is dominated by whichever
+pathway learns *last*, and the readout is the harmful one. Staging does not fix an
+interaction; it decides who gets the last word.
 
 **Pruning is nearly free**: the recurrent-only condition loses 22% of the connectome
 for +0.010. That retires the last of E013's original story — the harm is not the loss
@@ -532,3 +539,4 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E013 | Call cost moved to its own `vigour` budget. **Clean test: learning is significantly WORSE. H2 refuted at this timescale.** |
 | E014 | Units bug found: a strike contributed -100 to reward. Connectome recovers; **behaviour does not**. Harm localised to the learned readout, implicating H2d. |
 | E015 | Harm decomposed: readout +0.021, recurrent +0.010, both **+0.052 — superadditive**. Pruning nearly free. |
+| E016 | Staging tested. Prediction falsified: pallium-first does nothing, **muscles-first cuts harm 69%**. Moving-target story withdrawn. |
