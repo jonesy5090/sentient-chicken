@@ -81,6 +81,11 @@ class PlasticConfig(NamedTuple):
     # instruction.
     kin_weight: float = 0.5
 
+    # Whether the kin term is weighted by audibility. See `reward()`: the flat flock
+    # mean cannot assign credit to a caller, which is E005's diagnosis of its own
+    # null. False reproduces the E005 condition.
+    kin_audible: bool = True
+
     # Consolidation. The forward pass already reads W every step; writing it too is
     # what costs, so eligibility accumulates continuously and consolidates every
     # `interval` steps. Measured: interval=10 costs 3x throughput, 50 costs ~25%,
@@ -143,10 +148,26 @@ def reward(w_prev, w_next, cfg: CoopConfig, pc: PlasticConfig) -> jax.Array:
     if pc.kin_weight == 0.0:
         return own
 
-    # Mean over the *other* hens: (sum - self) / (n - 1).
     n = own.shape[0]
-    others = (jnp.sum(own) - own) / jnp.maximum(n - 1, 1)
-    return own + pc.kin_weight * others
+    if not pc.kin_audible:
+        # Flat flock mean over the *other* hens: (sum - self) / (n - 1).
+        # E005 showed this cannot work: the quantity is nearly identical for every
+        # hen, so it moves the same way for the silent bird as for the caller, and
+        # no hen can discover she is responsible for a call. Kept as a condition to
+        # contrast against, not as a default.
+        others = (jnp.sum(own) - own) / jnp.maximum(n - 1, 1)
+        return own + pc.kin_weight * others
+
+    # Audibility-weighted: a hen's reward reflects the welfare of the flockmates who
+    # could actually hear her. Now the kin term differs per hen and covaries with who
+    # was in earshot, which is the correlation the learning rule needs to credit her
+    # own call. It is also better biology -- kin selection operates on the relatives
+    # you actually help, not on a population average.
+    d = jnp.linalg.norm(w_next.pos[:, None, :] - w_next.pos[None, :, :], axis=-1)
+    d = d + jnp.eye(n) * 1e6                       # exclude self
+    audible = jnp.clip(1.0 - d / cfg.hear_range, 0.0, 1.0)
+    heard = (audible @ own) / (jnp.sum(audible, axis=-1) + 1e-6)
+    return own + pc.kin_weight * heard
 
 
 def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,

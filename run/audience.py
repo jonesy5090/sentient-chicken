@@ -119,6 +119,37 @@ def assay(p, cfg: CoopConfig, n_hens: int, steps: int = 300) -> AudienceResult:
     )
 
 
+def comprehension(p, cfg: CoopConfig, n_hens: int, steps: int = 200) -> float:
+    """Playback: does hearing an aerial alarm call make her crouch?
+
+    This is Evans & Marler's playback design — present the call with no predator to
+    see and measure the response — and it measures the thing the audience effect
+    structurally depends on.
+
+    The chain that has to close for audience-sensitive calling to be learnable is:
+    she calls, a flockmate *hears and responds*, the flockmate avoids a strike, and
+    the benefit returns to her through the kin term. If flockmates do not respond to
+    calls, the chain is broken at step two and no amount of fixing the reward can
+    help. Comprehension is learned, not innate — `hen/innate.py` deliberately wires
+    no reflex from the auditory channels — so at hatch this should be zero.
+
+    Driven by a hand-built observation rather than a staged world, so the call is
+    the only thing that varies. Held static for `steps` to let the recurrent
+    dynamics settle.
+    """
+    def crouch_under(call_level: float) -> float:
+        obs = jnp.zeros((n_hens, spec.OBS_DIM))
+        obs = obs.at[:, spec.AUDIO_LO + 2].set(call_level)   # aerial alarm channel
+        x = brain.initial_state(p, n_hens)
+        total = 0.0
+        for _ in range(steps):
+            x, motor, _ = brain.step(x, obs, p, cfg.dt)
+            total += float(jnp.mean(motor[:, spec.M_CROUCH]))
+        return total / steps
+
+    return crouch_under(1.0) - crouch_under(0.0)
+
+
 def rear_and_assay(seed: int, cfg: CoopConfig, seconds: float, pc: PlasticConfig):
     """Assay a flock at hatch, rear it, assay it again."""
     key = jax.random.key(seed)
@@ -128,10 +159,12 @@ def rear_and_assay(seed: int, cfg: CoopConfig, seconds: float, pc: PlasticConfig
     x = brain.initial_state(p, cfg.n_hens)
 
     before = assay(p, cfg, cfg.n_hens)
+    comp_before = comprehension(p, cfg, cfg.n_hens)
     _w, _x, p_end, *_ = simulate.simulate(
         w, x, p, jax.random.fold_in(key, 2), cfg, seconds, 60.0, pc)
     after = assay(p_end, cfg, cfg.n_hens)
-    return before, after
+    comp_after = comprehension(p_end, cfg, cfg.n_hens)
+    return before, after, comp_before, comp_after
 
 
 def main() -> None:
@@ -148,7 +181,10 @@ def main() -> None:
     seeds = list(range(args.seeds))
 
     conditions = [
-        ("learning", PlasticConfig(enabled=True, growth_enabled=False)),
+        ("audible kin", PlasticConfig(enabled=True, growth_enabled=False,
+                                      kin_audible=True)),
+        ("flat kin (E005)", PlasticConfig(enabled=True, growth_enabled=False,
+                                          kin_audible=False)),
         ("fixed (control)", PlasticConfig(enabled=False)),
     ]
 
@@ -179,12 +215,23 @@ def main() -> None:
         results[name] = pairs
 
     print()
+    print("comprehension -- does hearing an alarm call make her crouch, with no")
+    print("predator to see? the audience effect cannot emerge without this, since")
+    print("a call that nobody responds to can never repay its cost.\n")
+    print(f"{'condition':<18} {'hatch':>10} {'reared':>10} {'change':>10}")
+    print("-" * 50)
+    for name, pairs in results.items():
+        cb = float(jnp.mean(jnp.array([p[2] for p in pairs])))
+        ca = float(jnp.mean(jnp.array([p[3] for p in pairs])))
+        print(f"{name:<18} {cb:>10.4f} {ca:>10.4f} {ca - cb:>+10.4f}")
+
+    print()
     from run.experiment import _t_critical
     n = len(seeds)
     for name, pairs in results.items():
         for label, get in (("alarm", lambda r: r.alarm_effect),
                            ("food", lambda r: r.food_effect)):
-            delta = jnp.array([get(a) - get(b) for b, a in pairs])
+            delta = jnp.array([get(a) - get(b) for b, a, _cb, _ca in pairs])
             mean = float(jnp.mean(delta))
             if n < 2:
                 print(f"{name:<18} {label} effect change {mean:+.3f} (single seed)")

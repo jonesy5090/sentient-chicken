@@ -138,7 +138,7 @@ justification behind it.
 
 ## H3 — learned usage reproduces the audience effect without being programmed
 
-**Status: UNDER TEST** (phase 2/3) — one null recorded.
+**Status: UNDER TEST** (phase 2/3) — two nulls recorded, and **blocked by H2b**.
 
 Real cockerels alarm- and food-call far more readily with a hen present, graded by
 audience type (conspecific > other species > empty cage). Call *production* is innate
@@ -168,9 +168,47 @@ individual a way to discover she is responsible for one — leaving the energy *
 as the only component correlated with her own calling, which predicts suppression,
 which is the sign observed.
 
-**E006**: weight the kin term by audibility, so a hen's reward reflects the flockmates
-who could actually hear her. `coop/sensing.py` already computes the attenuation matrix.
-Better biology too — kin selection operates on the relatives you actually help.
+**[E006](experiments/E006-audibility-weighted-kin-reward.md): second null, and it
+found the real blocker.** Audibility-weighting the kin term did not rescue the effect
+(food t=0.90 vs flat-kin's t=0.64 — indistinguishable). But the comprehension assay
+added in the same run returned the decisive number: **hearing an alarm call changes a
+hen's behaviour by ~0.0005, before and after rearing, in every condition.** Nothing
+responds to calls, so a call cannot help anyone, so it cannot repay its cost — leaving
+the private energy cost as the only thing correlated with her own calling, which
+predicts suppression, which is the sign seen on the alarm channel in both experiments.
+
+**H3 is blocked by H2b, not by its own design.** See below.
+
+---
+
+## H2b — the learning rule cannot acquire behaviours outside the innate repertoire
+
+**Status: SUPPORTED as a limitation** — established by
+[E006](experiments/E006-audibility-weighted-kin-reward.md). **This blocks H3, H4 and
+H5.**
+
+The three-factor rule strengthens synapses that were active when the modulator moved.
+It has no way to reinforce an action that never happened — and the model is
+deterministic. No motor noise, no stochastic action selection, no exploration of any
+kind.
+
+So every behaviour a hen will ever perform is one the innate reflex arc already
+produces. Learning can re-weight *when* existing behaviours fire; it cannot acquire a
+stimulus-response pairing the reflex arc never visits. To learn "crouch when you hear
+an alarm", she must at some point crouch on hearing one — and she never does, because
+crouching is driven by *seeing* a hawk and `hen/innate.py` deliberately wires nothing
+from the auditory channels.
+
+**Why this was invisible until now.** H2 only required tuning behaviours the hen
+already performs — approach food, peck, huddle. The limit binds the moment the
+question is about acquiring something genuinely new, which is every hypothesis from
+here on.
+
+**Fix (E007):** decaying motor exploration noise. Behavioural variability in young
+animals is well documented and is the substrate reinforcement acts on, so this is a
+correction toward the biology rather than a workaround. Re-measure **comprehension**
+first — it is the cheap mechanical readout, and if it does not move, nothing
+downstream will.
 
 ---
 
@@ -231,3 +269,4 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E003 | Effect appeared (t=2.50), short of threshold. Analysis bug found and fixed. |
 | E004 | H2 → `SUPPORTED` (t=3.93, p≈0.002). H2a opened. Predator exposure retired. |
 | E005 | H3 null. Kin reward cannot assign credit to the caller; E006 opened. |
+| E006 | H3 null again. Comprehension is zero: no exploration. H2b opened, blocking H3-H5. |
