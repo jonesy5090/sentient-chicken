@@ -179,10 +179,15 @@ Worth writing down now, while it is still cheap to be honest:
 
 1. **Phase 1 plasticity — REOPENED, and it blocks everything below.**
    [E013](experiments/E013-clean-test-of-h2.md) is the first clean test and learning
-   comes out *significantly worse* than no learning (t=3.85), having destroyed 48% of
-   the innate connectome. E004's positive result is best explained as an artefact of
-   the saturated regime. Nothing below is worth running until a rule exists that does
-   not erode the bird.
+   comes out *significantly worse* than no learning (t=3.85). E004's positive result is
+   best explained as an artefact of the saturated regime.
+
+   The reason is **not** connectome damage, though E013 said so at the time: that was a
+   units bug, fixed in [E014](experiments/E014-strike-units-bug.md), and
+   [E015](experiments/E015-decomposing-the-harm.md) measured pruning as nearly free
+   (22% of the connectome for +0.010). The harm is the learned pathways themselves,
+   superadditively. Nothing below is worth running until a rule exists that does not
+   make the bird worse.
 2. Condition harness: the six-way ladder as a config, sharing one simulation path.
    `run/experiment.py` has the matched-seed skeleton; it currently knows three
    conditions, not six.

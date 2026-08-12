@@ -143,11 +143,21 @@ hens still forage worse, by exactly the same margin. So the brain damage and the
 behaviour were two separate problems that merely happened together, and the second one
 is still open.
 
-An ablation narrowed it down: freezing just the connection from the "thinking" brain to
-the muscles removes most of the harm, while everything else keeps learning normally.
-The pallium is broadcasting *confident nonsense* — and that traces straight back to the
-saturation finding, because a brain that cannot tell an alarm call from a hawk has
-nothing sensible to broadcast.
+**E015 then split the harm between the two things that learn**, and found something
+odd. Learning the wiring *inside* the brain costs a little. Learning the connection
+*out* to the muscles costs twice as much. But doing both at once costs far more than
+the two added together.
+
+The likely reason is that they are chasing each other: the output connection is trying
+to learn what the brain's internal states *mean*, while those states are being rewritten
+underneath it. Neither ever settles. If that is right, teaching them one at a time
+should fix it — which is cheap to test and is the next thing to do.
+
+The same experiment killed the last piece of the original story. **Throwing away 22% of
+the connectome costs almost nothing.** The damage was never about losing brain tissue.
+It is that the pallium is broadcasting *confident nonsense* — and that traces straight
+back to the saturation finding, because a brain that cannot tell an alarm call from a
+hawk has nothing sensible to say.
 
 That also reframes the earlier success. In the saturated brain, the learned pathway
 could only apply a *constant offset* to behaviour — so the same erosion was invisible,
