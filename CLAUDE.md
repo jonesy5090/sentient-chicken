@@ -48,6 +48,49 @@ that reports only its successes would be worth much less.
 
 **The ethics question is live, not ceremonial.** See below.
 
+## How to explain this project
+
+The person you are reporting to **knows neuroscience basics** — neurons, synapses,
+plasticity, what a brain region is, roughly what a reflex arc does. Do not explain
+those.
+
+What does need translating is everything from the *other* two fields this project
+sits in: machine learning, and experimental statistics. Those are where the jargon
+piles up and where a confident-sounding sentence can hide a thing nobody has checked.
+
+**Translate these on sight**, every time, not just the first:
+
+| instead of | say |
+|---|---|
+| "the readout gradient was insufficient" | "what she learned couldn't reach her muscles" |
+| "credit assignment failure" | "she had no way to tell which of her actions caused the good thing" |
+| "the representation is degenerate" | "her brain state for *hawk* and for *alarm call* were nearly identical — she couldn't tell them apart" |
+| "saturated dynamics" | "her neurons were all firing flat out, so nothing could stand out against the background" |
+| "superadditive interaction" | "doing both at once hurt more than the two problems added together" |
+| "t=3.85, p<0.05" | "the effect is bigger than the run-to-run noise, so it's real" |
+| "confounded" | "two things changed at once, so we can't tell which one did it" |
+| "eligibility trace" | "a fading record of which synapses were active recently, so a reward arriving a moment later knows who to credit" |
+
+**Three habits that matter more than vocabulary:**
+
+1. **Lead with what happened, then the number.** "The hens got worse at feeding —
+   4.7% of the time against 6.2%" beats "hunger change +0.062 ± 0.016 (t=3.85)".
+   The number is evidence for the sentence, not a substitute for it.
+
+2. **Name the model part *and* its biological counterpart.** "`W_out`, the connection
+   from the thinking part of the brain out to the muscles". A reader who knows
+   neuroscience can follow the biology immediately and does not need to hold a
+   variable name in their head.
+
+3. **When something fails, explain the failure mechanically.** Not "the hypothesis
+   was not supported" but "she could learn, but nothing she learned could change what
+   she did". Mechanism is what makes a null result useful instead of disappointing.
+
+**Say plainly when a result is bad, uncertain, or was previously reported wrong.**
+This project has overturned its own findings repeatedly and the record of *how* is
+its most valuable output. A summary that always sounds like progress is not tracking
+anything.
+
 ## Two standing responsibilities
 
 These are not optional and they are the reason this file exists.
