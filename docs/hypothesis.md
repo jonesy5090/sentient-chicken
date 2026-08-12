@@ -136,6 +136,56 @@ justification behind it.
 
 ---
 
+## H2c — a learned cue can recruit an innate response via top-down association
+
+**Status: NOT STARTED** — opened after E007, and it supersedes the resolution E007
+proposed.
+
+E007 left the project at a fork: the innate and learned pathways sum into one motor
+drive, so there is no setting where the pallium can both initiate new behaviour and
+avoid overriding good reflexes. E007 proposed multiplicative gating of the reflex arc.
+
+**That proposal does not work, and the reason is worth recording.** Gating scales an
+existing reflex. In the case that matters — hearing an alarm call with *no hawk
+visible* — the reflex input is zero, and any gain applied to zero is zero. Gating
+cannot create a response to a cue the innate arc does not already respond to.
+
+**The correction: wire the learned pathway to the sensory representation, not to the
+motor output.** Let the pallium project back onto the observation the reflex arc
+reads. Then hearing an alarm call does not have to *recreate crouching* — it only has
+to recreate the *percept of a hawk*, and the innate reflex, which is already strong
+enough, does the rest.
+
+This is Pavlovian conditioning stated architecturally: the conditioned stimulus comes
+to activate the representation the unconditioned stimulus would. It is also why the
+magnitudes suddenly work. Supplying crouch drive directly needs +2.50 against a
+measured cortical capacity of 0.002. Supplying it *through* the aerial channel needs
+only ~0.3 in sensory units, because the innate reflex multiplies it by 8.0.
+
+**Where the association comes from, and why it needs no reward.** A hen who is
+head-up both sees the hawk and hears the flockmate's call — the two co-occur, and a
+plain Hebbian rule associates them. Later, head-down and blind, the call alone
+reconstructs the percept. She learns what the call means during the moments she can
+check for herself, and can then use it when she cannot.
+
+That resolves the credit-assignment problem that sank E005 and E006 as well, because
+association needs no reward signal and no attribution of benefit to a caller.
+
+**Prediction:** comprehension — crouching to a played-back alarm with no predator
+visible — rises above zero with a top-down associative projection and stays at zero
+without it. Measured on the existing assay, which E006 showed is sound.
+
+**Falsifiers:** comprehension flat with the projection added; or comprehension
+appearing but the hen now hallucinating percepts with no cue, which would mean the
+projection is unconstrained rather than associative.
+
+**Risk to watch:** a pathway that writes into a hen's own senses can make her
+perceive things that are not there. That is the intended mechanism and also the
+obvious failure mode, so the assay must check the no-cue baseline, not just the
+cued response.
+
+---
+
 ## H3 — learned usage reproduces the audience effect without being programmed
 
 **Status: UNDER TEST** (phase 2/3) — two nulls recorded, and **blocked by H2b**.
