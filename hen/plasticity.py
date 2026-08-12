@@ -172,8 +172,18 @@ def reward(w_prev, w_next, cfg: CoopConfig, pc: PlasticConfig) -> jax.Array:
                + (w_prev.thirst - w_next.thirst)
                + (w_prev.cold - w_next.cold)
                + (w_next.vigour - w_prev.vigour)) / cfg.dt
+    # Being caught is a discrete *event*, not a rate, and it must not be divided by
+    # dt. It was, until E014. At dt=0.01 that turned a single strike into -100 in a
+    # hen's reward -- roughly 150x anything the drive terms contribute (~0.6) -- and
+    # the baseline, which tracks over 20 s, cannot absorb a spike like that. The
+    # modulator then slams every eligible synapse at once.
+    #
+    # Measured: seeds where hens were struck lost 50-75% of their connectome; a seed
+    # that happened to take zero strikes lost 17% and was fine. Ablating this term
+    # restored every seed to ~83%. The units error was the whole of the erosion that
+    # E013 attributed to a random walk.
     struck = w_next.n_struck - w_prev.n_struck
-    own = d_drive * pc.reward_scale - struck * pc.strike_penalty / cfg.dt
+    own = d_drive * pc.reward_scale - struck * pc.strike_penalty
 
     if pc.kin_weight == 0.0:
         return own
