@@ -63,14 +63,18 @@ of the time.
 
 ## H2 — three-factor plasticity produces measurable behavioural improvement
 
-**Status: UNDER TEST** — downgraded from `SUPPORTED` by
-[E010](experiments/E010-rebaseline-at-corrected-gain.md).
+**Status: UNDER TEST** — downgraded by E010, whose evidence was then found to be
+**confounded**. Re-deciding on [E012](experiments/E012-corrected-phase-1-contrast.md).
 
-E004's result was real, replicated and pre-registered, but it was obtained with the
-network saturated (gain 0.9). At the corrected operating point the effect collapses
-from **t=3.93 to t=0.08**, and it does not transfer. A result that holds only in a
-regime where a hen cannot tell an alarm call from a hawk is not a result about
-learning. Both facts are recorded below; neither is withdrawn.
+E010 reported the effect collapsing from t=3.93 to t=0.08 after the gain correction.
+That run had also, silently, given every condition — *including the fixed control* —
+the exploration noise added in E007 after E004 was run. It compared *(new gain +
+noise)* against *(old gain, no noise)* and blamed the gain. See the invalidity notice
+on [E010](experiments/E010-rebaseline-at-corrected-gain.md).
+
+The status stays `UNDER TEST` rather than reverting to `SUPPORTED`: E004's evidence
+was gathered in the saturated regime and that concern is untouched by the confound.
+E012 settles it with exploration stated explicitly and a noise-only control.
 
 **Prediction:** a flock learning under a reward-prediction-error rule regulates its
 drives better over a rearing run than a genome-matched, coop-matched flock that

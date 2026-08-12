@@ -149,3 +149,42 @@ def test_being_caught_is_aversive(flock):
     w, _, _ = flock
     struck = w._replace(n_struck=w.n_struck + 1.0)
     assert float(jnp.mean(plasticity.reward(w, struck, CFG, LEARN))) < 0.0
+
+
+# --- Guards against the E010 confound ---------------------------------------
+
+def test_fixed_control_is_actually_fixed():
+    """A condition named 'fixed' must not silently carry exploration noise.
+
+    E010 compared a control running at explore_sigma=0.6 -- inherited from a default
+    added two experiments earlier -- against a historical noiseless one, and read the
+    difference as a result. The contrast varied two things at once.
+    """
+    from run.experiment import PHASE1
+    fixed = PHASE1[0]
+    assert not fixed.pc.enabled
+    assert fixed.pc.explore_sigma == 0.0, (
+        f"'{fixed.name}' carries explore_sigma={fixed.pc.explore_sigma}; "
+        "a fixed control must be deterministic")
+
+
+def test_every_condition_states_exploration_explicitly():
+    """No condition may inherit the exploration default -- it must be written down."""
+    import inspect
+    from run import experiment
+    src = inspect.getsource(experiment)
+    block = src[src.index("PHASE1 = ("):src.index(")\n", src.index("PHASE1 = ("))]
+    n_conditions = block.count("Condition(")
+    n_explicit = block.count("explore_sigma=")
+    assert n_explicit == n_conditions, (
+        f"{n_conditions} conditions but only {n_explicit} state explore_sigma; "
+        "an inherited default is how E010 went wrong")
+
+
+def test_disabled_plasticity_leaves_weights_untouched_even_with_noise(flock):
+    """Noise must perturb behaviour without ever writing to the connectome."""
+    _, _, p0 = flock
+    pc = PlasticConfig(enabled=False, explore_sigma=0.6)
+    _w, _x, p1, *_ = _run(flock, pc)
+    assert jnp.array_equal(p0.W, p1.W)
+    assert jnp.array_equal(p0.W_out, p1.W_out)

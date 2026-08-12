@@ -39,11 +39,22 @@ class Condition(NamedTuple):
 
 # The phase 1 contrast: does a hen that learns regulate herself better than one that
 # cannot? Everything else -- genome, coop, predators -- is held identical.
+# Exploration noise must be stated explicitly in every condition, never inherited.
+# E010 compared a control that silently carried explore_sigma=0.6 -- the default,
+# added in E007 *after* E004 ran -- against E004's noiseless one, and attributed the
+# whole collapse to the gain change. Two things had changed, not one.
+#
+# The noise-only condition exists so that can never happen again: it separates what
+# exploration *costs* from what learning *earns*, and those are different questions.
 PHASE1 = (
-    Condition("fixed (innate only)", PlasticConfig(enabled=False)),
+    Condition("fixed (innate only)",
+              PlasticConfig(enabled=False, explore_sigma=0.0)),
+    Condition("noise only (no learning)",
+              PlasticConfig(enabled=False, explore_sigma=0.6)),
     Condition("learning, no growth",
-              PlasticConfig(enabled=True, growth_enabled=False)),
-    Condition("learning + growth", PlasticConfig(enabled=True)),
+              PlasticConfig(enabled=True, growth_enabled=False, explore_sigma=0.6)),
+    Condition("learning + growth",
+              PlasticConfig(enabled=True, explore_sigma=0.6)),
 )
 
 

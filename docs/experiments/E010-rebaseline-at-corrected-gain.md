@@ -1,5 +1,38 @@
 # E010 — re-baselining: does H2 survive a non-saturated network?
 
+> # ⚠ INVALID — CONFOUNDED
+>
+> **This experiment varied two things, not one, and its conclusion does not follow.**
+>
+> The condition labelled "fixed (innate only)" was constructed as
+> `PlasticConfig(enabled=False)`, which inherits `explore_sigma=0.6` — motor noise
+> added in [E007](E007-exploration-does-not-rescue-comprehension.md), *after*
+> [E004](E004-replication-at-twelve-seeds.md) ran. The noise is applied before the
+> `enabled` check in `run/simulate.py`, so **every condition here was running with
+> exploration noise, including the control**, while E004's conditions had none.
+>
+> So E010 compared *(new gain + noise)* against *(old gain, no noise)* and attributed
+> the entire collapse to the gain. That is not supported by the run.
+>
+> The tell was in [E011](E011-retune-the-readout.md): the fixed control did not improve
+> as `readout_scale` fell toward zero. At `readout_scale = 0.005` the cortical term is
+> ~0, so the gain *cannot* affect a fixed hen at all — yet she was still doing badly.
+> Something other than the gain had to be responsible.
+>
+> **Superseded by [E012](E012-corrected-phase-1-contrast.md)**, which states
+> exploration explicitly in every condition and adds a noise-only control to separate
+> what exploration costs from what learning earns. `run/experiment.py` now names
+> `explore_sigma` in every condition, and two tests in `tests/test_plasticity.py`
+> fail if a "fixed" control ever carries noise again.
+>
+> **What survives from E010:** the gain sweep and the reasoning for choosing 0.70
+> (§3) stand — those were measured directly and do not depend on the contrast. The
+> H2 downgrade does *not* stand on this evidence and is re-decided by E012.
+>
+> Left in place unedited below, because a confounded experiment that gets quietly
+> corrected teaches nothing.
+
+
 > **Pre-registered.** Sections 1–5 written and committed while the run was executing.
 
 ## 1. Parent hypothesis
