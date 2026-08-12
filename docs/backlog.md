@@ -228,11 +228,43 @@ Worth writing down now, while it is still cheap to be honest:
   what came before. Worth one run — but note this is a **workaround**, not a fix.
   Even at its best, staging leaves the hen worse than not learning at all.
 - **Fix the representation (H2d).** Both pathways learn from or into a pallium whose
-  states for "heard an alarm" and "saw a hawk" differ by under 1% of mean rate. The
-  gain correction helped 8x and was not enough; absolute separability barely moved.
-  Likely needs something that decorrelates the sensory projections rather than the
-  random overlapping ones we have. **This is the critical path for the whole
-  project** — H2, H2b, H2c and H3 all trace back to it.
+  states for "heard an alarm" and "saw a hawk" differ by ~6% of mean rate. The gain
+  correction helped 8x and was not enough. ~~Likely needs something that decorrelates
+  the sensory projections rather than the random overlapping ones we have.~~
+  **[E017](experiments/E017-where-separability-is-lost.md) relocated the problem:** the
+  sensory projections are already near-orthogonal (separability 1.055 at the stub,
+  9% shared units). The loss is fan-in dilution at sensory → pallium, and it is not
+  recurrence — zeroing recurrence makes it slightly worse. **Still the critical path**
+  — H2, H2b, H2c and H3 all trace back to it — but the fix is a projection problem,
+  not a decorrelation problem.
+
+- **Wire an innate auditory reflex arc.** (E017) `hen/innate.py` has *no* response to
+  hearing any call: every auditory entry in `reflex_matrix()` is zero, against 8.0 for
+  crouch on seeing a hawk. That was a deliberate reading of "comprehension is learned",
+  and it over-read the biology — parentally naive chicks already respond differentially
+  to conspecific fear calls, and the learned part is association off a stimulus that is
+  already arousing, not discovery from scratch. Propose: weak crouch on hearing an
+  aerial alarm, weak flee/vigilance on a ground alarm, both well below the visual
+  weights so they scaffold rather than solve. **This is also the cleanest available fix
+  for the E006/E007 exploration null** — she cannot learn to crouch at a call she has
+  never once crouched at. Needs its own hypothesis node and a falsifier that
+  distinguishes "the scaffold works" from "we wired in the answer".
+
+- **Modality-segregated afferents.** (E017) Audition currently shares the sensory stub
+  and its pallial targets with vision. Real birds keep them apart — Field L via nucleus
+  ovoidalis, entopallium via rotundus, two separate thalamic relays. A hand-cut
+  segregation measured **2.06x** separability. Cheap, biologically motivated, and not
+  sufficient on its own (2x against a 17x loss). Should be done via the connectivity
+  prior in `regions.py`, not a slice.
+
+- **Is the learning rule the wrong *kind*?** (E017, open — no node yet.) `plasticity.py`
+  is reward-modulated three-factor, i.e. instrumental conditioning: act, get rewarded,
+  strengthen. The mechanism the biology points at for alarm-call comprehension is
+  Pavlovian — Curio's mobbing work has naive birds acquiring enemy recognition by
+  *observation*, with no reward and no action of their own, transmitted along a chain
+  of six individuals. `W_pred` is much closer to that machinery than `W_out` is. This
+  may be why every attempt to route learning (E002, E007, E008, E009) has failed:
+  right routing, wrong learning rule. Needs a hypothesis node before anything is built.
 - ~~**Does the learning effect grow over a realistic rearing?**~~ Moot until a
   non-destructive rule exists. Running longer with the current rule strips more of
   the connectome, not less.

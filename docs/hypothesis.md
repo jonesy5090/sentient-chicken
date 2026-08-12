@@ -351,12 +351,35 @@ H2b, H2c and everything downstream.**
 
 Hearing an alarm call and seeing a hawk drive pallial states that differ by 0.008 —
 under 1% of the mean rate. The network runs saturated (mean pallial rate 0.83, where
-the sigmoid slope is ~0.12) and the two stimuli project onto overlapping random
-subsets of the sensory stub with nothing downstream to decorrelate them.
+the sigmoid slope is ~0.12) ~~and the two stimuli project onto overlapping random
+subsets of the sensory stub with nothing downstream to decorrelate them~~.
 
 A gain sweep shows saturation is real but not the whole story: dropping the recurrent
 gain from 0.9 to 0.6 moves the mean rate to 0.21 and improves *relative* separability
 fourfold, but absolute separability barely moves and collapses below 0.6.
+
+**Mechanism corrected by [E017](experiments/E017-where-separability-is-lost.md).** The
+struck clause above was inferred rather than measured, and it is false. The sensory
+stub separates the two percepts *cleanly* — relative separability 1.055, sharing only
+9% of target units, cosine 0.245. They are close to orthogonal when they arrive.
+
+The 17× loss is the single sensory → pallium projection, and it is **not** recurrent
+mixing: zeroing pallial recurrence makes separability slightly worse (0.79×), not
+better. What is left is dilution by fan-in — each pallial unit sums ~19 stub inputs of
+which one or two carry the distinction, so a clean difference lands as a small
+perturbation on a large common-mode drive.
+
+Segregating auditory afferents onto their own pallial target, as a real bird has (Field
+L via nucleus ovoidalis, separate from the entopallium via rotundus), recovers 2.06×.
+Real, in the right direction, and not sufficient: 2× against a 17× loss.
+
+**A separate finding from E017 that may matter more than any of the above.** The innate
+arc has *no* response to hearing a call — every auditory entry in `reflex_matrix()` is
+zero, against a weight of 8.0 for crouch on seeing a hawk. Comprehension being learned
+in real chickens does not mean it is learned from nothing; naive chicks respond
+differentially to conspecific fear calls at hatch, and the learned part is association
+off an already-arousing stimulus. So this node may be diagnosing a representation
+problem where there is also a missing scaffold.
 
 **E002, E007, E008 and E009 were all attempts to fix the routing of learning.** The
 blocker is upstream of routing: there is not enough in the pallial state to route.
@@ -540,3 +563,4 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E014 | Units bug found: a strike contributed -100 to reward. Connectome recovers; **behaviour does not**. Harm localised to the learned readout, implicating H2d. |
 | E015 | Harm decomposed: readout +0.021, recurrent +0.010, both **+0.052 — superadditive**. Pruning nearly free. |
 | E016 | Staging tested. Prediction falsified: pallium-first does nothing, **muscles-first cuts harm 69%**. Moving-target story withdrawn. |
+| E017 | H2d's mechanism corrected: the stub separates cleanly (1.055), the loss is fan-in at sensory→pallium, not recurrence. Found the innate arc has **no auditory reflex at all**. |
