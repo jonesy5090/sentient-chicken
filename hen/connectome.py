@@ -29,6 +29,7 @@ class BrainParams(NamedTuple):
     growable: jax.Array   # (N, N) bool -- where an axon could ever reach
     W_in: jax.Array       # (N, OBS_DIM) sensory afferents (shared, fixed)
     W_out: jax.Array      # (H, MOTOR_DIM, n_motor) cortical motor readout
+    W_pred: jax.Array     # (H, OBS_DIM, N) top-down associative projection
     b: jax.Array          # (N,) resting bias
     tau: jax.Array        # (N,) membrane time constants, seconds
     reflex: jax.Array     # (MOTOR_DIM, OBS_DIM) innate arc, fixed
@@ -92,6 +93,11 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         jax.random.fold_in(k_w, 1), (n_hens, spec.MOTOR_DIM, m_hi - m_lo)
     ) * readout_scale
 
+    # Top-down projection onto the sensory representation the reflex arc reads.
+    # Starts at exactly zero: a newly hatched hen predicts nothing and perceives only
+    # what is in front of her. Every association she ever has is one she formed.
+    w_pred = jnp.zeros((n_hens, spec.OBS_DIM, n))
+
     tau = jnp.asarray(np.asarray(regions.REGION_TAU, dtype=np.float32)[rid])
 
     return BrainParams(
@@ -100,6 +106,7 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         growable=growable,
         W_in=jnp.asarray(w_in),
         W_out=w_out,
+        W_pred=w_pred,
         b=jnp.full((n,), -2.0),
         tau=tau,
         reflex=jnp.asarray(innate.reflex_matrix()),

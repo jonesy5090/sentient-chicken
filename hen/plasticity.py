@@ -106,6 +106,15 @@ class PlasticConfig(NamedTuple):
     explore_sigma: float = 0.6      # s.d. on the motor drive, at hatch
     explore_tau_s: float = 3600.0   # halves roughly every hour of chicken time
 
+    # Top-down association (H2c). Learned by a masked delta rule that is NOT
+    # reward-modulated: association between co-occurring stimuli needs no reward and
+    # no attribution of benefit to anyone, which is exactly the credit-assignment
+    # problem that sank E005 and E006.
+    pred_enabled: bool = False      # opt-in, so it is a contrast rather than a change
+    pred_gain: float = 1.0          # how strongly prediction augments perception
+    eta_pred: float = 5e-3
+    pred_max: float = 0.05          # per-synapse cap on the top-down projection
+
     # Structural growth
     growth_enabled: bool = True
     growth_interval: int = 10_000   # steps (100 s of chicken time)
@@ -119,6 +128,7 @@ class PlasticState(NamedTuple):
     z_fast: jax.Array      # (H, N) presynaptic trace
     z_slow: jax.Array      # (H, N) postsynaptic trace
     z_motor: jax.Array     # (H, MOTOR_DIM) motor output trace
+    z_err: jax.Array       # (H, OBS_DIM) masked prediction error trace
     baseline: jax.Array    # (H,) running expectation of reward
     age_s: jax.Array       # scalar, seconds since hatch
     innate_row_sum: jax.Array   # (H, N) reference total input weight per neuron
@@ -132,6 +142,7 @@ def initial_state(p: BrainParams, n_hens: int, pc: PlasticConfig) -> PlasticStat
         z_fast=jnp.zeros((n_hens, n)),
         z_slow=jnp.zeros((n_hens, n)),
         z_motor=jnp.zeros((n_hens, p.W_out.shape[1])),
+        z_err=jnp.zeros((n_hens, p.W_pred.shape[1])),
         baseline=jnp.zeros((n_hens,)),
         age_s=jnp.array(0.0),
         innate_row_sum=row_sum,
@@ -182,14 +193,16 @@ def reward(w_prev, w_next, cfg: CoopConfig, pc: PlasticConfig) -> jax.Array:
 
 
 def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,
-                  reward_now: jax.Array, cfg: CoopConfig,
-                  pc: PlasticConfig) -> PlasticState:
+                  reward_now: jax.Array, cfg: CoopConfig, pc: PlasticConfig,
+                  pred_err: jax.Array = None) -> PlasticState:
     """Decay the eligibility traces toward current activity. Called every step."""
     a_f = cfg.dt / pc.tau_fast
     a_s = cfg.dt / pc.tau_slow
     a_m = cfg.dt / pc.tau_motor
     a_b = cfg.dt / pc.baseline_tau_s
+    err = ps.z_err if pred_err is None else ps.z_err + a_s * (pred_err - ps.z_err)
     return ps._replace(
+        z_err=err,
         z_fast=ps.z_fast + a_f * (r - ps.z_fast),
         z_slow=ps.z_slow + a_s * (r - ps.z_slow),
         z_motor=ps.z_motor + a_m * (motor - ps.z_motor),
@@ -237,7 +250,21 @@ def consolidate(p: BrainParams, ps: PlasticState, m: jax.Array,
               * ps.z_motor[:, :, None] * ps.z_slow[:, None, -n_motor:])
     w_out = jnp.clip(p.W_out + dw_out, -pc.w_max, pc.w_max)
 
-    return p._replace(W=w, W_out=w_out)
+    w_pred = p.W_pred
+    if pc.pred_enabled:
+        # Masked delta rule: move the prediction toward the observation, using only
+        # channels that were actually observable. Factored into traces for the same
+        # reason as the recurrent rule -- storing a per-synapse error would double the
+        # memory traffic of a simulation that is already bandwidth bound.
+        d_pred = eta_pred_of(ps, pc) * ps.z_err[:, :, None] * ps.z_slow[:, None, :]
+        w_pred = jnp.clip(p.W_pred + d_pred, -pc.pred_max, pc.pred_max)
+
+    return p._replace(W=w, W_out=w_out, W_pred=w_pred)
+
+
+def eta_pred_of(ps: PlasticState, pc: PlasticConfig):
+    """Association rate, on the same critical-period decay as everything else."""
+    return pc.eta_pred / (1.0 + ps.age_s / pc.critical_period_s)
 
 
 def restructure(p: BrainParams, ps: PlasticState, key: jax.Array,

@@ -68,7 +68,7 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
     sigma = pc.explore_sigma / (1.0 + age_s / pc.explore_tau_s)
 
     obs = sensing.observe(w, cfg)
-    x, motor, drives = brain.step(x, obs, p, cfg.dt, k_explore, sigma)
+    x, motor, drives = brain.step(x, obs, p, cfg.dt, k_explore, sigma, pc.pred_gain)
     w_next = world.step(w, motor, k_world, cfg)
 
     # Pathway magnitudes, carried out of the loop so a run can report whether the
@@ -81,7 +81,14 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
 
     r = neurons.rate(x)
     reward = plasticity.reward(w, w_next, cfg, pc)
-    ps = plasticity.update_traces(ps, r, motor, reward, cfg, pc)
+
+    # Prediction error, masked by what she could actually observe. A head-down hen is
+    # not seeing an empty sky; she is not looking, and training on that sample would
+    # teach her that alarm calls mean no hawk.
+    pred_err = None
+    if pc.pred_enabled:
+        pred_err = sensing.observability(w, cfg) * (obs - drives.predicted)
+    ps = plasticity.update_traces(ps, r, motor, reward, cfg, pc, pred_err)
 
     # Reward prediction error: what just happened, minus what she had come to expect.
     m = reward - ps.baseline

@@ -78,3 +78,17 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
 
     return jnp.concatenate(
         [vis, aerial[:, None], intero, somatic, audio], axis=-1)
+
+
+def observability(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
+    """(H, OBS_DIM) mask: 1 where a channel carries information this step, 0 where not.
+
+    The head-down gate does not make the aerial channel *zero*, it makes it
+    *unobserved* — she is not seeing an empty sky, she is not looking. That
+    distinction matters the moment anything tries to learn to predict the channel:
+    training a predictor on censored samples teaches it that calls mean no hawk,
+    which is the opposite of the association we want it to form.
+    """
+    h = cfg.n_hens
+    mask = jnp.ones((h, spec.OBS_DIM))
+    return mask.at[:, spec.IDX_AERIAL].set(1.0 - w.head_down)

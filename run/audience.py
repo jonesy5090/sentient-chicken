@@ -119,7 +119,8 @@ def assay(p, cfg: CoopConfig, n_hens: int, steps: int = 300) -> AudienceResult:
     )
 
 
-def comprehension(p, cfg: CoopConfig, n_hens: int, steps: int = 200) -> float:
+def comprehension(p, cfg: CoopConfig, n_hens: int, steps: int = 200,
+                  pred_gain: float = 0.0) -> float:
     """Playback: does hearing an aerial alarm call make her crouch?
 
     This is Evans & Marler's playback design — present the call with no predator to
@@ -137,13 +138,14 @@ def comprehension(p, cfg: CoopConfig, n_hens: int, steps: int = 200) -> float:
     the only thing that varies. Held static for `steps` to let the recurrent
     dynamics settle.
     """
-    def crouch_under(call_level: float) -> float:
+    def crouch_under(call_level: float, params=p) -> float:
         obs = jnp.zeros((n_hens, spec.OBS_DIM))
         obs = obs.at[:, spec.AUDIO_LO + 2].set(call_level)   # aerial alarm channel
-        x = brain.initial_state(p, n_hens)
+        x = brain.initial_state(params, n_hens)
         total = 0.0
         for _ in range(steps):
-            x, motor, _ = brain.step(x, obs, p, cfg.dt)
+            x, motor, _ = brain.step(x, obs, params, cfg.dt,
+                                     pred_gain=pred_gain)
             total += float(jnp.mean(motor[:, spec.M_CROUCH]))
         return total / steps
 
@@ -159,11 +161,13 @@ def rear_and_assay(seed: int, cfg: CoopConfig, seconds: float, pc: PlasticConfig
     x = brain.initial_state(p, cfg.n_hens)
 
     before = assay(p, cfg, cfg.n_hens)
-    comp_before = comprehension(p, cfg, cfg.n_hens)
+    comp_before = comprehension(p, cfg, cfg.n_hens,
+                                pred_gain=pc.pred_gain if pc.pred_enabled else 0.0)
     _w, _x, p_end, *_ = simulate.simulate(
         w, x, p, jax.random.fold_in(key, 2), cfg, seconds, 60.0, pc)
     after = assay(p_end, cfg, cfg.n_hens)
-    comp_after = comprehension(p_end, cfg, cfg.n_hens)
+    comp_after = comprehension(p_end, cfg, cfg.n_hens,
+                               pred_gain=pc.pred_gain if pc.pred_enabled else 0.0)
     return before, after, comp_before, comp_after
 
 

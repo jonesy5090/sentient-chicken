@@ -184,6 +184,22 @@ perceive things that are not there. That is the intended mechanism and also the
 obvious failure mode, so the assay must check the no-cue baseline, not just the
 cued response.
 
+**[E008](experiments/E008-top-down-association.md): implemented, and the first
+attempt does not test the hypothesis.** The projection learns — `|W_pred|` saturates
+its cap — and comprehension stays at zero. The diagnosis is that the rule as written
+maps `rate(t) -> obs(t)`, which is an **autoencoder**, not a predictor. During a hawk
+event the brain state is dominated by the hawk percept, so the association it forms is
+"when in hawk-state, predict hawk" — circular, and no use for recovering the percept
+from a call. Pavlovian association needs `rate(t - delta) -> obs(t)`, mapping a cue to
+a later outcome.
+
+Also thin: a 30-minute rearing yields roughly **9 seconds** of usable co-occurrence
+(hawks present ~24 s, of which only the head-up fraction counts). E009 must raise
+predator density so that a null means the mechanism is wrong rather than the data
+absent.
+
+The no-cue baseline did not rise, so the hallucination failure mode has not occurred.
+
 ---
 
 ## H3 — learned usage reproduces the audience effect without being programmed
