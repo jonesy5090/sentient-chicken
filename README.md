@@ -108,36 +108,41 @@ objects, crouches at things overhead, runs from things on the ground, calls when
 is lonely, and huddles when she is cold. All of that is measured against real
 published chick behaviour. **7 out of 7 behavioural tests pass.**
 
-Then she learns — or she did, until we found out why.
+Then she learns. Except she doesn't — and finding that out took thirteen experiments.
 
-**Ten experiments in, the honest state of this project is that a result we had
-replicated turned out to depend on a defect, and it did not survive fixing it.** That
-arc is the most interesting thing here, so it gets told straight:
+**The honest state of this project: the learning rule does not work. It makes hens
+measurably worse, and we can now say exactly why.** That arc is the most interesting
+thing here, so it is told straight:
 
 | | what happened |
 |---|---|
-| **E001** | Nothing. Twelve thousand synapses rewiring themselves, zero effect on behaviour. A busy brain doing nothing. |
-| **E002** | Found out why. The pathway from the "thinking" part of the brain to the muscles was effectively frozen — she could learn, but she could not *act* on what she learned. Also found a ceiling nobody expected: give the learned pathway too much control and behaviour gets **worse**, because a hen who overrides her instincts with a half-trained brain is worse off than one who just follows instinct. |
-| **E003** | Fixed that. The effect appeared — and we caught a bug in our own *statistics* that would have let us declare victory on a result that was still noise. |
-| **E004** | Ran it properly, twelve times. **It holds.** Learning works. |
-| **E005–E007** | Three attempts to get one hen to *understand* another's alarm call. All null, each for a different real reason. |
-| **E008–E009** | Found the actual blocker, and it was underneath everything else: **the brain was saturated.** A hen's internal state for "heard an alarm call" and "saw a hawk" differed by less than 1%. She could not tell them apart, so nothing downstream could learn from the difference. |
-| **E010** | Fixed the saturation. **The learning result collapsed** — t=3.93 to t=0.08. |
+| **E001** | Nothing. Twelve thousand synapses rewiring themselves, zero effect on behaviour. |
+| **E002** | Found out why: the path from the "thinking" brain to the muscles was frozen. Also found a ceiling — too much learned control makes behaviour **worse**. |
+| **E003–E004** | Fixed it. The effect appeared and replicated over twelve runs. **t=3.93, p≈0.002.** Learning works. |
+| **E005–E007** | Three attempts to get one hen to *understand* another's alarm call. All null. |
+| **E008–E009** | Found a blocker underneath everything: **the brain was saturated.** A hen's internal state for "heard an alarm" and "saw a hawk" differed by under 1% — she could not tell them apart. |
+| **E010** | Fixed the saturation; the learning result collapsed. **Later found confounded and marked invalid.** |
+| **E011–E012** | Two wrong diagnoses before the right one. The real culprit: a cost added for a *different* experiment was charged to hunger, tripling it and destroying the metric. |
+| **E013** | Gave that cost its own budget. **The first clean test: learning makes hens significantly worse.** t=3.85. |
 
-That last row is the uncomfortable one, and it is why this section no longer says
-learning works.
+**So the headline result of this project, so far, is a refutation of its own
+mechanism** — and the evidence is specific rather than a shrug. The learning hen ends
+with **19,088 of her 36,373 innate synapses. She has destroyed 48% of the brain she
+was born with**, and forages worse for it: feeding 4.7% of the time against the
+control's 6.2%.
 
-The reason is worth understanding, because it is not simply "we broke it". A
-saturated brain emits a nearly constant signal, and a constant signal is *harmless* —
-it just shifts a baseline. A responsive brain emits a varying signal, and an untrained
-bird cannot yet use variation, so it acts as noise. **Saturation had been accidentally
-protecting the hen from her own inexperience.** Every parameter that made the original
-result work had been tuned against the broken version, and inherited its assumptions.
+The cause looks like a design flaw rather than a bad setting. The reward signal hovers
+near zero by construction, so weight changes approximate a random walk; weights that
+drift to zero are removed and **cannot come back**. A rule that cannot recover a
+pruned connection is a ratchet, and over twenty minutes it strips half the wiring.
 
-So E004 was a real, replicated, pre-registered finding that turned out to be narrower
-than it looked. Nothing has been withdrawn — both results are recorded in full — but
-the question is open again, and the next step is retuning what depended on the old
-regime.
+That also reframes the earlier success. In the saturated brain, the learned pathway
+could only apply a *constant offset* to behaviour — so the same erosion was invisible,
+and what looked like learning was a tuned offset rather than an acquired policy.
+
+Nothing has been withdrawn; every result stands in the record with its own analysis.
+But the honest summary is that the bird does not yet learn, and the next question is
+why the rule erodes rather than which knob to turn.
 
 An unplanned discovery along the way: the hens that **grow** new connections do
 *worse* than the ones that only prune. The best learner throws away 42% of the brain

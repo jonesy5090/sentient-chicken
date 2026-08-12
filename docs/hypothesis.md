@@ -63,7 +63,30 @@ of the time.
 
 ## H2 — three-factor plasticity produces measurable behavioural improvement
 
-**Status: UNDER TEST** — downgraded by E010, whose evidence was then found to be
+**Status: REFUTED at this timescale** —
+[E013](experiments/E013-clean-test-of-h2.md), the first test with no confound left.
+
+Learning does not merely fail to help; it makes hens **significantly worse**
+(+0.062 ± 0.016, t=3.85, p<0.05) and they feed on 4.7% of timesteps against the
+control's 6.2%. Exploration is exonerated: the noise-only control is
+indistinguishable from fixed (t=0.32).
+
+**The smoking gun is the synapse count.** Learning ends with 19,088 of 36,373 innate
+synapses — **48% of the connectome destroyed** — and forages worse for it. The reward
+prediction error hovers near zero by construction, so updates approximate a random
+walk; synaptic scaling pulls magnitudes down and the Dale clamp floors them at zero,
+from which there is no path back. **A rule that cannot recover a pruned synapse is a
+ratchet**, and over 20 minutes it strips half the innate wiring.
+
+**E004 is reinterpreted, not withdrawn.** In the saturated regime the readout could
+only apply a constant bias to the motor drive, so the same erosion could not reach
+behaviour and what learning tuned was an offset that happened to help. A tuned offset
+is not a learned policy.
+
+**The next question is not "retune" but "why does the rule erode".** That is a design
+flaw, not a hyperparameter. Candidates recorded in E013 §8.
+
+**Superseded status history below.** Old status: `UNDER TEST` — downgraded by E010, whose evidence was then found to be
 **confounded**. Re-deciding on [E012](experiments/E012-corrected-phase-1-contrast.md).
 
 E010 reported the effect collapsing from t=3.93 to t=0.08 after the gain correction.
@@ -469,3 +492,4 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E010 | Gain 0.9 -> 0.70; H2 appears to collapse. **Later found confounded — invalid.** |
 | E011 | Readout sweep. Control did not improve as predicted; that tell exposed E010's confound. |
 | E012 | Isolated it: not the gain, not the noise -- **`call_energy_cost` from E005 swamps H2's metric.** |
+| E013 | Call cost moved to its own `vigour` budget. **Clean test: learning is significantly WORSE. H2 refuted at this timescale.** |
