@@ -67,8 +67,16 @@ of the time.
 [E020](experiments/E020-h2-after-the-e019-fixes.md), re-run after the E019 fixes.
 
 A hen who learns is **statistically indistinguishable** from one who cannot:
-+0.001 ± 0.010, **t=0.08**, on 12 matched seeds. She feeds on 6.6% of timesteps against
-the control's 6.6%. The rule neither helps nor harms.
+**+0.011 ± 0.012, t=0.95**, pooled across **24 matched seeds** in two independent blocks
+([E020](experiments/E020-h2-after-the-e019-fixes.md) seeds 0–11 at +0.001,
+[E021](experiments/E021-the-cost-of-exploration.md) seeds 12–23 at +0.021). The rule
+neither helps nor harms.
+
+**Quoted as the pooled estimate deliberately.** E020 reported its own block as
++0.001 ± 0.010 and read that as "the harm is gone". E021 showed a single 12-seed block is
+not enough to support that precision: the pooled interval is compatible with a residual
+harm up to about +0.035, and E013's +0.062 is roughly 2 SE away rather than firmly
+excluded. The null holds; the confidence E020 attached to it did not.
 
 **Read this as a withdrawal, not a success.** `REFUTED at this timescale` was a positive
 claim that learning makes hens worse, and that claim is gone. Nothing has replaced it.
@@ -88,14 +96,25 @@ With both fixed, the harm is gone (+0.062 → +0.001) and so is the erosion (19,
 strike-units fix (E014) plus E019's three — so E020 says what H2's status *is*, not
 which fix moved it. An ablation ladder is owed and is now worth running.
 
-**One unpredicted result, deliberately left unexplained.** The noise-only control —
-plasticity off, exploration on — is now **significantly worse** than fixed (+0.032,
-t=3.84), where in E013 it was indistinguishable (t=0.32). Exploration has become
-costly and nobody knows why. Two candidates, neither tested: audible call output now
-perturbs flockmates where before every channel was pinned; or the effect was always
-present and E013's wider baseline hid it. One run with the audio fix reverted separates
-them. **No mechanism is claimed here** — this project's record on inventing one is
-2-for-9.
+~~**One unpredicted result, deliberately left unexplained.** The noise-only control is
+now **significantly worse** than fixed (+0.032, t=3.84), where in E013 it was
+indistinguishable (t=0.32). Exploration has become costly and nobody knows why.~~
+
+**Withdrawn by [E021](experiments/E021-the-cost-of-exploration.md).** It did not
+replicate. On a fresh seed block the same contrast measures **−0.000 ± 0.035, t=0.01**,
+against E020's +0.032 ± 0.008, t=3.84. There is no exploration cost to explain, in either
+audio regime.
+
+**This is the most important methodological result the project has, and it is not about
+exploration.** The same contrast, same conditions, same n=12, on a different seed block:
+the **standard error was 4.4× larger** (0.008 → 0.035) and a p≈0.003 finding became
+p≈0.99. The pairing is sound and the t table is correct; what is not safe is assuming a
+seed block's *variance* is representative. Seeds 0–11 were homogeneous, which made a
+small difference look decisive.
+
+**Standing rule, from this:** no result changes a status in this tree on one seed block.
+See `CLAUDE.md`. E004's t=3.93 and E016's staging result are both single-block and both
+still cited — they need re-checking.
 
 ~~**The smoking gun is the synapse count.** Learning ends with 19,088 of 36,373
 innate synapses, destroying 48% of the connectome. The reward prediction error hovers
@@ -626,4 +645,5 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E017 | H2d's mechanism corrected: the stub separates cleanly (1.055), the loss is fan-in at sensory→pallium, not recurrence. Found the innate arc has **no auditory reflex at all**. |
 | E018 | **ABORTED mid-run.** The channel it tests carries no information at n=16. Its pre-registered falsifier would have fired for the wrong reason. |
 | E019 | External review, verified here. **Calls are inaudible** (a full alarm moves the receiver by 0.0000), **`W_out` is rank one** (0.7% variability), **reward is 98% call cost**. Withdraws H2's mechanism, caveats E013, demotes H2d. All three fixed. |
-| E020 | H2 re-run after the fixes. **The harm is gone** (+0.062 → +0.001, t=0.08) and so is the erosion (48% → 2.5%). H2 returns to a clean null; E013, E015 and E016 superseded. Exploration is now costly and unexplained. |
+| E020 | H2 re-run after the fixes. **The harm is gone** (+0.062 → +0.001, t=0.08) and so is the erosion (48% → 2.5%). H2 returns to a clean null; E013, E015 and E016 superseded. ~~Exploration is now costly~~ (withdrawn by E021). |
+| E021 | Both predictions wrong, both deleting claims. Learning does **not** repay its exploration cost (+0.021, wrong sign). The exploration cost **did not replicate** (t=3.84 → t=0.01). **SE was 4.4× larger on a fresh seed block** — no status may now change on one block. |

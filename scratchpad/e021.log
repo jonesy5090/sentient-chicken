@@ -1,0 +1,26 @@
+phase 1 contrast: 20 min of chicken time, 12 matched seeds (12-23), 16 hens
+
+condition                   hunger early  hunger late    change   fed %  struck  synapses
+-----------------------------------------------------------------------------------------
+fixed (innate only)                0.327        0.345    +0.019     5.8    5023     36414
+noise only (no learning)           0.331        0.350    +0.018     5.6    2293     36414
+learning, no growth                0.325        0.364    +0.039     5.2    2430     35288
+fixed, legacy audio                0.319        0.325    +0.006     6.6    2250     36414
+noise only, legacy audio           0.332        0.371    +0.039     5.0    5113     36414
+
+hunger change      noise only (no learning) vs fixed (innate only) -0.000 +/- 0.035 SE better  noise (t=0.01)
+hunger change      learning, no growth vs fixed (innate only) +0.021 +/- 0.021 SE worse  noise (t=0.99)
+hunger change      fixed, legacy audio vs fixed (innate only) -0.012 +/- 0.029 SE better  noise (t=0.43)
+hunger change      noise only, legacy audio vs fixed (innate only) +0.020 +/- 0.026 SE worse  noise (t=0.78)
+hunger change      learning, no growth vs noise only (no learning) +0.021 +/- 0.027 SE worse  noise (t=0.79)
+hunger change      noise only, legacy audio vs fixed, legacy audio +0.033 +/- 0.017 SE worse  suggestive only (t=1.96, need 2.23)
+predator exposure  noise only (no learning) vs fixed (innate only) -2730.000 +/- 1662.890 SE better  suggestive only (t=1.64, need 2.23)
+predator exposure  learning, no growth vs fixed (innate only) -2592.833 +/- 2184.230 SE better  suggestive only (t=1.19, need 2.23)
+predator exposure  fixed, legacy audio vs fixed (innate only) -2773.417 +/- 1762.039 SE better  suggestive only (t=1.57, need 2.23)
+predator exposure  noise only, legacy audio vs fixed (innate only) +89.667 +/- 1075.991 SE worse  noise (t=0.08)
+predator exposure  learning, no growth vs noise only (no learning) +137.167 +/- 668.238 SE worse  noise (t=0.21)
+predator exposure  noise only, legacy audio vs fixed, legacy audio +2863.083 +/- 2332.339 SE worse  suggestive only (t=1.23, need 2.23)
+
+negative = better (drives regulated, or less time exposed to predators)
+threshold is the two-tailed t at p=0.05 with 11 df (2.23), not 2 SE -- read 'suggestive' as 'run more seeds', not as a result
+wall clock: 3759 s

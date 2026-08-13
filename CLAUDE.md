@@ -154,6 +154,15 @@ rather than a footnote.
 - **Every result comes back to `docs/hypothesis.md`** and changes a status, a
   prediction, or the tree. An experiment whose result changes nothing was either
   badly designed or is telling you something.
+- **No status changes on one seed block.** A significant result must replicate on a
+  fresh block of seeds before it moves the tree. E021 measured the same contrast as
+  E020 on seeds 12–23 instead of 0–11 and got a 4.4× larger standard error, turning
+  t=3.84 into t=0.01. The pairing and the t table are both fine; what is not safe is
+  assuming a block's *variance* is representative. A homogeneous block makes a small
+  difference look decisive.
+- **Test a post-hoc observation on data that did not generate it.** E021's question A
+  came from noticing something in E020. Re-reading it off E020's own seeds would have
+  confirmed it; fresh seeds falsified it, sign and all.
 - Record null and negative results. They are what keeps the tree honest.
 
 If asked to run something that does not ladder up to H0, say so and propose where it

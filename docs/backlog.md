@@ -225,18 +225,26 @@ new home.
   The harm is gone (+0.062 → +0.001, t=0.08) and the erosion with it (48% → 2.5%). H2
   moves from `REFUTED at this timescale` to a clean null. E013, E015 and E016 superseded.
 
-- **Does learning repay the cost of its own exploration?** (E020, **post-hoc — needs
-  pre-registration before it is believed**.) Learning and noise-only carry identical
-  exploration noise; learning lands at +0.001 and noise-only at +0.037. If that contrast
-  holds as a first-class paired comparison it is the first positive result H2 has
-  produced. The harness currently reports both only against fixed, so the paired SE does
-  not exist yet. **Do not promote this to a headline before running it properly** — it is
-  precisely the forking path an outside review flagged.
+- ~~**Does learning repay the cost of its own exploration?**~~ **Struck — tested and
+  failed ([E021](experiments/E021-the-cost-of-exploration.md)).** On fresh seeds
+  (12–23) learning is **+0.021 ± 0.027 against noise-only, the wrong sign and not
+  significant**. H2's one nearly-positive result is gone. Recorded rather than quietly
+  dropped: it was flagged post-hoc, tested properly, and falsified, which is the process
+  working.
 
-- **Why did exploration become costly?** (E020, unexplained.) Noise-only went from
-  t=0.32 to t=3.84 worse. Two candidates: audible call output now perturbs flockmates,
-  or the effect was always there and E013's wider baseline hid it. **One run with the
-  audio fix reverted separates them.** No mechanism should be written down before that.
+- ~~**Why did exploration became costly?**~~ **Moot ([E021](experiments/E021-the-cost-of-exploration.md)).**
+  There is no cost to explain. It did not replicate in either audio regime; the
+  current-audio pair went from +0.032 (t=3.84) to −0.000 (t=0.01).
+
+- **Re-check every tree status that rests on a single seed block.** This is now the
+  highest-value statistical item. E021 showed the same contrast can move from t=3.84 to
+  t=0.01 across blocks, with a 4.4× swing in standard error. **E004's t=3.93 and E016's
+  staging result are both single-block and both still cited.** Neither has been
+  replicated on fresh seeds.
+
+- **Report per-seed spread in `run/experiment.py`**, not just the mean and SE. A
+  homogeneous block should be visible while the run is happening, not two experiments
+  later.
 
 - **Attribution ladder.** Four things changed between E013 and E020. Now that the status
   has actually moved, which one did it is worth the runs.
