@@ -76,6 +76,16 @@ REGION_CONNECTIVITY = (
     (0.00, 0.05, 0.00, 0.02, 0.02, 0.15),   # motor
 )
 
-# Fraction of neurons that are excitatory. Dale's law is enforced in connectome.py:
-# a neuron's outgoing weights all share its sign.
+# Fraction of neurons that are excitatory, **within every region**. Dale's law is
+# enforced in connectome.py: a neuron's outgoing weights all share its sign.
+#
+# The "within every region" is the whole point and it was not true until E022. The
+# identity used to be assigned by flat index over a region-ordered array, so the 80%
+# cut landed in the middle of the arcopallium and segregated excitation from
+# inhibition *by region*: sensory, pallium and hippocampus came out 100% excitatory,
+# hypothalamus and the motor stub 100% inhibitory. A 256-unit recurrent pool with no
+# inhibition in it is why the gain had to be held to two decimal places.
+#
+# Real avian pallium is roughly 20-30% GABAergic throughout, so mixing within each
+# region is both the fix and the biologically faithful reading.
 EXCITATORY_FRACTION = 0.8

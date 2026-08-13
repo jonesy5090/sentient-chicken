@@ -100,8 +100,26 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     growable = jnp.asarray(p_ij > 0.0) & ~jnp.eye(n, dtype=bool)
 
     # --- Dale's law: a neuron's outgoing weights all share its sign ---
-    n_exc = int(round(regions.EXCITATORY_FRACTION * n))
-    dale = jnp.asarray(np.where(np.arange(n) < n_exc, 1.0, -1.0), dtype=jnp.float32)
+    #
+    # Stratified *within each region*, not by flat index across the whole array. The
+    # old version took the first 80% of neurons by index; since regions are laid out
+    # contiguously that cut fell mid-arcopallium and left the pallium 100% excitatory,
+    # the hypothalamus and motor stub 100% inhibitory (E022). Interneurons are
+    # distributed throughout a real pallium, and a recurrent pool without them sits on
+    # a saddle-node, which is what made the gain a two-decimal-place quantity.
+    #
+    # Which neurons within a region are inhibitory is a genetic fact shared by the
+    # flock, so it is drawn from the mask key rather than the per-hen weight key.
+    rng_dale = np.random.default_rng(int(jax.random.randint(k_mask, (), 0, 2**30)))
+    dale_np = np.empty(n, dtype=np.float32)
+    for r_id, size in enumerate(reg.sizes):
+        lo, hi = reg.bounds(r_id)
+        n_exc = int(round(regions.EXCITATORY_FRACTION * size))
+        signs = np.full(size, -1.0, dtype=np.float32)
+        signs[:n_exc] = 1.0
+        rng_dale.shuffle(signs)
+        dale_np[lo:hi] = signs
+    dale = jnp.asarray(dale_np)
 
     fan_in = jnp.maximum(jnp.sum(mask, axis=1, keepdims=True), 1.0)
     w_raw = jnp.abs(jax.random.normal(k_w, (n_hens, n, n))) * (gain / jnp.sqrt(fan_in))
