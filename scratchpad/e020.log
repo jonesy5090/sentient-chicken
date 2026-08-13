@@ -1,0 +1,19 @@
+phase 1 contrast: 20 min of chicken time, 12 matched seeds, 16 hens
+
+condition               hunger early  hunger late    change   fed %  struck  synapses
+-------------------------------------------------------------------------------------
+fixed (innate only)            0.315        0.320    +0.005     6.6    5928     36373
+noise only (no learning)         0.308        0.345    +0.037     6.0    4631     36373
+learning, no growth            0.307        0.313    +0.006     6.6    2628     35480
+learning + growth              0.307        0.305    -0.002     6.7    2822     55539
+
+hunger change      noise only (no learning) +0.032 +/- 0.008 SE worse  SIGNIFICANT (t=3.84 > 2.23)
+hunger change      learning, no growth    +0.001 +/- 0.010 SE worse  noise (t=0.08)
+hunger change      learning + growth      -0.007 +/- 0.011 SE better  noise (t=0.65)
+predator exposure  noise only (no learning) -1296.583 +/- 2369.206 SE better  noise (t=0.55)
+predator exposure  learning, no growth    -3299.167 +/- 2779.356 SE better  suggestive only (t=1.19, need 2.23)
+predator exposure  learning + growth      -3106.083 +/- 2933.684 SE better  suggestive only (t=1.06, need 2.23)
+
+negative = better (drives regulated, or less time exposed to predators)
+threshold is the two-tailed t at p=0.05 with 11 df (2.23), not 2 SE -- read 'suggestive' as 'run more seeds', not as a result
+wall clock: 3230 s

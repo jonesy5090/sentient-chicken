@@ -63,13 +63,39 @@ of the time.
 
 ## H2 — three-factor plasticity produces measurable behavioural improvement
 
-**Status: REFUTED at this timescale** —
-[E013](experiments/E013-clean-test-of-h2.md), the first test with no confound left.
+**Status: UNDER TEST — a clean null** —
+[E020](experiments/E020-h2-after-the-e019-fixes.md), re-run after the E019 fixes.
 
-Learning does not merely fail to help; it makes hens **significantly worse**
-(+0.062 ± 0.016, t=3.85, p<0.05) and they feed on 4.7% of timesteps against the
-control's 6.2%. Exploration is exonerated: the noise-only control is
-indistinguishable from fixed (t=0.32).
+A hen who learns is **statistically indistinguishable** from one who cannot:
++0.001 ± 0.010, **t=0.08**, on 12 matched seeds. She feeds on 6.6% of timesteps against
+the control's 6.6%. The rule neither helps nor harms.
+
+**Read this as a withdrawal, not a success.** `REFUTED at this timescale` was a positive
+claim that learning makes hens worse, and that claim is gone. Nothing has replaced it.
+The rule still does not produce the behavioural improvement H2 asserts.
+
+~~**Status: REFUTED at this timescale** — E013, the first test with no confound left.
+Learning does not merely fail to help; it makes hens significantly worse
+(+0.062 ± 0.016, t=3.85) and they feed on 4.7% of timesteps against the control's 6.2%.~~
+
+**Superseded by E020.** E013 was not the confound-free test it was recorded as.
+[E019](experiments/E019-three-verified-defects.md) found 98.1% of its reward variance
+came from the call cost, and the readout it measured could only slide a constant offset.
+With both fixed, the harm is gone (+0.062 → +0.001) and so is the erosion (19,088 →
+35,480 of 36,373 innate synapses, 48% destroyed → 2.5% lost).
+
+**Attribution is not established.** Four things changed between E013 and E020 — the
+strike-units fix (E014) plus E019's three — so E020 says what H2's status *is*, not
+which fix moved it. An ablation ladder is owed and is now worth running.
+
+**One unpredicted result, deliberately left unexplained.** The noise-only control —
+plasticity off, exploration on — is now **significantly worse** than fixed (+0.032,
+t=3.84), where in E013 it was indistinguishable (t=0.32). Exploration has become
+costly and nobody knows why. Two candidates, neither tested: audible call output now
+perturbs flockmates where before every channel was pinned; or the effect was always
+present and E013's wider baseline hid it. One run with the audio fix reverted separates
+them. **No mechanism is claimed here** — this project's record on inventing one is
+2-for-9.
 
 ~~**The smoking gun is the synapse count.** Learning ends with 19,088 of 36,373
 innate synapses, destroying 48% of the connectome. The reward prediction error hovers
@@ -95,6 +121,12 @@ survive 81–86%.
 **The behaviour did not move**: +0.081 → +0.082, still significantly worse (t=3.46).
 So connectome destruction and behavioural harm were two separate things that merely
 appeared together — E013's mechanism story linked them and was wrong twice over.
+
+> **E015 and E016 are SUPERSEDED by [E020](experiments/E020-h2-after-the-e019-fixes.md).**
+> Both decompose a harm that no longer exists — E020 measures it at +0.001 (t=0.08). They
+> described the old rule accurately and should not be cited about the current one. Kept
+> because the route matters, and because a project that deleted its superseded findings
+> would be unable to show how it got here.
 
 **[E015](experiments/E015-decomposing-the-harm.md) decomposes the harm between the
 two learned pathways:**
@@ -593,4 +625,5 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E016 | Staging tested. Prediction falsified: pallium-first does nothing, **muscles-first cuts harm 69%**. Moving-target story withdrawn. |
 | E017 | H2d's mechanism corrected: the stub separates cleanly (1.055), the loss is fan-in at sensory→pallium, not recurrence. Found the innate arc has **no auditory reflex at all**. |
 | E018 | **ABORTED mid-run.** The channel it tests carries no information at n=16. Its pre-registered falsifier would have fired for the wrong reason. |
-| E019 | External review, verified here. **Calls are inaudible** (a full alarm moves the receiver by 0.0000), **`W_out` is rank one** (0.7% variability), **reward is 98% call cost**. Withdraws H2's mechanism, caveats E013, demotes H2d. |
+| E019 | External review, verified here. **Calls are inaudible** (a full alarm moves the receiver by 0.0000), **`W_out` is rank one** (0.7% variability), **reward is 98% call cost**. Withdraws H2's mechanism, caveats E013, demotes H2d. All three fixed. |
+| E020 | H2 re-run after the fixes. **The harm is gone** (+0.062 → +0.001, t=0.08) and so is the erosion (48% → 2.5%). H2 returns to a clean null; E013, E015 and E016 superseded. Exploration is now costly and unexplained. |

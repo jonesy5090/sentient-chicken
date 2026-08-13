@@ -221,9 +221,26 @@ new home.
 
 ### Immediate follow-ups created by the fixes
 
-- **Re-run E013.** Its `H2 REFUTED at this timescale` verdict was obtained under a
-  reward that was 98% call cost and a readout that could only slide a constant. Both
-  have changed. **This is the next run**, and it decides a status in the tree.
+- ~~**Re-run E013.**~~ **Done — [E020](experiments/E020-h2-after-the-e019-fixes.md).**
+  The harm is gone (+0.062 → +0.001, t=0.08) and the erosion with it (48% → 2.5%). H2
+  moves from `REFUTED at this timescale` to a clean null. E013, E015 and E016 superseded.
+
+- **Does learning repay the cost of its own exploration?** (E020, **post-hoc — needs
+  pre-registration before it is believed**.) Learning and noise-only carry identical
+  exploration noise; learning lands at +0.001 and noise-only at +0.037. If that contrast
+  holds as a first-class paired comparison it is the first positive result H2 has
+  produced. The harness currently reports both only against fixed, so the paired SE does
+  not exist yet. **Do not promote this to a headline before running it properly** — it is
+  precisely the forking path an outside review flagged.
+
+- **Why did exploration become costly?** (E020, unexplained.) Noise-only went from
+  t=0.32 to t=3.84 worse. Two candidates: audible call output now perturbs flockmates,
+  or the effect was always there and E013's wider baseline hid it. **One run with the
+  audio fix reverted separates them.** No mechanism should be written down before that.
+
+- **Attribution ladder.** Four things changed between E013 and E020. Now that the status
+  has actually moved, which one did it is worth the runs.
+
 - **Re-run E018**, unchanged in design — only its instrument was broken.
 - **Re-measure H2d** against a call channel that now varies.
 - **The innate food call fires on sight, out to 10 m.** Twelve of sixteen hens
