@@ -40,9 +40,20 @@ class Condition(NamedTuple):
     # any deviation from the default coop is written down in the condition itself
     # rather than set somewhere the reader will not look.
     cfg_patch: tuple = ()
+    # Pallium size relative to default. The H4 ladder needs capacity to vary
+    # independently of the channel; until E024 this was hardcoded, so the
+    # capacity-matched control the whole design turns on could not be run.
+    pallium_scale: float = 1.0
+    # Innate comprehension. H4 asks whether an intact channel beats a shuffled one,
+    # and a receiver who cannot respond to a call makes every condition identical.
+    scaffold: bool = False
 
     def coop(self, cfg: CoopConfig) -> CoopConfig:
         return cfg._replace(**dict(self.cfg_patch)) if self.cfg_patch else cfg
+
+    def regions(self):
+        return (regions.DEFAULT_REGIONS if self.pallium_scale == 1.0
+                else regions.DEFAULT_REGIONS.with_pallium(self.pallium_scale))
 
 
 # The phase 1 contrast: does a hen that learns regulate herself better than one that
@@ -115,8 +126,8 @@ def run_condition(cond: Condition, seed: int, cfg: CoopConfig,
     cfg = cond.coop(cfg)
     key = jax.random.key(seed)
     w = world.reset(key, cfg)
-    p = connectome.build(jax.random.fold_in(key, 1), regions.DEFAULT_REGIONS,
-                         n_hens=cfg.n_hens)
+    p = connectome.build(jax.random.fold_in(key, 1), cond.regions(),
+                         n_hens=cfg.n_hens, auditory_scaffold=cond.scaffold)
     x = brain.initial_state(p, cfg.n_hens)
 
     w_end, _x, p_end, _ps, _k, s = simulate.simulate(

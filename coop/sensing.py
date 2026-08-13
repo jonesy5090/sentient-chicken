@@ -39,6 +39,47 @@ def _bin_proximity(pos, heading, ent_pos, valid, cfg: CoopConfig):
     return jnp.max(onehot * prox[..., None], axis=1)            # (H, N_BINS)
 
 
+def _channel(atten: jax.Array, w, cfg: CoopConfig) -> jax.Array:
+    """Rewire who hears whom, for the H4 condition ladder. (H, H) -> (H, H).
+
+    `atten[i, j]` is how loudly hen i hears hen j. Every mode below leaves the *cost*
+    of calling untouched and changes only the routing, which is the point: the ladder
+    has to vary information and nothing else.
+
+    The shuffle is the load-bearing one. It gives each hen a randomly reassigned
+    flockmate's voice at her own attenuation profile, so she receives the same number
+    of calls, at the same amplitudes, with the same statistics -- carrying no
+    information about *her* surroundings. If an intact flock beats a shuffled one, it
+    is information transfer doing the work and not the mere presence of a channel.
+
+    The permutation is re-drawn every `shuffle_period_s`. A fixed permutation is a
+    stable mapping, and a stable mapping is something a flock could in principle learn
+    to invert; re-drawing keeps the channel genuinely uninformative rather than merely
+    scrambled once.
+    """
+    h = atten.shape[0]
+    mode = cfg.channel_mode
+
+    if mode == "intact":
+        return atten
+    if mode == "none" or mode == "severed":
+        # C0 severs at the receiver, not the sender: she still pays to call.
+        return jnp.zeros_like(atten)
+    if mode == "self":
+        # Cs: only her own voice, at the amplitude a flockmate beside her would hear.
+        # `atten` has the diagonal suppressed (world.py adds 1e6 to self-distance),
+        # so it is restored explicitly rather than read back off the matrix.
+        return jnp.eye(h)
+    if mode == "shuffled":
+        epoch = jnp.floor(w.t * cfg.dt / cfg.shuffle_period_s).astype(jnp.int32)
+        perm = jax.random.permutation(jax.random.fold_in(jax.random.key(0xC0FFEE),
+                                                         epoch), h)
+        # Row i keeps its own attenuation profile and receives hen perm[i]'s voices,
+        # so loudness statistics are preserved and only the source identity changes.
+        return atten[perm]
+    raise ValueError(f"unknown channel_mode {mode!r}")
+
+
 def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     """Build the (H, OBS_DIM) observation for the whole flock."""
     h = cfg.n_hens
@@ -81,6 +122,7 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     # power and taking the root keeps a genuine call dominant over any amount of
     # background, while still letting a chorus be louder than a soloist.
     atten = jnp.clip(1.0 - d_hens / cfg.hear_range, 0.0, 1.0)   # self excluded by 1e6
+    atten = _channel(atten, w, cfg)
     if cfg.legacy_audio:
         audio = jnp.clip(atten @ w.calls, 0.0, 1.0)             # pre-E019, for E021
     else:

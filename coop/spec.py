@@ -170,6 +170,26 @@ class CoopConfig(NamedTuple):
     # touches plasticity, which those conditions have switched off. Never a default.
     legacy_audio: bool = False
 
+    # --- The H4 condition ladder (docs/backlog.md §1) --------------------------
+    # How the auditory channel is wired between hens. Every condition delivers the
+    # same bandwidth and the same energetic cost; they differ only in *whose* calls
+    # reach whom, which is what isolates information transfer from everything else
+    # that carrying a channel involves.
+    #
+    #   "intact"   L  -- she hears her flockmates. The hypothesis.
+    #   "shuffled" C? -- she hears a randomly reassigned flockmate instead of the one
+    #                    near her. Same statistics, same cost, zero information about
+    #                    *her* situation. THE HEADLINE CONTROL.
+    #   "severed"  C0 -- she emits; nobody hears. Isolates the motor cost of calling.
+    #   "self"     Cs -- she hears only herself. A channel used as private memory is
+    #                    not communication, and without this the difference is
+    #                    invisible.
+    #   "none"     N/C- -- no auditory input at all.
+    channel_mode: str = "intact"
+    # Re-drawn every `shuffle_period_s` so C? cannot be defeated by a fixed
+    # permutation the flock could, in principle, learn around.
+    shuffle_period_s: float = 10.0
+
     # Predation
     hawk_period_s: float = 900.0      # a hawk passes over roughly every 15 min
     hawk_dive_s: float = 12.0

@@ -53,6 +53,17 @@ class Regions(NamedTuple):
         """Proportionally resized brain, for sweeps and benchmarking."""
         return Regions(*(max(4, int(round(s * factor))) for s in self.sizes))
 
+    def with_pallium(self, factor: float) -> "Regions":
+        """Resize the pallium alone, leaving sensory and motor stubs fixed.
+
+        This is what the H4 capacity ladder needs and `scaled` is not. Scaling the
+        whole brain changes the sensory and motor interface widths too, so a
+        capacity control would differ from the language condition in how much of the
+        world it can see and how finely it can move -- two more things at once, in a
+        design whose entire purpose is to vary one.
+        """
+        return self._replace(pallium=max(4, int(round(self.pallium * factor))))
+
 
 DEFAULT_REGIONS = Regions()
 
