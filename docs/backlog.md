@@ -210,9 +210,17 @@ top-ranked item is **not** here, because its headline number did not replicate.
    gain that `connectome.py:78-81` complains about without diagnosing.
 
 2. **Promote `fed %` to the primary metric.** Hunger change measures the *sign of*
-   `f − 6.17%`, and hens start at hunger 0.30 which is exactly that equilibrium. Its
-   nuisance spread (sd 0.066) is larger than every effect ever chased (0.001–0.062), and
-   it correlates −0.94 with `fed %`, which is already printed beside it.
+   `f − 6.17%`, and hens start at hunger 0.30 which is exactly that equilibrium. It
+   correlates −0.94 with `fed %`, which is already printed beside it, and `fed %` has the
+   better pairing correlation (ρ +0.914 against +0.791) as well as no knife edge.
+
+   **Do not block on food layout.** The review ranked that first as a free 5× win; it is
+   the opposite. Measured on the quantity that actually powers a matched-seed contrast —
+   the paired-difference sd, not the marginal spread both earlier checks used — pinning
+   the layout *raises* sd_d (hunger 0.0387 → 0.0443; fed % 1.69 → 2.89) and destroys the
+   pairing (ρ +0.791 → +0.335; +0.914 → **−0.525**). Layout is a *shared* nuisance, so
+   pairing already cancels it for free; removing it removes the correlated component that
+   was making the pairing work. E022 addendum.
 
 3. **Run H4 with no plasticity at all.** §7 says phase 1 blocks everything below; it does
    not block H4, whose prediction mentions no learning. Production is innate and passes

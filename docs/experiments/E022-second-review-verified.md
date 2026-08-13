@@ -116,6 +116,40 @@ supported at the claimed magnitude. Promoting `fed %` to primary follows from 3b
 own and does not depend on the layout claim at all — which makes it the safe half of the
 recommendation.
 
+### Addendum: pinning the layout is actively harmful, and both of us measured the wrong thing
+
+The reviewer flagged, correctly, that its check and mine both used the **marginal**
+between-seed spread — and that a matched-seed contrast is powered by the **paired
+difference** sd, since pairing already cancels whatever the two conditions share. Neither
+number settled anything. Measured properly, noise-vs-fixed over 8 matched seeds:
+
+| | marginal sd | **paired sd_d** | pairing ρ |
+|---|---|---|---|
+| **hunger change**, layout varies | 0.0612 | **0.0387** | **+0.791** |
+| **hunger change**, layout pinned | 0.0470 | **0.0443** | +0.335 |
+| **fed %**, layout varies | 3.843 | **1.691** | **+0.914** |
+| **fed %**, layout pinned | 2.547 | **2.887** | **−0.525** |
+
+**Pinning the layout lowers the marginal spread and raises the paired spread.** It makes
+every contrast in this project *worse*, on both metrics.
+
+The reason is the whole point of pairing. Food layout is a **shared** nuisance: it hits
+both conditions in a seed identically, so the pairing cancels it for free — which is
+exactly what ρ = +0.79 and +0.91 are showing. Pin it, and you remove the correlated
+component that was making the pairing work, leaving only unshared variance. ρ collapses
+to +0.335 and *inverts* to −0.525.
+
+So the review's top-ranked item — "nearly free, 5× variance, do this first" — would have
+**increased** the variance of every matched-seed contrast the project runs. And my own
+rejection of it in §4 was right by accident: I argued the magnitude was wrong, when the
+real answer is that the quantity was wrong and the sign is wrong too.
+
+**What this does not touch:** `fed %` still deserves promotion, and now for a measured
+reason rather than an inferred one. Its pairing correlation is higher than hunger
+change's (+0.914 vs +0.791), it does not sit on a knife edge, and it is not a sign test.
+n=8, so ρ estimates here are themselves noisy; the direction is unambiguous, the exact
+values are not.
+
 ### Not assessed
 
 The review's argument that **H4 does not require plasticity** is an argument, not a
