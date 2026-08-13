@@ -197,6 +197,35 @@ Worth writing down now, while it is still cheap to be honest:
 6. Playback and lesion assays.
 7. T3 safe corridor.
 
+## 7a. Blocking everything — the three E019 defects
+
+These come before every item in §7 and every item in §8. All three are verified
+([E019](experiments/E019-three-verified-defects.md)) and all three are small fixes.
+
+1. **Make calls audible.** `coop/world.py:192` emits the raw sigmoid, so every hen calls
+   continuously at the resting floor of 0.076, and `coop/sensing.py:77` sums that across
+   15 flockmates into a clip. At the default flock size the channel sits at 1.0 and a
+   full-amplitude alarm from an adjacent bird moves it by **0.0000**. Threshold or
+   floor-subtract at emission, and combine audibility non-linearly (max, or an
+   energy-sum with log compression) instead of by linear summation. **Until this is
+   done, E018, H2b, H2c, H3 and the entire H4 headline are measuring a constant** — and
+   L versus C? (shuffled channel) is a guaranteed null, since shuffling a constant gives
+   the same constant. Add a test at `n_hens=16`; the suite uses 4, which is the one band
+   where the channel still works.
+
+2. **Give `W_out` more than one degree of freedom.** `ΔW_out` is rank one and the
+   cortical drive varies by 0.7% of its magnitude. A three-factor outer product of two
+   non-negative slow traces cannot express a state-dependent policy — it can only slide
+   a constant. Everything H2 through H5 wants from the learned pathway needs this.
+
+3. **Take the vigour term out of `reward()`.** 98.1% of reward variance is the call
+   cost. Keep it in the world so calls still attenuate; remove it from the teaching
+   signal. Then re-run the E013 contrast — it decides whether `H2 REFUTED` survives.
+
+**And the meta-item.** All three are quantities that were checked in the place they had
+just been moved *from*. When a term is relocated, measure it in its new home. Worth a
+line in `CLAUDE.md` under design invariants.
+
 ## 8. Open items from experiments
 
 - ~~**Does the cortical pathway ever influence behaviour?**~~ **Answered by

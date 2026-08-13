@@ -121,10 +121,27 @@ interaction; it decides who gets the last word.
 for +0.010. That retires the last of E013's original story — the harm is not the loss
 of synapses. It is not exploration either (t=0.32).
 
-**Which makes this a consequence of H2d.** The pallium cannot represent distinctions,
+~~**Which makes this a consequence of H2d.** The pallium cannot represent distinctions,
 `eta_out` grows a readout from that degenerate representation, and the cortical
 pathway transmits structured state-dependent noise into an already-competent motor
-system. Exploration noise is harmless because it is zero-mean; this is not.
+system. Exploration noise is harmless because it is zero-mean; this is not.~~
+
+**Withdrawn by [E019](experiments/E019-three-verified-defects.md).** The cortical
+pathway does not transmit state-dependent anything. `ΔW_out` is **rank one** (top
+singular value share 0.9981), and the cortical contribution to the motor drive varies by
+**0.7% of its own magnitude** over three seconds of behaviour. It is a constant offset,
+and it is negative on peck (+0.02 → −0.52) and on the call channels. The hen learns to
+peck less; that is the whole of the measured harm.
+
+Two further caveats on this node, both from E019:
+
+- **E013's status as the clean test of H2 does not hold.** 98.1% of the reward variance
+  in that run came from the vigour term — a cost added for a different hypothesis, moved
+  out of the metric by E012 and into the teaching signal, where it was never checked.
+  `REFUTED at this timescale` stands only as "refuted under a reward that was 98% call
+  cost", which is not the claim the tree is making.
+- **E015's superadditivity and E016's "last word" may both be artefacts** of a single
+  rank-one offset being scaled two ways. Plausible, unverified, and not yet acted on.
 
 ---
 
@@ -389,9 +406,20 @@ was obtained in the saturated regime. Drive regulation evidently only needs coar
 modulation, which a saturated network can still supply — but it should be re-run once
 the operating point is fixed, and may well get stronger.
 
-**Not yet changed.** The gain default stays 0.9, because changing it invalidates the
-comparison basis for every result so far. It should be a deliberate re-baselining with
-H2 re-run, not a quiet tweak.
+~~**Not yet changed.** The gain default stays 0.9~~ — **stale**. The re-baselining
+happened; `hen/connectome.py:48` has `gain = 0.70`. Flagged by external review as a doc
+that describes a state the code left behind.
+
+**H2d is demoted from the critical path by
+[E019](experiments/E019-three-verified-defects.md), pending re-measurement.** Its whole
+diagnosis rests on contrasting "saw a hawk" against "heard an alarm call". In the actual
+coop at the default flock size, the call channel is **constant at 1.0** and the aerial
+channel averages 0.00 — the contrast this node is built on never occurs. Separability was
+measured on hand-injected observations describing a situation the hen never experiences.
+
+Whether the pallium can represent distinctions is still an open and important question.
+It is not established that it cannot, and it is no longer the thing blocking everything
+else.
 
 ---
 
@@ -564,3 +592,5 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E015 | Harm decomposed: readout +0.021, recurrent +0.010, both **+0.052 — superadditive**. Pruning nearly free. |
 | E016 | Staging tested. Prediction falsified: pallium-first does nothing, **muscles-first cuts harm 69%**. Moving-target story withdrawn. |
 | E017 | H2d's mechanism corrected: the stub separates cleanly (1.055), the loss is fan-in at sensory→pallium, not recurrence. Found the innate arc has **no auditory reflex at all**. |
+| E018 | **ABORTED mid-run.** The channel it tests carries no information at n=16. Its pre-registered falsifier would have fired for the wrong reason. |
+| E019 | External review, verified here. **Calls are inaudible** (a full alarm moves the receiver by 0.0000), **`W_out` is rank one** (0.7% variability), **reward is 98% call cost**. Withdraws H2's mechanism, caveats E013, demotes H2d. |

@@ -254,12 +254,46 @@ quietly rescued by extending the run.
 
 ## 6. Result
 
-*To be written after the run.*
+**ABORTED mid-run. No result.** Killed after ~40 minutes of an 8-seed run, on a defect
+found by external review and verified in [E019](E019-three-verified-defects.md).
+
+**The auditory channel this experiment is built on carries no information at the flock
+size it was running at.** At `n_hens=16`, the aerial-alarm channel reads 1.0000 at rest,
+and a full-amplitude alarm call from an adjacent flockmate moves it by **0.0000**. Every
+hen emits all four calls continuously at the resting motor floor
+(`sigmoid(-2.5) = 0.076`, unthresholded at `coop/world.py:192`), and `coop/sensing.py:77`
+sums those across 15 flockmates before clipping.
+
+So the scaffold was not wiring a *response to a call*. With `audio ≈ 1.0` at all times it
+is a permanent +1.5 on crouch and −1.5 on peck/scratch — a change to resting posture,
+conditional on nothing.
 
 ## 7. Interpretation
 
-*To be written after the run.*
+**The falsifier would have fired, and the conclusion drawn from it would have been
+wrong.** §4 committed in advance: if `S+L − S ≈ 0`, then E006's and E007's explanation
+is false, and the "wrong kind of learning rule — instrumental where the biology is
+Pavlovian" hypothesis is promoted to leading. The smoke test already showed `S+L − S =
+−0.003`.
+
+That null was guaranteed by the constant input, and has nothing to say about learning
+rules. Pre-registration protected the analysis from being tuned to the data; it offered
+no protection at all against the instrument being broken. Worth recording, because the
+discipline was followed correctly and would still have produced a confident wrong answer.
+
+**E006's diagnosis is half-vindicated and half-overturned.** It said the chain breaks at
+step two because nothing responds to calls. Right about the location, wrong about the
+cause: no receiver can *detect* a call, so it was never a question of comprehension being
+unlearned.
 
 ## 8. Consequence
 
-*To be written after the run.*
+- **Re-run after defect 1 is fixed**, unchanged in design. Sections 1–5 stand as
+  registered and the 2×2 remains the right structure; only the environment was broken.
+  The addenda are retained — the innate audience-effect pathway they document is real and
+  will still need subtracting.
+- **The primary metric needs re-deriving** once calls are audible. `S` was measured at
+  +0.066 with a dead channel; that floor will move.
+- **One design note survives intact and is worth carrying forward.** The `S` condition
+  caught an innate pathway its author did not predict, and would have caught it again
+  here. Build the control in; do not reason about why one is unnecessary.
