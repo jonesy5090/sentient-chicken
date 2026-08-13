@@ -1,0 +1,4 @@
+centred    seed 0: |dW_out|/|W_out|=0.1229  reflex/cortical=1.192/0.150  hunger -0.0170  fed 5.52%  syn 35651
+centred    seed 5: |dW_out|/|W_out|=0.1056  reflex/cortical=1.631/0.181  hunger -0.0495  fed 8.87%  syn 35565
+uncentred  seed 0: |dW_out|/|W_out|=0.6078  reflex/cortical=1.361/0.358  hunger -0.0170  fed 5.77%  syn 33973
+uncentred  seed 5: |dW_out|/|W_out|=0.6919  reflex/cortical=1.592/0.445  hunger -0.0056  fed 5.94%  syn 33221
