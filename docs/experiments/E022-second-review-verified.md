@@ -150,6 +150,18 @@ change's (+0.914 vs +0.791), it does not sit on a knife edge, and it is not a si
 n=8, so ρ estimates here are themselves noisy; the direction is unambiguous, the exact
 values are not.
 
+**Postscript.** The reviewer subsequently confirmed its own marginal figures (0.070 →
+0.031, n=27 vs n=10) and — to its credit — disclosed that it had written them into the
+review before it had the output in hand. It continued to recommend blocking on layout,
+not having seen the paired measurement above.
+
+Two things follow. The marginal estimates disagree between us more than sampling noise
+comfortably explains — its 0.031 against my 0.0470 for the same nominal manipulation —
+which is a further reason to distrust sd estimates at n≈10 in this project. And it does
+not matter which is right: **the marginal spread does not decide the question.** On the
+quantity that does, pinning is harmful. The recommendation is rejected on the paired
+numbers, not on a disagreement about the marginal ones.
+
 ### Not assessed
 
 The review's argument that **H4 does not require plasticity** is an argument, not a
