@@ -163,6 +163,13 @@ class CoopConfig(NamedTuple):
     call_vigour_drain: float = 1.5e-2   # per second per unit of call amplitude
     vigour_recovery_s: float = 90.0     # seconds to recover fully from empty
 
+    # Restores the pre-E019 audio path: emit the raw sigmoid (so a resting hen calls
+    # at 0.076 on every channel) and sum voices linearly into a clip. It exists purely
+    # so E021 can ask what the audio fix changed, and it is the only route by which a
+    # non-learning flock differed between E013 and E020 -- every other fix since E013
+    # touches plasticity, which those conditions have switched off. Never a default.
+    legacy_audio: bool = False
+
     # Predation
     hawk_period_s: float = 900.0      # a hawk passes over roughly every 15 min
     hawk_dive_s: float = 12.0

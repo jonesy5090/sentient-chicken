@@ -81,8 +81,10 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     # power and taking the root keeps a genuine call dominant over any amount of
     # background, while still letting a chorus be louder than a soloist.
     atten = jnp.clip(1.0 - d_hens / cfg.hear_range, 0.0, 1.0)   # self excluded by 1e6
-    power = (atten ** 2) @ (w.calls ** 2)                       # (H, N_CALLS)
-    audio = jnp.clip(jnp.sqrt(power), 0.0, 1.0)
+    if cfg.legacy_audio:
+        audio = jnp.clip(atten @ w.calls, 0.0, 1.0)             # pre-E019, for E021
+    else:
+        audio = jnp.clip(jnp.sqrt((atten ** 2) @ (w.calls ** 2)), 0.0, 1.0)
 
     return jnp.concatenate(
         [vis, aerial[:, None], intero, somatic, audio], axis=-1)

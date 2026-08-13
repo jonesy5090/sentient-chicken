@@ -128,6 +128,18 @@ def _step_predators(w: World, key: jax.Array, cfg: CoopConfig):
     return new_hawk_pos, hawk_on, hawk_t, fox_pos, fox_on, fox_t
 
 
+def _emit(motor: jax.Array, cfg: CoopConfig) -> jax.Array:
+    """Motor call channels -> emitted call amplitude, (H, N_CALLS).
+
+    Subtracting the resting sigmoid floor is what makes silence silent. See
+    `spec.CALL_FLOOR`; `cfg.legacy_audio` restores the pre-E019 behaviour for E021.
+    """
+    raw = motor[:, list(spec.CALL_MOTOR_IDX)]
+    if cfg.legacy_audio:
+        return raw
+    return jax.nn.relu(raw - spec.CALL_FLOOR) / (1.0 - spec.CALL_FLOOR)
+
+
 def step(w: World, motor: jax.Array, key: jax.Array,
          cfg: CoopConfig = spec.DEFAULT_COOP) -> World:
     """Advance the coop by one dt given each hen's motor vector (H, MOTOR_DIM)."""
@@ -191,8 +203,7 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         # which makes vocal effort self-limiting without an arbitrary cap; and the
         # resting sigmoid floor is subtracted off, so a hen who is not calling emits
         # nothing at all rather than 0.076 of every call in the repertoire (E019).
-        calls=(jax.nn.relu(motor[:, list(spec.CALL_MOTOR_IDX)] - spec.CALL_FLOOR)
-               / (1.0 - spec.CALL_FLOOR)) * vigour[:, None],
+        calls=_emit(motor, cfg) * vigour[:, None],
         hunger=hunger,
         thirst=thirst,
         cold=cold,
