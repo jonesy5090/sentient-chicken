@@ -45,7 +45,7 @@ def _region_of(reg: Regions) -> np.ndarray:
 
 def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           n_hens: int = spec.DEFAULT_COOP.n_hens,
-          gain: float = 0.70, readout_scale: float = 0.05,
+          gain: float = 0.95, readout_scale: float = 0.05,
           auditory_scaffold: bool = False) -> BrainParams:
     """Sample a newly hatched flock.
 
@@ -57,32 +57,45 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     Off by default, because switching it on changes the innate repertoire and so the
     comparison basis for E001-E017.
 
-    `gain` was 0.9 for E001-E009 and that was a mistake, found in
-    docs/experiments/E009. At 0.9 the pallium runs at a mean rate of 0.83 -- deep in
-    the flat part of the sigmoid, slope ~0.12 -- and the states for "heard an alarm
-    call" and "saw a hawk" differ by under 1% of the mean. A saturated network cannot
-    represent distinctions, and nothing downstream can learn from a representation
-    that does not distinguish.
+    `gain` has been re-baselined twice. It was 0.9 through E009, dropped to 0.70 in
+    E010 when the pallium was found saturated, and set to **0.95** in E023 after E022
+    found the E/I bug: until then the pallium contained no inhibitory neurons at all,
+    so every earlier gain figure describes a different network.
 
-    Measured across genomes, relative separability of those two percepts:
+    Measured across 6 genomes, relative separability of "saw a hawk" against "heard an
+    aerial alarm", on the corrected connectome:
 
-        gain   mean pallial rate   separability (% of mean rate)
-        0.60         0.212               3.3%
-        0.70         0.271               7.5%
-        0.75         0.349              14.2%   <- measured optimum
-        0.78         0.497               6.2%
-        0.90         0.830               0.9%   <- the old default
+        gain   mean pallial rate   genome sd   separability
+        0.60         0.172           0.001         3.8%
+        0.70         0.189           0.002         4.5%
+        0.85         0.228           0.004         5.8%
+        0.95         0.276           0.009         7.4%   <- default
+        1.00         0.320           0.016         9.4%
+        1.05         0.415           0.041         9.4%
+        1.10         0.603           0.061         4.5%   <- transition
+        1.40         0.916           0.008         1.0%
 
-    0.70 rather than the peak at 0.75, deliberately. The peak sits about 0.03 from a
-    transition: by 0.78 the mean rate has jumped to 0.50 and separability has
-    collapsed. Weights move during learning, so a value that has to be held to two
-    decimal places is not a value to build on. 0.70 keeps 8x the old separability, and
-    its mean rate is tight across genomes (0.26-0.28) where 0.78's is not (0.42-0.59).
+    **The knife edge is gone, and that is what the fix bought.** The old network
+    bifurcated between 0.75 and 0.78 (rate 0.35 -> 0.50) and was unusable by 0.90. This
+    one climbs smoothly from 0.60 to 1.00 with genome-to-genome spread under 0.02, and
+    does not break until past 1.05. The usable band is roughly four times wider.
 
-    Separability varies a lot between genomes at any gain (3.5%-25.5% at 0.70), which
-    is individual variation in how well a given hen's wiring separates her world. That
-    is interesting rather than a defect, but it means per-seed results are noisy and
-    contrasts need replicates.
+    0.95 rather than the peak at 1.00-1.05, on E010's reasoning, which still holds:
+    weights move during learning, so leave margin. 0.95 sits ~0.12 below the
+    transition where the old 0.70 sat ~0.08 below its own, and its genome spread is
+    3.3% of the mean rate against 10% at 1.05. Take 0.90 if a run is ever seen to
+    drift its operating point upward.
+
+    **What the fix did not buy is separability.** At 0.95 it is 7.4%, against 7.5% for
+    the old usable default. Comparable, not better -- and the review that found the E/I
+    bug predicted a 1.4x improvement that did not materialise (E023). H2d's problem is
+    untouched: a hen still barely distinguishes a heard alarm from a seen hawk. What
+    changed is that the number no longer depends on holding a parameter to two decimal
+    places.
+
+    Separability still varies a lot between genomes, which is individual variation in
+    how well a given hen's wiring separates her world. It means per-seed results are
+    noisy and contrasts need replicates.
     """
     k_mask, k_w, k_in = jax.random.split(key, 3)
     n = reg.total

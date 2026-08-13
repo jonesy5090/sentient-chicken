@@ -10,6 +10,19 @@ or it does not belong in the project.
 
 Status values: `SUPPORTED` · `UNDER TEST` · `NOT STARTED` · `REFUTED` · `ABANDONED`
 
+> ## ⚠ Re-baselined at E023 — every number below predates it
+>
+> [E022](experiments/E022-second-review-verified.md) found that the pallium contained
+> **no inhibitory neurons at all**: E/I identity was assigned by flat index over a
+> region-ordered array, so it segregated by region. Fixed in
+> [E023](experiments/E023-ei-fix-and-rebaseline.md), which also moved the gain default
+> from 0.70 to 0.95.
+>
+> **Every measurement recorded in this file was taken on the old network.** None is
+> known to be *wrong*; all are unrepeated on the corrected connectome, which is a
+> different and weaker claim. Statuses are retained rather than reset, and each should
+> be read as "established on the pre-E023 brain" until re-run. The queue is in E023 §6.
+
 ---
 
 ## H0 — root
@@ -647,3 +660,5 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E019 | External review, verified here. **Calls are inaudible** (a full alarm moves the receiver by 0.0000), **`W_out` is rank one** (0.7% variability), **reward is 98% call cost**. Withdraws H2's mechanism, caveats E013, demotes H2d. All three fixed. |
 | E020 | H2 re-run after the fixes. **The harm is gone** (+0.062 → +0.001, t=0.08) and so is the erosion (48% → 2.5%). H2 returns to a clean null; E013, E015 and E016 superseded. ~~Exploration is now costly~~ (withdrawn by E021). |
 | E021 | Both predictions wrong, both deleting claims. Learning does **not** repay its exploration cost (+0.021, wrong sign). The exploration cost **did not replicate** (t=3.84 → t=0.01). **SE was 4.4× larger on a fresh seed block** — no status may now change on one block. |
+| E022 | Second outside review, verified. **The pallium has no inhibitory neurons.** The primary metric sits on a knife edge (hens start at hunger 0.30; equilibrium *is* 0.30). Its top-ranked item — food layout as 80% of variance — **did not replicate** (30%, not 80%). |
+| E023 | E/I fixed, gain re-baselined 0.70 → 0.95. **The knife-edge gain is gone** — usable band 4× wider. **Separability unchanged** (7.4% vs 7.5%), so H2d is untouched and the review's predicted 1.4× did not appear. Invalidates every prior number as *comparable*. |

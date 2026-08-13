@@ -33,7 +33,7 @@ def settle(p, obs):
 
 print(f"{'gain':>6}{'mean pallial rate':>20}{'sd across genomes':>20}"
       f"{'separability':>15}{'sd':>9}")
-for gain in (0.60, 0.70, 0.75, 0.78, 0.90, 1.10, 1.40):
+for gain in (0.85, 0.90, 0.95, 1.00, 1.05):
     rates, seps = [], []
     for s in range(6):
         p = connectome.build(jax.random.key(s), reg, n_hens=1, gain=gain)
