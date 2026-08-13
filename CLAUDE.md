@@ -12,8 +12,10 @@ real chicken's 290M neurons are in the cerebellum and optic tectum, so a simplif
 environment lets us refuse to pay for vision and motor control and spend the
 remainder on a pallium.
 
-Current state: phase 0 and phase 1 complete. `docs/hypothesis.md` is authoritative;
-`/status` will read it for you.
+Current state: phase 0 proven; phase 1 **built but not proven** — the learning rule is
+currently a clean null (E020), and saying "phase 1 complete" is exactly the
+built-versus-proven conflation this file warns about. `docs/hypothesis.md` is
+authoritative; `/status` will read it for you.
 
 ## Why this is worth doing, and therefore what not to break
 
@@ -132,6 +134,18 @@ questions — what we are trying to achieve, what has been built versus what has
 asked where the project is, and before starting significant new work, to check the
 work ladders up to the tree.
 
+**The `red-team` skill** (`.claude/skills/red-team/`) buys an outside reader. It
+commissions an adversarial review from an agent with none of the conversation's
+context, then verifies every finding independently before acting on any of it. Use it
+when successive experiments keep generating explanations for the same null, before an
+expensive run, or whenever the work feels stuck in a loop.
+
+It exists because accumulated context is what makes this project productive and what
+makes it blind. The first time it ran it found that every communication experiment for
+eighteen experiments had been measuring a channel that carried no information. It was
+also wrong about two things, which is why verification is the skill's central rule
+rather than a footnote.
+
 - `docs/hypothesis.md` is the tree. Every experiment names a parent node.
 - `docs/backlog.md` is what is proposed but not started, with the reasoning.
 - `docs/experiments/` holds one file per experiment, from `TEMPLATE.md`. Sections 1–5
@@ -176,6 +190,16 @@ plasticity must not be able to turn an inhibitory neuron excitatory.
 
 **Determinism.** Same seed, same trajectory. Nothing downstream is debuggable
 without it.
+
+**When a term moves, measure it in its new home.** Three separate defects (E019) were
+quantities checked in the place they had just been moved *from* — a call cost verified
+in the metric after being relocated into the reward, a gain documented at 0.9 while the
+code ran 0.70, a diagnosis made before a re-baselining and never re-checked after. Each
+survived because the obvious verification was performed and looked at the wrong place.
+
+**Guard tests must run at the configuration where the defect appears.** The auditory
+channel carried zero information at the default 16 hens for eighteen experiments,
+because the suite ran at 4 — the one flock size where it still worked.
 
 ## Biology is a constraint, not decoration
 

@@ -338,9 +338,19 @@ achieve, what has been built versus what has actually been *proven*, and what is
 
 ## Current state
 
-**Phase 0** (a credible newly-hatched hen) and **phase 1** (she learns) are done and
-measured. **Phase 2** — does she learn *when* to call, the way a real chicken does? —
-is next. **Phase 4** is the language experiment, and it is designed but not built.
+**Phase 0** — a credible newly-hatched hen — is done and measured, and it holds up: she
+does seven documented chick behaviours nobody taught her.
+
+**Phase 1** — she learns — is *built* but not *proven*, and the distinction is the
+honest part. The machinery all works: eligibility traces, a neuromodulator, synapses
+that grow and prune. What it does not yet do is make her measurably better at anything.
+The current result is a clean null — a hen who learns forages indistinguishably from one
+who cannot (E020). An earlier version of this file said phase 1 was complete, on the
+strength of a finding that later turned out to be an artefact of three defects in the
+environment and the learning rule. That correction is in `docs/experiments/E019` and
+`E020`, and the record of it is worth more than the claim was.
+
+**Phase 4** is the language experiment. It is designed in detail and not built.
 
 Full detail in [`docs/hypothesis.md`](docs/hypothesis.md).
 
