@@ -197,34 +197,44 @@ Worth writing down now, while it is still cheap to be honest:
 6. Playback and lesion assays.
 7. T3 safe corridor.
 
-## 7a. Blocking everything — the three E019 defects
+## 7a. The three E019 defects — ~~blocking everything~~ **all fixed**
 
-These come before every item in §7 and every item in §8. All three are verified
-([E019](experiments/E019-three-verified-defects.md)) and all three are small fixes.
+All three verified and fixed in [E019](experiments/E019-three-verified-defects.md) §7,
+with six guard tests at `n_hens=16`.
 
-1. **Make calls audible.** `coop/world.py:192` emits the raw sigmoid, so every hen calls
-   continuously at the resting floor of 0.076, and `coop/sensing.py:77` sums that across
-   15 flockmates into a clip. At the default flock size the channel sits at 1.0 and a
-   full-amplitude alarm from an adjacent bird moves it by **0.0000**. Threshold or
-   floor-subtract at emission, and combine audibility non-linearly (max, or an
-   energy-sum with log compression) instead of by linear summation. **Until this is
-   done, E018, H2b, H2c, H3 and the entire H4 headline are measuring a constant** — and
-   L versus C? (shuffled channel) is a guaranteed null, since shuffling a constant gives
-   the same constant. Add a test at `n_hens=16`; the suite uses 4, which is the one band
-   where the channel still works.
+1. ~~**Make calls audible.**~~ **Done.** Floor-subtraction at emission plus power-domain
+   combination at sensing. A full-amplitude alarm from an adjacent bird now moves the
+   receiver's channel by **+0.908**, from 0.0000. Holds 4–32 hens.
 
-2. **Give `W_out` more than one degree of freedom.** `ΔW_out` is rank one and the
-   cortical drive varies by 0.7% of its magnitude. A three-factor outer product of two
-   non-negative slow traces cannot express a state-dependent policy — it can only slide
-   a constant. Everything H2 through H5 wants from the learned pathway needs this.
+2. ~~**Give `W_out` more than one degree of freedom.**~~ **Done**, and the framing was
+   wrong: rank is not the right measure. A rank-one `ΔW_out = u vᵀ` still contributes a
+   state-*dependent* `u (v · motor_stub)`. Centring both traces made the rule a
+   covariance rule and raised drive variability 11× (0.007 → 0.080) while rank stayed
+   at 0.999. Whether 8% is *enough* is what re-running E013 answers.
 
-3. **Take the vigour term out of `reward()`.** 98.1% of reward variance is the call
-   cost. Keep it in the world so calls still attenuate; remove it from the teaching
-   signal. Then re-run the E013 contrast — it decides whether `H2 REFUTED` survives.
+3. ~~**Take the vigour term out of `reward()`.**~~ **Done.** Reward is now hunger 54%,
+   cold 46%. The cost stays real in the world.
 
-**And the meta-item.** All three are quantities that were checked in the place they had
-just been moved *from*. When a term is relocated, measure it in its new home. Worth a
-line in `CLAUDE.md` under design invariants.
+**The meta-item stands and is the durable part.** All three were quantities checked in
+the place they had just been moved *from*. When a term is relocated, measure it in its
+new home.
+
+### Immediate follow-ups created by the fixes
+
+- **Re-run E013.** Its `H2 REFUTED at this timescale` verdict was obtained under a
+  reward that was 98% call cost and a readout that could only slide a constant. Both
+  have changed. **This is the next run**, and it decides a status in the tree.
+- **Re-run E018**, unchanged in design — only its instrument was broken.
+- **Re-measure H2d** against a call channel that now varies.
+- **The innate food call fires on sight, out to 10 m.** Twelve of sixteen hens
+  food-call continuously, so that channel is saturated by *genuine* calling and carries
+  no information. Real cockerels food-call on *finding* food, and are audience-sensitive
+  about it. This is a reflex-arc change and needs its own hypothesis node — it is not a
+  bug fix and should not be done as one.
+- **The flock clumps** — nearest-neighbour 0.23 m in a 20 × 20 m run. Flagged by the
+  same review. T1 (divided vigilance) and T2 (which feeder is poisoned) both assume
+  hens are somewhere different from each other. Nothing disperses them: food never
+  depletes, so there is no foraging competition.
 
 ## 8. Open items from experiments
 

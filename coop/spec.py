@@ -84,6 +84,19 @@ MOTOR_DIM = 11
 CALL_MOTOR_IDX = (M_CALL_CONTACT, M_CALL_FOOD, M_CALL_AERIAL, M_CALL_GROUND)
 N_CALLS = 4
 
+# A silent hen must emit silence. Motor channels are sigmoids, so a bird at rest sits
+# at sigmoid(REST_BIAS) = 0.076 on *every* channel including the four call ones -- a
+# floor that is an artefact of the nonlinearity, not a vocalisation. Until E019 that
+# floor was emitted as a real call: with 16 hens summing into one clipped channel, the
+# aerial-alarm input read 0.999 at rest and a full-amplitude call from an adjacent bird
+# moved it by 0.0000. Every communication experiment before E019 ran on that constant.
+#
+# Subtracting the floor and rescaling removes exactly the artefact and nothing else.
+# It is deliberately not a 0.5 threshold like peck and crouch use: alarm calls are
+# *graded* by urgency in real fowl, and the audience assay stages its hawk at 7 m
+# precisely to read a mid-range call, which a half-threshold would silence.
+CALL_FLOOR = 0.0759   # sigmoid(REST_BIAS); asserted against innate.py in the tests
+
 # Actions that put the head down. This single fact is why the project can have
 # language at all: a hen with her beak in the dirt cannot scan for hawks, so a
 # flockmate's alarm call carries information she does not otherwise have. Without

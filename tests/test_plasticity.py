@@ -190,6 +190,150 @@ def test_disabled_plasticity_leaves_weights_untouched_even_with_noise(flock):
     assert jnp.array_equal(p0.W_out, p1.W_out)
 
 
+# --- Guards on the three E019 defects ---------------------------------------
+#
+# All three survived eighteen experiments because nothing tested for them, and two of
+# them were invisible at the flock size the rest of this file uses. These run at
+# n_hens=16, the default, deliberately.
+
+E019_CFG = spec.DEFAULT_COOP           # 16 hens: the size the defects appeared at
+
+
+def test_a_flock_with_nothing_to_report_is_quiet_on_the_alarm_channels():
+    """A hen who is not alarm-calling must emit nothing on the alarm channels.
+
+    Motor channels are sigmoids, so a resting bird sits at sigmoid(-2.5) = 0.076 on
+    every channel including the four call ones. Until E019 that floor was emitted as a
+    real call, and summed across 15 flockmates it pinned every audio channel at 1.0.
+
+    Scoped to the two alarm channels on purpose. The *food* channel does saturate at
+    the default flock size, and that is real behaviour rather than a floor: the innate
+    arc food-calls on the sight of food out to 10 m, so a clumped flock near a feeder
+    has twelve of sixteen birds genuinely calling. It carries no information for the
+    same reason, but the cause is the reflex arc and the fix is a design decision, not
+    a bug fix. Tracked in docs/backlog.md rather than silently patched here.
+    """
+    from coop import sensing
+    w = world.reset(jax.random.key(0), E019_CFG)
+    p = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS,
+                         n_hens=E019_CFG.n_hens)
+    x = brain.initial_state(p, E019_CFG.n_hens)
+    w, x, *_ = simulate.rollout_quiet(w, x, p, jax.random.key(5), E019_CFG, 6_000)
+    audio = sensing.observe(w, E019_CFG)[:, spec.AUDIO_LO:spec.AUDIO_HI]
+    for name, motor_ch in (("aerial", spec.M_CALL_AERIAL),
+                           ("ground", spec.M_CALL_GROUND)):
+        i = spec.CALL_MOTOR_IDX.index(motor_ch)
+        level = float(jnp.max(audio[:, i]))
+        assert level < 0.3, (
+            f"resting flock hears {level:.3f} on the {name} alarm channel with no "
+            "predator anywhere; it is saturated before anyone has said anything")
+
+
+def test_a_call_is_audible_to_a_flockmate():
+    """The whole project depends on this one number being non-zero.
+
+    E019 measured it at exactly 0.0000 with 16 hens: a full-amplitude alarm from an
+    adjacent bird moved the receiver's channel not at all. Every experiment about
+    communication was running on a constant.
+    """
+    from coop import sensing
+    w = world.reset(jax.random.key(0), E019_CFG)
+    p = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS,
+                         n_hens=E019_CFG.n_hens)
+    x = brain.initial_state(p, E019_CFG.n_hens)
+    w, x, *_ = simulate.rollout_quiet(w, x, p, jax.random.key(5), E019_CFG, 6_000)
+
+    i = spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
+    ch = spec.AUDIO_LO + i
+    before = float(sensing.observe(w, E019_CFG)[0, ch])
+    loud = w._replace(calls=w.calls.at[1, i].set(1.0))
+    after = float(sensing.observe(loud, E019_CFG)[0, ch])
+    assert after - before > 0.1, (
+        f"a full-amplitude alarm call from a flockmate moves the channel by "
+        f"{after - before:+.4f}; nothing downstream can learn from that")
+
+
+def test_call_floor_matches_the_resting_motor_output():
+    """`CALL_FLOOR` and `REST_BIAS` live in different modules and must not drift."""
+    from hen import innate
+    resting = float(jax.nn.sigmoid(jnp.array(innate.REST_BIAS)))
+    assert abs(spec.CALL_FLOOR - resting) < 1e-3, (
+        f"CALL_FLOOR={spec.CALL_FLOOR} but a resting hen emits {resting:.4f}")
+
+
+def test_what_the_pallium_sends_to_the_muscles_depends_on_the_situation(flock):
+    """The cortical drive must vary as behaviour unfolds, not sit at a constant.
+
+    This is the property E019 found missing: what the pallium sent to the motor system
+    varied by 0.7% of its own magnitude over three seconds. It was an offset, and it
+    slid peck downward -- the hen learned to stop eating, which is the whole of the harm
+    E013-E016 spent four experiments characterising.
+
+    **The metric here is deliberately not the rank of `dW_out`.** The review that found
+    this defect measured rank, and rank is the wrong test: a rank-one change
+    `dW_out = u v^T` contributes `u (v . motor_stub)` to the drive, which varies
+    perfectly well as `motor_stub` varies. Rank stayed at 0.999 through the fix while
+    state-dependence improved elevenfold, so rank would have failed a working rule.
+    What matters is whether the drive tracks the situation, so that is what is asserted.
+    """
+    from coop import sensing
+    w, x, p0 = flock
+    _w, _x, p1, *_ = _run(flock, LEARN_NO_GROWTH, steps=20_000)
+    assert not jnp.allclose(p0.W_out, p1.W_out), "readout did not move at all"
+
+    cort = []
+    for t in range(200):
+        obs = sensing.observe(w, CFG)
+        x, motor, drives = brain.step(x, obs, p1, CFG.dt)
+        w = world.step(w, motor, jax.random.fold_in(jax.random.key(3), t), CFG)
+        cort.append(drives.cortical)
+    cort = jnp.stack(cort)
+    variability = float(jnp.mean(jnp.std(cort, axis=0))
+                        / (jnp.mean(jnp.abs(cort)) + 1e-9))
+    assert variability > 0.02, (
+        f"cortical drive varies by {variability:.4f} of its magnitude; the pallium is "
+        "applying a constant offset to the muscles rather than a state-dependent one")
+
+
+def test_reward_is_not_dominated_by_one_component(flock):
+    """No component may carry the reward signal on its own.
+
+    E019: the vigour (call-cost) term was 98.1% of reward variance -- a hen was taught
+    almost nothing except 'did you just call'. That term had been moved out of H2's
+    *metric* by E012 and into the teaching signal, where nobody checked it. The general
+    failure this guards is a term being verified in the home it just left.
+    """
+    w, _, _ = flock
+    pc = PlasticConfig()
+    base = plasticity.reward(w, w, CFG, pc)
+    contribs = {}
+    for name, field, delta in (("hunger", "hunger", -0.01),
+                               ("thirst", "thirst", -0.01),
+                               ("cold", "cold", -0.01),
+                               ("vigour", "vigour", -0.01)):
+        w2 = w._replace(**{field: getattr(w, field) + delta})
+        contribs[name] = abs(float(jnp.mean(plasticity.reward(w, w2, CFG, pc) - base)))
+    total = sum(contribs.values())
+    for name, v in contribs.items():
+        assert v / max(total, 1e-12) < 0.6, (
+            f"{name} carries {100 * v / total:.0f}% of the reward response; "
+            f"components must stay comparable ({contribs})")
+
+
+def test_vigour_is_a_cost_in_the_world_but_not_in_the_reward(flock):
+    """Calling still costs something -- just not in the teaching signal.
+
+    Removing vigour from `reward()` must not remove the cost entirely, or
+    audience-sensitivity has nothing to emerge from. It still drains with calling and
+    still attenuates what flockmates hear.
+    """
+    w, _, _ = flock
+    pc = PlasticConfig()
+    spent = w._replace(vigour=w.vigour - 0.5)
+    r = float(jnp.mean(plasticity.reward(w, spent, CFG, pc)))
+    assert abs(r) < 1e-9, f"vigour still enters the reward ({r:+.6f})"
+
+
 # --- Guards on the E018 auditory scaffold -----------------------------------
 
 def test_bare_arc_has_no_auditory_response():

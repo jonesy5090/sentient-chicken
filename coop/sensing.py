@@ -73,8 +73,16 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     somatic = jnp.stack([wall, w.speed / cfg.flee_speed], axis=-1)
 
     # --- Audition: flockmates' calls, attenuated by distance ---
+    #
+    # Voices combine in *intensity*, not amplitude: two birds calling at 0.5 are not
+    # as loud as one at 1.0. Summing amplitudes linearly and clipping -- which is what
+    # this did until E019 -- means fifteen flockmates saturate the channel between
+    # them, and a real call from the bird beside you adds nothing measurable. Summing
+    # power and taking the root keeps a genuine call dominant over any amount of
+    # background, while still letting a chorus be louder than a soloist.
     atten = jnp.clip(1.0 - d_hens / cfg.hear_range, 0.0, 1.0)   # self excluded by 1e6
-    audio = jnp.clip(atten @ w.calls, 0.0, 1.0)                 # (H, N_CALLS)
+    power = (atten ** 2) @ (w.calls ** 2)                       # (H, N_CALLS)
+    audio = jnp.clip(jnp.sqrt(power), 0.0, 1.0)
 
     return jnp.concatenate(
         [vis, aerial[:, None], intero, somatic, audio], axis=-1)

@@ -3,7 +3,15 @@
 A three-factor rule. Two of the factors are local -- traces of pre- and postsynaptic
 activity -- and the third is a global neuromodulator standing in for dopamine:
 
-    dW[i,j]  =  eta(age) * m * z_slow[i] * z_fast[j]
+    dW[i,j]  =  eta(age) * m * (z_slow[i] - z_slow_bar[i]) * (z_fast[j] - z_fast_bar[j])
+
+The subtracted terms are each trace's own slow mean, and they are not decoration. Rates
+are sigmoids -- strictly positive, and both traces are low-pass filters that barely
+move -- so without centring the outer product is dominated by the product of the two
+means and is the *same matrix* every consolidation. E019 measured that version: rank
+one, with the cortical drive varying by 0.7% of its magnitude. It could only slide a
+constant offset, and it slid peck downward. Centring makes the rule a covariance rule,
+signed and state-dependent.
 
 The neuromodulator `m` is a reward *prediction error*: homeostatic improvement minus
 a running expectation of it. Reward is drive reduction -- eating when hungry, warming
@@ -20,8 +28,13 @@ product at update time is the standard approximation and costs two vectors per h
 
 **Weights are written every `interval` steps, not every step.** The forward pass
 already reads W each step; writing it too would double bandwidth and halve the
-real-time factor. Eligibility accumulates continuously and consolidates periodically,
-which is also closer to how synaptic consolidation actually works.
+real-time factor. The traces run continuously and consolidation samples them
+periodically, which is also closer to how synaptic consolidation actually works.
+Note that nothing *accumulates* between consolidations -- the traces are EMAs, and
+`consolidate` reads them at that instant. With `tau_fast = 0.02 s` the presynaptic
+factor has a short memory against a 50-step interval, so the effective credit window
+is `tau_slow`, 0.2 s. Anything that has to bridge a longer gap than that is not
+learnable by this rule as written.
 
 **The reflex arc is untouched.** Plasticity applies to the cortical pathway only.
 A chick's innate responses stay fixed for life, as they do in a real bird -- what
@@ -129,6 +142,11 @@ class PlasticState(NamedTuple):
     z_fast: jax.Array      # (H, N) presynaptic trace
     z_slow: jax.Array      # (H, N) postsynaptic trace
     z_motor: jax.Array     # (H, MOTOR_DIM) motor output trace
+    # Slow means of the three traces above. The rule learns on *deviations* from
+    # these, not on raw activity -- see `consolidate`.
+    z_fast_bar: jax.Array   # (H, N)
+    z_slow_bar: jax.Array   # (H, N)
+    z_motor_bar: jax.Array  # (H, MOTOR_DIM)
     z_err: jax.Array       # (H, OBS_DIM) masked prediction error trace
     z_lag: jax.Array       # (H, N) slow trace: what the brain was doing before
     baseline: jax.Array    # (H,) running expectation of reward
@@ -144,6 +162,9 @@ def initial_state(p: BrainParams, n_hens: int, pc: PlasticConfig) -> PlasticStat
         z_fast=jnp.zeros((n_hens, n)),
         z_slow=jnp.zeros((n_hens, n)),
         z_motor=jnp.zeros((n_hens, p.W_out.shape[1])),
+        z_fast_bar=jnp.zeros((n_hens, n)),
+        z_slow_bar=jnp.zeros((n_hens, n)),
+        z_motor_bar=jnp.zeros((n_hens, p.W_out.shape[1])),
         z_err=jnp.zeros((n_hens, p.W_pred.shape[1])),
         z_lag=jnp.zeros((n_hens, n)),
         baseline=jnp.zeros((n_hens,)),
@@ -164,14 +185,29 @@ def reward(w_prev, w_next, cfg: CoopConfig, pc: PlasticConfig) -> jax.Array:
     See `PlasticConfig.kin_weight` -- without it a call can never repay its energetic
     cost, because the caller pays and the listener benefits.
     """
-    # Drives are costs, so reduction is positive. Vigour is a resource, so its
-    # *loss* is the cost -- this is what makes calling expensive enough for
-    # audience-sensitivity to have anything to emerge from, without charging it to
-    # hunger and destroying H2's metric (E012).
+    # Drives are costs, so reduction is positive.
+    #
+    # Vigour is deliberately NOT here, and the history is worth keeping. E012 found
+    # `call_energy_cost` charged to hunger was destroying H2's *metric*, and moved it
+    # into its own `vigour` budget -- which was correct, and which quietly relocated it
+    # into the *teaching signal*, where nobody checked it. E019 measured the result:
+    #
+    #     component   share of reward variance
+    #     hunger                 0.0%
+    #     thirst                 0.0%
+    #     cold                   1.9%
+    #     vigour                98.1%
+    #
+    # A hen was being taught almost nothing except "did you just call". The cost is
+    # still real -- calling still drains vigour, and vigour still attenuates what
+    # flockmates hear (`coop/world.py`), so vocal effort remains self-limiting and
+    # audience-sensitivity still has a gradient. It is simply not a reward term.
+    #
+    # The general lesson, which cost three defects to learn: when a term is moved,
+    # measure it in its new home, not the one it left.
     d_drive = ((w_prev.hunger - w_next.hunger)
                + (w_prev.thirst - w_next.thirst)
-               + (w_prev.cold - w_next.cold)
-               + (w_next.vigour - w_prev.vigour)) / cfg.dt
+               + (w_prev.cold - w_next.cold)) / cfg.dt
     # Being caught is a discrete *event*, not a rate, and it must not be divided by
     # dt. It was, until E014. At dt=0.01 that turned a single strike into -100 in a
     # hen's reward -- roughly 150x anything the drive terms contribute (~0.6) -- and
@@ -220,12 +256,18 @@ def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,
     a_b = cfg.dt / pc.baseline_tau_s
     err = ps.z_err if pred_err is None else ps.z_err + a_s * (pred_err - ps.z_err)
     a_l = cfg.dt / pc.tau_lag
+    # The slow means track each trace on the same time constant as the reward
+    # baseline, so "unusually active" and "better than expected" are judged over
+    # comparable windows.
     return ps._replace(
         z_err=err,
         z_lag=ps.z_lag + a_l * (r - ps.z_lag),
         z_fast=ps.z_fast + a_f * (r - ps.z_fast),
         z_slow=ps.z_slow + a_s * (r - ps.z_slow),
         z_motor=ps.z_motor + a_m * (motor - ps.z_motor),
+        z_fast_bar=ps.z_fast_bar + a_b * (ps.z_fast - ps.z_fast_bar),
+        z_slow_bar=ps.z_slow_bar + a_b * (ps.z_slow - ps.z_slow_bar),
+        z_motor_bar=ps.z_motor_bar + a_b * (ps.z_motor - ps.z_motor_bar),
         baseline=ps.baseline + a_b * (reward_now - ps.baseline),
         age_s=ps.age_s + cfg.dt,
     )
@@ -248,9 +290,31 @@ def consolidate(p: BrainParams, ps: PlasticState, m: jax.Array,
     eta = pc.eta / (1.0 + ps.age_s / pc.critical_period_s)
     eta_out = pc.eta_out / (1.0 + ps.age_s / pc.critical_period_s)
 
+    # Both trace factors enter as *deviations from their own slow mean*, not as raw
+    # activity. This is the difference between a Hebbian rule and a covariance rule,
+    # and E019 showed it is the difference between learning a policy and learning a
+    # constant.
+    #
+    # Rates are sigmoids: strictly positive, mean ~0.27, and both traces are low-pass
+    # filters that barely move. Their outer product is therefore dominated by the
+    # product of the two means -- the same matrix every consolidation, scaled. Measured
+    # on the old rule: `dW_out` was rank one (top singular value share 0.9981) and the
+    # cortical drive varied by 0.7% of its own magnitude across three seconds of
+    # behaviour. It could slide a constant offset up or down and do nothing else. What
+    # it slid was peck, downward; the hen learned to stop eating.
+    #
+    # Centring makes the update signed and state-dependent: strengthen when this
+    # neuron was *more active than usual* while the target was *more active than
+    # usual* and reward beat expectation. That is the standard covariance form, and it
+    # is also the biologically motivated one -- a synapse has no access to an absolute
+    # activity scale, only to changes against its own recent history.
+    dz_fast = ps.z_fast - ps.z_fast_bar
+    dz_slow = ps.z_slow - ps.z_slow_bar
+    dz_motor = ps.z_motor - ps.z_motor_bar
+
     # Recurrent weights. Only synapses that already exist are updated; growing new
     # ones is a separate, much rarer operation.
-    dw = eta * m[:, None, None] * ps.z_slow[:, :, None] * ps.z_fast[:, None, :]
+    dw = eta * m[:, None, None] * dz_slow[:, :, None] * dz_fast[:, None, :]
     w = p.W + dw * (p.W != 0.0)
 
     # Synaptic scaling: pull each neuron's total input weight back toward what it
@@ -267,7 +331,7 @@ def consolidate(p: BrainParams, ps: PlasticState, m: jax.Array,
     # reach a muscle.
     n_motor = p.W_out.shape[-1]
     dw_out = (eta_out * m[:, None, None]
-              * ps.z_motor[:, :, None] * ps.z_slow[:, None, -n_motor:])
+              * dz_motor[:, :, None] * dz_slow[:, None, -n_motor:])
     w_out = jnp.clip(p.W_out + dw_out, -pc.w_max, pc.w_max)
 
     w_pred = p.W_pred

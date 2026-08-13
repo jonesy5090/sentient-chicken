@@ -187,9 +187,12 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         heading=kin.heading,
         speed=kin.speed,
         head_down=kin.head_down,
-        # What flockmates actually hear: a spent bird cannot call loudly, which
-        # makes vocal effort self-limiting without an arbitrary cap.
-        calls=motor[:, list(spec.CALL_MOTOR_IDX)] * vigour[:, None],
+        # What flockmates actually hear. Two factors: a spent bird cannot call loudly,
+        # which makes vocal effort self-limiting without an arbitrary cap; and the
+        # resting sigmoid floor is subtracted off, so a hen who is not calling emits
+        # nothing at all rather than 0.076 of every call in the repertoire (E019).
+        calls=(jax.nn.relu(motor[:, list(spec.CALL_MOTOR_IDX)] - spec.CALL_FLOOR)
+               / (1.0 - spec.CALL_FLOOR)) * vigour[:, None],
         hunger=hunger,
         thirst=thirst,
         cold=cold,

@@ -141,3 +141,88 @@ true. Relocating a term and re-checking its old home is now a known failure mode
 - **Three backlog items promoted above everything else**, in order: fix call emission
   and audibility; give `W_out` more than one degree of freedom; take the vigour term out
   of `reward()`.
+
+---
+
+## 7. All three fixed, and what the fixes actually did
+
+Measured after the change, same method as §4.
+
+### Defect 1 — fixed
+
+`coop/world.py` now subtracts the resting sigmoid floor before emitting
+(`relu(motor - CALL_FLOOR) / (1 - CALL_FLOOR)`), and `coop/sensing.py` combines voices
+by **power** rather than by summed amplitude — `sqrt((atten² ) @ (calls²))` — because
+sound intensity is what adds, not amplitude.
+
+At `n_hens=16`, hen 0's aerial channel when a neighbour calls at full amplitude:
+
+| | before | after |
+|---|---|---|
+| resting level | 0.999 | **0.035** |
+| with the call | 1.000 | **0.943** |
+| **delta** | **0.0000** | **+0.908** |
+
+Holds from 4 to 32 hens. The channel now carries information at every flock size tested.
+
+**One thing this surfaced rather than fixed.** The *food* channel still saturates at
+the default flock size, and it is not an artefact: twelve of sixteen hens are genuinely
+food-calling, because `hen/innate.py` fires a food call on the *sight* of food out to
+10 m and a clumped flock sits near a feeder. The channel carries no information for the
+same reason the others didn't, but the cause is the reflex arc rather than the sensory
+path, and changing an innate reflex is a design decision rather than a bug fix. Left
+alone, recorded in the backlog, and the guard test is scoped to the two alarm channels
+so it does not silently paper over it.
+
+### Defect 2 — fixed on the metric that matters, and **the rank metric was wrong**
+
+Both trace factors now enter as deviations from their own slow mean, making the rule a
+covariance rule rather than a Hebbian one.
+
+| | before | after |
+|---|---|---|
+| cortical drive `sd / |mean|` | 0.0070 | **0.0799** (11×) |
+| top-1 singular value share of `ΔW_out` | 0.9981 | 0.9986 (unchanged) |
+
+**The rank did not move, and rank turns out to be the wrong measurement.** A rank-one
+change `ΔW_out = u vᵀ` contributes `u (v · motor_stub)` to the motor drive — which
+varies perfectly well as `motor_stub` varies. Rank one does not imply a constant output;
+the review inferred that it did, and this repo repeated the inference in §4 above without
+checking it. The old rule's output was constant because `v · motor_stub` barely moved,
+which is what `sd/|mean| = 0.007` was actually measuring.
+
+Had the guard test been written on rank, as first drafted, it would have failed a
+working rule. It asserts state-dependence instead.
+
+**Not claimed:** that 8% variability is *enough*. It is eleven times more signal than
+before and it is a real one; whether it is sufficient for learning is what the re-run of
+E013 is for.
+
+### Defect 3 — fixed
+
+`vigour` removed from `d_drive` in `hen/plasticity.py`. It remains a real cost in the
+world — calling still drains it, and it still attenuates what flockmates hear — so
+audience-sensitivity keeps its gradient. It is simply no longer a teaching signal.
+
+| component | share of reward variance, before | after |
+|---|---|---|
+| hunger | 0.0% | **54.4%** |
+| cold | 1.9% | **45.6%** |
+| vigour | **98.1%** | *(excluded)* |
+
+### Guards added
+
+Six tests, all at `n_hens=16` — the flock size the defects appeared at, and not the
+`n_hens=4` the rest of the suite uses, which is the one band where the audio channel
+still worked and is why none of this was caught for eighteen experiments.
+
+## 8. Consequence
+
+- **E013 must be re-run.** Its verdict (`H2 REFUTED at this timescale`) was obtained
+  with 98% of the teaching signal coming from the call cost and a readout that could
+  only slide a constant. Both are now different. This is the next run.
+- **E018 can be re-run unchanged.** Its design was sound; only the instrument was broken.
+- **H2d needs re-measuring** against a call channel that varies, which it now does.
+- **New backlog item:** the innate food call fires on sight at 10 m, so the food channel
+  is saturated by genuine calling. Real cockerels food-call on *finding* food and are
+  audience-sensitive about it. A reflex-arc change, needing its own hypothesis node.
