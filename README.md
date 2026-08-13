@@ -118,18 +118,26 @@ thing here, so it is told straight:
 |---|---|
 | **E001** | Nothing. Twelve thousand synapses rewiring themselves, zero effect on behaviour. |
 | **E002** | Found out why: the path from the "thinking" brain to the muscles was frozen. Also found a ceiling — too much learned control makes behaviour **worse**. |
-| **E003–E004** | Fixed it. The effect appeared and replicated over twelve runs. **t=3.93, p≈0.002.** Learning works. |
+| **E003–E004** | Fixed it. An effect appeared: **t=3.93, p≈0.002.** ~~Learning works.~~ Later reinterpreted, and it rests on a single seed block that has never been replicated. |
 | **E005–E007** | Three attempts to get one hen to *understand* another's alarm call. All null. |
 | **E008–E009** | Found a blocker underneath everything: **the brain was saturated.** A hen's internal state for "heard an alarm" and "saw a hawk" differed by under 1% — she could not tell them apart. |
 | **E010** | Fixed the saturation; the learning result collapsed. **Later found confounded and marked invalid.** |
 | **E011–E012** | Two wrong diagnoses before the right one. The real culprit: a cost added for a *different* experiment was charged to hunger, tripling it and destroying the metric. |
 | **E013** | Gave that cost its own budget. **The first clean test: learning makes hens significantly worse.** t=3.85. |
 
-**So the headline result of this project, so far, is a refutation of its own
-mechanism** — and the evidence is specific rather than a shrug. The learning hen ends
-with **19,088 of her 36,373 innate synapses. She has destroyed 48% of the brain she
-was born with**, and forages worse for it: feeding 4.7% of the time against the
-control's 6.2%.
+**That refutation has itself since been withdrawn**, and the story of how is worth more
+than the claim was. E019 found three defects — the hens could not actually hear each
+other, the learned pathway could only slide a single number, and 98% of the reward
+signal was the cost of calling. With those fixed, E020 re-ran the same test and the harm
+vanished: **+0.001 instead of +0.062**, and 2.5% of the connectome lost instead of 48%.
+
+So the current honest state is **a clean null, not a refutation**: a hen who learns
+forages indistinguishably from one who cannot — +0.011 ± 0.012 across 24 seeds. Learning
+does not hurt her. It does not help her either.
+
+~~The learning hen ends with 19,088 of her 36,373 innate synapses. She has destroyed 48%
+of the brain she was born with, and forages worse for it: feeding 4.7% of the time
+against the control's 6.2%.~~ *(E013, superseded by E020.)*
 
 **E014 then found why the brain was being destroyed — and it was a units error.**
 Being caught by a predator is a one-off event, but the code treated it as a *rate* and
@@ -163,9 +171,17 @@ That also reframes the earlier success. In the saturated brain, the learned path
 could only apply a *constant offset* to behaviour — so the same erosion was invisible,
 and what looked like learning was a tuned offset rather than an acquired policy.
 
-Nothing has been withdrawn; every result stands in the record with its own analysis.
-But the honest summary is that the bird does not yet learn, and the next question is
-why the rule erodes rather than which knob to turn.
+**A great deal has since been withdrawn** — and every withdrawal stands in the record
+next to the claim it replaced, which is the point. E013's refutation, E015's
+decomposition of the harm, E016's staging result and E020's own finding that exploration
+had become costly have all been superseded or struck. Nothing is deleted; the route is
+the record.
+
+The honest summary is that the bird does not yet learn, the rule no longer damages her,
+and the next question is not which knob to turn. It is whether the *task* can show
+learning at all: the metric turns out to sit exactly on a knife edge (a hen starts at
+hunger 0.30, and 0.30 is precisely the equilibrium for the feeding rate she achieves),
+so it measures the sign of a coin flip. See E022.
 
 An unplanned discovery along the way: the hens that **grow** new connections do
 *worse* than the ones that only prune. The best learner throws away 42% of the brain

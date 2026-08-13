@@ -197,6 +197,38 @@ Worth writing down now, while it is still cheap to be honest:
 6. Playback and lesion assays.
 7. T3 safe corridor.
 
+## 7-. What to do next, after the second review ([E022](experiments/E022-second-review-verified.md))
+
+This supersedes the ordering in §7 and §7a. Verified independently; the review's own
+top-ranked item is **not** here, because its headline number did not replicate.
+
+1. **Fix the `dale` sampling.** The pallium has **zero inhibitory neurons** — E/I is
+   assigned by flat index over a region-ordered array, so it segregates by region
+   instead of mixing. Sensory, pallium and hippocampus are 100% excitatory; hypothalamus
+   and motor stub are 100% inhibitory. Two lines. Invalidates every genome, so it needs a
+   deliberate re-baselining like E010's. Almost certainly the source of the knife-edge
+   gain that `connectome.py:78-81` complains about without diagnosing.
+
+2. **Promote `fed %` to the primary metric.** Hunger change measures the *sign of*
+   `f − 6.17%`, and hens start at hunger 0.30 which is exactly that equilibrium. Its
+   nuisance spread (sd 0.066) is larger than every effect ever chased (0.001–0.062), and
+   it correlates −0.94 with `fed %`, which is already printed beside it.
+
+3. **Run H4 with no plasticity at all.** §7 says phase 1 blocks everything below; it does
+   not block H4, whose prediction mentions no learning. Production is innate and passes
+   7/7; calls are audible since E019; comprehension can be innate via the E018 scaffold.
+   Needs the capacity ladder wired into `run_condition` (it hardcodes `DEFAULT_REGIONS`)
+   and a channel-shuffle path in `sensing.py`. **Neither exists, and this is the
+   project's actual thesis.**
+
+**Owed checks, not yet verified** (from the same review): the 0.2 s credit window against
+a 10–30 s approach task; the audience assay's saturated aerial channel in its audience
+cell; E006's kin term moving the teaching signal by 0.5–3%; `W_pred` costing ~11% of
+throughput unconditionally; `strike_penalty` still charging per-step.
+
+**Abandon:** H2a (six comparisons, never significant, sign flipped in E020) and the E016
+"last word" follow-up (a workaround for a harm that no longer exists).
+
 ## 7a. The three E019 defects — ~~blocking everything~~ **all fixed**
 
 All three verified and fixed in [E019](experiments/E019-three-verified-defects.md) §7,

@@ -636,7 +636,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E008 | Top-down association built; first version was an autoencoder, tested nothing. |
 | E009 | Lagged/pallial association, still null. Found the pallium saturated: H2d opened. |
 | E010 | Gain 0.9 -> 0.70; H2 appears to collapse. **Later found confounded — invalid.** |
-| E011 | Readout sweep. Control did not improve as predicted; that tell exposed E010's confound. |
+| E011 | Readout sweep. ~~Control did not improve as predicted; that tell exposed E010's confound.~~ **The E011 file has no result** — its §6–8 are `_Pending._` (found by E022). This row asserted a finding from an experiment that was never written up, and `readout_scale` is still 0.05, so whatever was run changed nothing. E010's confound is independently established by the E010 file itself. |
 | E012 | Isolated it: not the gain, not the noise -- **`call_energy_cost` from E005 swamps H2's metric.** |
 | E013 | Call cost moved to its own `vigour` budget. **Clean test: learning is significantly WORSE. H2 refuted at this timescale.** |
 | E014 | Units bug found: a strike contributed -100 to reward. Connectome recovers; **behaviour does not**. Harm localised to the learned readout, implicating H2d. |

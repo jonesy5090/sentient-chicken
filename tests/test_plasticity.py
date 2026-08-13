@@ -298,26 +298,60 @@ def test_what_the_pallium_sends_to_the_muscles_depends_on_the_situation(flock):
 def test_reward_is_not_dominated_by_one_component(flock):
     """No component may carry the reward signal on its own.
 
-    E019: the vigour (call-cost) term was 98.1% of reward variance -- a hen was taught
+    E019: the vigour (call-cost) term was 98.1% of reward *variance* -- a hen was taught
     almost nothing except 'did you just call'. That term had been moved out of H2's
-    *metric* by E012 and into the teaching signal, where nobody checked it. The general
-    failure this guards is a term being verified in the home it just left.
+    metric by E012 and into the teaching signal, where nobody checked it.
+
+    **This test measures variance in a rollout, and the reason is embarrassing.** The
+    first version, written the same day E019 found the defect, perturbed each drive by
+    an identical -0.01 and compared the reward *response*. Under the broken code all
+    four components entered `d_drive` with the same coefficient, so each scored exactly
+    25% and the guard passed on the bug it was written for (E022 3d). Sensitivity was
+    never the problem: vigour dominated because vigour *varied*, sd 0.23, while hunger
+    barely moved. Guard the quantity that broke, not the one that is easy to poke.
+
+    Each candidate's contribution is measured by *freezing* it -- recomputing the reward
+    with that field unchanged between the two steps -- and taking the variance of the
+    difference. That works whether or not the field is in the formula, so the test does
+    not have to be told which terms count. A second version of this test enumerated
+    components by name and failed for the opposite reason: it scored vigour's variance
+    after E019 had already removed vigour from the reward.
+
+    Run at 16 hens over 30 s, not on the module's 4-hen fixture. Feeding is sparse and
+    bursty -- hunger only moves when a hen actually eats -- so over a short window at a
+    small flock no hen eats at all and `cold` trivially scores 100%. That is the window
+    being too small, not the reward being broken, and a third version of this test
+    failed that way before the size was fixed.
     """
-    w, _, _ = flock
+    from coop import sensing
     pc = PlasticConfig()
-    base = plasticity.reward(w, w, CFG, pc)
-    contribs = {}
-    for name, field, delta in (("hunger", "hunger", -0.01),
-                               ("thirst", "thirst", -0.01),
-                               ("cold", "cold", -0.01),
-                               ("vigour", "vigour", -0.01)):
-        w2 = w._replace(**{field: getattr(w, field) + delta})
-        contribs[name] = abs(float(jnp.mean(plasticity.reward(w, w2, CFG, pc) - base)))
-    total = sum(contribs.values())
-    for name, v in contribs.items():
-        assert v / max(total, 1e-12) < 0.6, (
-            f"{name} carries {100 * v / total:.0f}% of the reward response; "
-            f"components must stay comparable ({contribs})")
+    w = world.reset(jax.random.key(0), E019_CFG)
+    p = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS,
+                         n_hens=E019_CFG.n_hens)
+    x = brain.initial_state(p, E019_CFG.n_hens)
+    CFG = E019_CFG
+    fields = ("hunger", "thirst", "cold", "vigour", "n_struck")
+    rewards, contrib = [], {k: [] for k in fields}
+    for t in range(3_000):
+        obs = sensing.observe(w, CFG)
+        x, motor, _ = brain.step(x, obs, p, CFG.dt)
+        wn = world.step(w, motor, jax.random.fold_in(jax.random.key(4), t), CFG)
+        r = plasticity.reward(w, wn, CFG, pc)
+        rewards.append(jnp.mean(r))
+        for k in fields:
+            frozen = wn._replace(**{k: getattr(w, k)})
+            contrib[k].append(jnp.mean(r - plasticity.reward(w, frozen, CFG, pc)))
+        w = wn
+
+    assert float(jnp.var(jnp.array(rewards))) > 0.0, "reward never varied; assay is dead"
+    var = {k: float(jnp.var(jnp.array(v))) for k, v in contrib.items()}
+    total = sum(var.values())
+    shares = {k: round(v / max(total, 1e-12), 3) for k, v in var.items()}
+    for name, v in var.items():
+        assert v / max(total, 1e-12) < 0.8, (
+            f"{name} carries {100 * v / max(total, 1e-12):.0f}% of the variance the "
+            f"reward actually responds to; a modulator dominated by one component "
+            f"teaches only that component ({shares})")
 
 
 def test_vigour_is_a_cost_in_the_world_but_not_in_the_reward(flock):
