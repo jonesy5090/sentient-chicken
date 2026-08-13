@@ -51,6 +51,7 @@ class Summary(NamedTuple):
     cold: jax.Array
     head_down: jax.Array    # (C,) fraction of time with the beak down
     struck: jax.Array       # (C,) cumulative predator contacts, flock total
+    exposed: jax.Array      # (C,) cumulative steps in strike range, hiding or not
     fed: jax.Array
     reward: jax.Array       # (C,) mean neuromodulator input
     synapses: jax.Array     # (C,) mean live synapses per hen
@@ -161,6 +162,7 @@ def _chunked(w, x, p, ps, key, cfg: CoopConfig, pc: PlasticConfig,
             head_down=jnp.mean(jnp.max(
                 motor[:, :, list(spec.HEAD_DOWN_ACTIONS)], axis=-1)),
             struck=jnp.sum(w.n_struck),
+            exposed=jnp.sum(w.n_exposed),
             fed=jnp.sum(w.n_fed),
             reward=jnp.mean(reward),
             synapses=jnp.mean(jnp.sum(p.W != 0.0, axis=(1, 2))),

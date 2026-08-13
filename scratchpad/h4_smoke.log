@@ -1,0 +1,36 @@
+H4 -- intact channel vs shuffled, 5 min, 3 matched seeds (0-2), 16 hens
+NO PLASTICITY in any condition. Hawk every 60 s.
+
+intake and risk are a trade-off, not a score: a flock that never forages
+is safe and starving. Read the two columns together.
+
+condition        fed %  struck/hen  head down  hunger  alarm heard
+------------------------------------------------------------------
+N  natural        4.24        33.2      0.650   0.331       0.1613
+C- capacity       3.36        17.3      0.619   0.344       0.0000
+C0 severed        3.36        17.3      0.619   0.344       0.0000
+C? shuffled       3.64        25.5      0.592   0.336       0.1786
+Cs self-only      4.98       512.7      0.622   0.322       0.0600
+L  language       4.69       290.2      0.610   0.326       0.1729
+
+--- HEADLINE: L  language vs C? shuffled ---
+identical brain, identical bandwidth, identical calling cost. The only
+difference is whether what she hears is about her own surroundings.
+
+  fed %          +1.054 +/- 0.709 SE   suggestive (t=1.49, need 4.30)   (higher is better for L)
+  struck/hen   +264.771 +/- 264.771 SE   suggestive (t=1.00, need 4.30)   (lower is better for L)
+  hunger         -0.010 +/- 0.006 SE   suggestive (t=1.73, need 4.30)   (lower is better for L)
+
+--- The falsifiers H4 named in advance ---
+  L vs C- (capacity)     fed %  +1.336 +/- 0.979 SE  suggestive (t=1.36, need 4.30)
+                         if ~0, the extra neurons did the work, not the channel
+  L vs Cs (self-only)    fed %  -0.284 +/- 0.527 SE  noise (t=0.54)
+                         if ~0, the channel is private memory, not communication
+  L vs C0 (severed)      fed %  +1.336 +/- 0.979 SE  suggestive (t=1.36, need 4.30)
+                         if ~0, hearing nothing costs nothing -- no information was flowing
+  L vs N (natural)       fed %  +0.452 +/- 0.630 SE  noise (t=0.72)
+                         does the language flock beat a naturalistic bird, or a lobotomised one?
+
+manipulation check: 'alarm heard' must be ~0 for C- and C0, and non-zero elsewhere.
+WARNING: 3 seeds is not a usable sample whatever the t says.
+wall clock: 345 s

@@ -44,6 +44,14 @@ class World(NamedTuple):
     # Bookkeeping (not sensed; used by probes and assays)
     t: jax.Array            # step counter
     n_struck: jax.Array     # (H,) cumulative predator contacts
+    # (H,) cumulative steps spent inside a live predator's strike radius, whether or
+    # not she was hiding. This is the *opportunity* to be struck, and without it
+    # `n_struck` is uninterpretable: it counts contacts, which depend overwhelmingly on
+    # whether the flock happened to be standing where the hawk came down. E024's smoke
+    # test measured a 17x spread between conditions that was positional luck, not
+    # behaviour. The quantity that tests the hypothesis is n_struck / n_exposed -- of
+    # the moments when a hawk was actually on her, how often did she fail to hide?
+    n_exposed: jax.Array    # (H,)
     n_fed: jax.Array        # (H,) cumulative successful pecks
     n_drunk: jax.Array      # (H,)
 
@@ -79,6 +87,7 @@ def reset(key: jax.Array, cfg: CoopConfig = spec.DEFAULT_COOP) -> World:
         fox_t=jnp.array(0.0),
         t=jnp.array(0, dtype=jnp.int32),
         n_struck=jnp.zeros((h,)),
+        n_exposed=jnp.zeros((h,)),
         n_fed=jnp.zeros((h,)),
         n_drunk=jnp.zeros((h,)),
     )
@@ -207,6 +216,10 @@ def step(w: World, motor: jax.Array, key: jax.Array,
     fox_hit = (d_fox < cfg.hawk_strike_radius) & (fox_on > 0.5) & ~fleeing
 
     struck = (hawk_hit | fox_hit).astype(jnp.float32)
+    # In range of a live predator, hiding or not: the denominator that makes `struck`
+    # mean something.
+    exposed = (((d_hawk < cfg.hawk_strike_radius) & (hawk_on > 0.5))
+               | ((d_fox < cfg.hawk_strike_radius) & (fox_on > 0.5))).astype(jnp.float32)
 
     return w._replace(
         pos=kin.pos,
@@ -227,6 +240,7 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         fox_pos=fox_pos, fox_on=fox_on, fox_t=fox_t,
         t=w.t + 1,
         n_struck=w.n_struck + struck,
+        n_exposed=w.n_exposed + exposed,
         n_fed=w.n_fed + fed.astype(jnp.float32),
         n_drunk=w.n_drunk + drinking.astype(jnp.float32),
     )
