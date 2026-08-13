@@ -210,6 +210,48 @@ an aversive channel architecturally distinct from a homeostatic drive. No tripwi
 and no review is triggered. Noted only because "innate fear response" is the kind of
 phrase that sounds like it should trigger one, and the check is cheap.
 
+### Addendum, after implementation and before the run
+
+Appended rather than edited into §3, which stands as registered.
+
+**Prediction 2's number was arithmetically wrong when I wrote it.** I predicted the
+comprehension index at 0.25 ± 0.05, but that is the *absolute* crouch level under a
+call; the index is a **difference**, crouch-with-call minus crouch-without. The correct
+prediction from the registered weight is `sigmoid(1.5 − 2.5) − sigmoid(−2.5) = 0.269 −
+0.076 = 0.193`. Measured on the built scaffold: **0.1893** (bare arc: −0.0002).
+
+So the manipulation check passes — the scaffold is wired exactly as specified, and the
+predicted band was mis-derived, not the implementation. Recorded here because a
+pre-registered number that quietly moves to match a measurement is the failure mode
+pre-registration exists to prevent, and because prediction 2 is a manipulation check
+rather than a result: nothing about the primary is affected either way.
+
+**§5's justification for the primary metric is wrong, and the design survives it
+anyway.** §5 argued the audience effect was a safe primary because "the scaffold
+touches *comprehension* and A measures *usage*, so nothing in the scaffold acts on it
+directly". A 2-seed 2-minute smoke test says otherwise: condition S shows A = +0.066
+against N's +0.013. The scaffold moves the audience effect **innately**, and the
+mechanism is the head-up route flagged in §5 under a different heading — with an
+audience present, flockmates call, the focal hen hears them, stops pecking, raises her
+head, *sees the hawk herself* at 7 m, and the visual reflex drives the alarm call at
+weight 7.0. Alone, there is nobody to call, so she stays head-down and never sees it.
+An audience effect, entirely innate, with no learning anywhere.
+
+I did not anticipate that pathway when choosing the metric. **The design absorbed it
+regardless**, because the primary is `S+L − S` and S contains exactly this. That is the
+"anything measurable in S is wired" rule doing the job it was written for, against a
+mechanism I failed to predict — which is the point of building the control in rather
+than reasoning about why one is unnecessary.
+
+It does raise the bar for the primary: `S+L − S` must now clear a floor that already
+sits at +0.066 rather than at zero. Registered predictions unchanged.
+
+**One secondary looks underpowered.** `hawk_period_s = 900`, so a 30-minute rearing
+gives ~2 hawk passes; the smoke test recorded 0.00 strikes per hen in every condition.
+Prediction 3 (strikes fall 10–30% in S) may simply be unmeasurable at this duration. It
+is left as registered and will be reported as unmeasurable if it comes back flat, not
+quietly rescued by extending the run.
+
 ## 6. Result
 
 *To be written after the run.*

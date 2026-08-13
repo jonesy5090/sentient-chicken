@@ -152,12 +152,13 @@ def comprehension(p, cfg: CoopConfig, n_hens: int, steps: int = 200,
     return crouch_under(1.0) - crouch_under(0.0)
 
 
-def rear_and_assay(seed: int, cfg: CoopConfig, seconds: float, pc: PlasticConfig):
+def rear_and_assay(seed: int, cfg: CoopConfig, seconds: float, pc: PlasticConfig,
+                   scaffold: bool = False):
     """Assay a flock at hatch, rear it, assay it again."""
     key = jax.random.key(seed)
     w = world.reset(key, cfg)
     p = connectome.build(jax.random.fold_in(key, 1), regions.DEFAULT_REGIONS,
-                         n_hens=cfg.n_hens)
+                         n_hens=cfg.n_hens, auditory_scaffold=scaffold)
     x = brain.initial_state(p, cfg.n_hens)
 
     before = assay(p, cfg, cfg.n_hens)
@@ -171,6 +172,142 @@ def rear_and_assay(seed: int, cfg: CoopConfig, seconds: float, pc: PlasticConfig
     return before, after, comp_before, comp_after
 
 
+# ---------------------------------------------------------------------------
+# E018: does the innate auditory reflex unblock learned usage?
+# ---------------------------------------------------------------------------
+
+class Cell(NamedTuple):
+    """One condition of the 2x2, for one seed."""
+    audience: float         # alarm-call audience effect after rearing
+    comprehension: float    # manipulation check, NOT a result
+    strikes: float          # predator contacts per hen
+    hunger: float           # the H2 metric -- does the scaffold cost her foraging?
+    synapses: float
+
+
+def _run_cell(seed: int, cfg: CoopConfig, seconds: float, pc: PlasticConfig,
+              scaffold: bool) -> Cell:
+    key = jax.random.key(seed)
+    w = world.reset(key, cfg)
+    p = connectome.build(jax.random.fold_in(key, 1), regions.DEFAULT_REGIONS,
+                         n_hens=cfg.n_hens, auditory_scaffold=scaffold)
+    x = brain.initial_state(p, cfg.n_hens)
+
+    _w, _x, p_end, _ps, _k, summary = simulate.simulate(
+        w, x, p, jax.random.fold_in(key, 2), cfg, seconds, 60.0, pc)
+
+    gain = pc.pred_gain if pc.pred_enabled else 0.0
+    return Cell(
+        audience=assay(p_end, cfg, cfg.n_hens).alarm_effect,
+        comprehension=comprehension(p_end, cfg, cfg.n_hens, pred_gain=gain),
+        strikes=float(summary.struck[-1]) / cfg.n_hens,
+        hunger=float(jnp.mean(summary.hunger)),
+        synapses=float(summary.synapses[-1]),
+    )
+
+
+def _paired(a, b, seeds: int):
+    """Paired mean difference a - b across matched seeds, with a t verdict."""
+    from run.experiment import _t_critical
+    d = jnp.array(a) - jnp.array(b)
+    mean = float(jnp.mean(d))
+    if seeds < 2:
+        return mean, 0.0, "single seed"
+    se = float(jnp.std(d, ddof=1)) / (seeds ** 0.5)
+    t = abs(mean) / (se + 1e-12)
+    crit = _t_critical(seeds - 1)
+    verdict = ("SIGNIFICANT" if t > crit
+               else f"suggestive (t={t:.2f}, need {crit:.2f})" if t > 1.0
+               else f"noise (t={t:.2f})")
+    return mean, se, verdict
+
+
+def scaffold_2x2(cfg: CoopConfig, seconds: float, seeds: list) -> None:
+    """E018. Pre-registered in docs/experiments/E018-innate-auditory-reflex.md.
+
+    The one rule this whole design exists to enforce: **anything measurable in the
+    scaffold-without-learning condition is wired, not learned.** So the headline is
+    S+L minus S, never S+L minus N. The 2x2 exists to make that subtraction available
+    for every metric.
+    """
+    # explore_sigma stated explicitly in all four -- an inherited default is how E010
+    # went wrong. Equal across conditions: this experiment is not about exploration.
+    fixed = PlasticConfig(enabled=False, explore_sigma=0.0)
+    learn = PlasticConfig(enabled=True, growth_enabled=False, kin_audible=True,
+                          explore_sigma=0.6)
+
+    cells = {
+        "N   (bare, fixed)": (fixed, False),
+        "S   (scaffold, fixed)": (fixed, True),
+        "N+L (bare, learning)": (learn, False),
+        "S+L (scaffold, learning)": (learn, True),
+    }
+
+    print(f"E018 -- innate auditory reflex, {len(seeds)} matched seeds, "
+          f"{cfg.n_hens} hens, {seconds / 60:.0f} min rearing\n")
+    print("audience effect = alarm calling with flockmates in earshot, minus alone.")
+    print("The scaffold wires a response to *hearing* a call and touches nothing on")
+    print("the production side, so it should not move this column on its own.\n")
+
+    out = {}
+    for name, (pc, scaffold) in cells.items():
+        out[name] = [_run_cell(s, cfg, seconds, pc, scaffold) for s in seeds]
+
+    hdr = (f"{'condition':<26}{'audience':>10}{'compreh.':>10}"
+           f"{'strikes/hen':>13}{'hunger':>9}{'synapses':>10}")
+    print(hdr)
+    print("-" * len(hdr))
+    for name, cs in out.items():
+        f = lambda g: float(jnp.mean(jnp.array([g(c) for c in cs])))
+        print(f"{name:<26}{f(lambda c: c.audience):>+10.3f}"
+              f"{f(lambda c: c.comprehension):>10.4f}"
+              f"{f(lambda c: c.strikes):>13.2f}{f(lambda c: c.hunger):>9.3f}"
+              f"{f(lambda c: c.synapses):>10.0f}")
+
+    n = len(seeds)
+    col = lambda name, g: [g(c) for c in out[name]]
+    S, SL = "S   (scaffold, fixed)", "S+L (scaffold, learning)"
+    N, NL = "N   (bare, fixed)", "N+L (bare, learning)"
+
+    print("\n--- PRIMARY: what learning adds on top of the wiring -------------------")
+    mean, se, verdict = _paired(col(SL, lambda c: c.audience),
+                                col(S, lambda c: c.audience), n)
+    print(f"audience effect, S+L - S        {mean:+.3f} +/- {se:.3f} SE   {verdict}")
+    print("  positive = she learned to call more when someone is listening, over and")
+    print("  above anything the scaffold gave her. This is the only learned number here.")
+
+    print("\n--- MANIPULATION CHECK (not a result) ----------------------------------")
+    for label, name in (("bare", N), ("scaffold", S)):
+        v = float(jnp.mean(jnp.array(col(name, lambda c: c.comprehension))))
+        print(f"comprehension, {label:<9} fixed  {v:>8.4f}"
+              f"{'   <- expected ~0' if label == 'bare' else '   <- expected ~0.25'}")
+    print("  This says whether the scaffold was wired as specified. It is the wiring")
+    print("  read back to us, and it is not evidence of anything the hen learned.")
+
+    print("\n--- SECONDARY, exploratory ---------------------------------------------")
+    mean, se, verdict = _paired(col(S, lambda c: c.strikes),
+                                col(N, lambda c: c.strikes), n)
+    print(f"strikes/hen, S - N              {mean:+.2f} +/- {se:.2f} SE   {verdict}")
+    print("  INNATE if negative. The scaffold suppresses pecking on hearing a call, so")
+    print("  she raises her head and may see the hawk herself -- reflex, not learning.")
+    print("  Pre-registered as innate. Must not be reported as evidence for H4.")
+
+    mean, se, verdict = _paired(col(S, lambda c: c.hunger),
+                                col(N, lambda c: c.hunger), n)
+    print(f"hunger, S - N                   {mean:+.3f} +/- {se:.3f} SE   {verdict}")
+    print("  positive = the scaffold costs her foraging time. It is context-blind: she")
+    print("  stops pecking at every call she hears, warranted or not.")
+
+    mean, se, verdict = _paired(col(SL, lambda c: c.audience),
+                                col(NL, lambda c: c.audience), n)
+    print(f"audience effect, S+L - N+L      {mean:+.3f} +/- {se:.3f} SE   {verdict}")
+    print("  Confounded on purpose -- mixes wiring and learning. Reported so the")
+    print("  difference from the primary is visible, not as a claim.")
+
+    if n < 4:
+        print(f"\nWARNING: {n} seeds is not a usable sample whatever the t says.")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--minutes", type=float, default=30.0)
@@ -178,11 +315,19 @@ def main() -> None:
     ap.add_argument("--hens", type=int, default=spec.DEFAULT_COOP.n_hens)
     ap.add_argument("--no-growth", action="store_true", default=True,
                     help="growth is off by default: it is the weaker condition (H2a)")
+    ap.add_argument("--scaffold-2x2", action="store_true",
+                    help="E018: innate auditory reflex x learning, 2x2")
     args = ap.parse_args()
 
     cfg = spec.DEFAULT_COOP._replace(n_hens=args.hens)
     seconds = args.minutes * 60.0
     seeds = list(range(args.seeds))
+
+    if args.scaffold_2x2:
+        t0 = time.perf_counter()
+        scaffold_2x2(cfg, seconds, seeds)
+        print(f"\nwall clock: {time.perf_counter() - t0:.0f} s")
+        return
 
     conditions = [
         ("audible kin", PlasticConfig(enabled=True, growth_enabled=False,

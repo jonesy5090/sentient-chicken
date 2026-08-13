@@ -45,12 +45,17 @@ def _region_of(reg: Regions) -> np.ndarray:
 
 def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           n_hens: int = spec.DEFAULT_COOP.n_hens,
-          gain: float = 0.70, readout_scale: float = 0.05) -> BrainParams:
+          gain: float = 0.70, readout_scale: float = 0.05,
+          auditory_scaffold: bool = False) -> BrainParams:
     """Sample a newly hatched flock.
 
     `readout_scale` is small on purpose: at hatch the cortical pathway is near-silent
     and behaviour is dominated by the innate reflex arc. The pallium is present and
     connected, but it has nothing to say yet.
+
+    `auditory_scaffold` gives her an innate response to hearing an alarm call (E018).
+    Off by default, because switching it on changes the innate repertoire and so the
+    comparison basis for E001-E017.
 
     `gain` was 0.9 for E001-E009 and that was a mistake, found in
     docs/experiments/E009. At 0.9 the pallium runs at a mean rate of 0.83 -- deep in
@@ -146,7 +151,7 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         pred_src=pred_src,
         b=jnp.full((n,), -2.0),
         tau=tau,
-        reflex=jnp.asarray(innate.reflex_matrix()),
+        reflex=jnp.asarray(innate.reflex_matrix(auditory_scaffold)),
         b_motor=jnp.asarray(innate.reflex_bias()),
         dale=dale,
     )

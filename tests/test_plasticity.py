@@ -190,6 +190,85 @@ def test_disabled_plasticity_leaves_weights_untouched_even_with_noise(flock):
     assert jnp.array_equal(p0.W_out, p1.W_out)
 
 
+# --- Guards on the E018 auditory scaffold -----------------------------------
+
+def test_bare_arc_has_no_auditory_response():
+    """Without the scaffold, hearing a call must drive nothing at all.
+
+    This is the baseline every E018 number is measured against. If the scaffold ever
+    leaks into the default, the 2x2's control condition silently becomes the treatment
+    and the experiment measures nothing -- the same shape of failure as E010.
+    """
+    from hen import innate
+    r = innate.reflex_matrix()
+    audio = r[:, spec.AUDIO_LO:spec.AUDIO_HI]
+    assert float(jnp.max(jnp.abs(jnp.asarray(audio)))) == 0.0
+
+
+def test_scaffold_is_off_by_default():
+    """The default connectome is the one E001-E017 were run on."""
+    from hen import innate
+    assert jnp.array_equal(jnp.asarray(innate.reflex_matrix()),
+                           jnp.asarray(innate.reflex_matrix(auditory_scaffold=False)))
+    p = connectome.build(jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=2)
+    assert float(jnp.max(jnp.abs(p.reflex[:, spec.AUDIO_LO:spec.AUDIO_HI]))) == 0.0
+
+
+def test_scaffold_wires_what_it_says_and_nothing_else():
+    """The scaffold must not quietly acquire channels it was pre-registered without.
+
+    Specifically: no relay (hearing a call must never drive producing one), and
+    nothing on the food or contact channels, which stay predator-neutral so that a
+    second-order conditioning test remains available.
+    """
+    from hen import innate
+    r = jnp.asarray(innate.reflex_matrix(auditory_scaffold=True))
+    aerial = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
+    ground = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_GROUND)
+    contact = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_CONTACT)
+    food = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_FOOD)
+
+    assert float(r[spec.M_CROUCH, aerial]) == innate.SCAFFOLD_WEIGHT
+    assert float(r[spec.M_FLEE, ground]) == innate.SCAFFOLD_WEIGHT
+    # head comes up, or the call restores no information she did not have
+    for call in (aerial, ground):
+        assert float(r[spec.M_PECK, call]) == -innate.SCAFFOLD_WEIGHT
+        assert float(r[spec.M_SCRATCH, call]) == -innate.SCAFFOLD_WEIGHT
+    # no relay: no heard call may drive any produced call
+    for heard in (aerial, ground, contact, food):
+        for produced in spec.CALL_MOTOR_IDX:
+            assert float(r[produced, heard]) == 0.0, "scaffold must not relay calls"
+    # the neutral channels stay neutral
+    assert float(jnp.max(jnp.abs(r[:, [contact, food]]))) == 0.0
+
+
+def test_scaffold_never_outweighs_seeing_it_yourself():
+    """First-hand information must always beat second-hand.
+
+    A hen who can see the hawk should not be talked out of it, so the auditory weight
+    has to stay well under the visual one. E018 fixes it at 1.5 against 8.0; this
+    guards the ordering rather than the value.
+    """
+    from hen import innate
+    r = jnp.asarray(innate.reflex_matrix(auditory_scaffold=True))
+    aerial_call = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
+    assert float(r[spec.M_CROUCH, aerial_call]) < float(r[spec.M_CROUCH,
+                                                          spec.IDX_AERIAL]) / 3.0
+
+
+def test_scaffold_leaves_the_arc_fixed_under_learning(flock):
+    """The scaffold is part of the reflex arc, so learning must never touch it."""
+    _, _, _p0 = flock
+    p_scaf = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS,
+                              n_hens=CFG.n_hens, auditory_scaffold=True)
+    x = brain.initial_state(p_scaf, CFG.n_hens)
+    w = world.reset(jax.random.key(0), CFG)
+    ps = plasticity.initial_state(p_scaf, CFG.n_hens, LEARN)
+    _w, _x, p1, *_ = simulate.rollout_quiet(
+        w, x, p_scaf, jax.random.key(9), CFG, 3_000, ps, LEARN)
+    assert jnp.array_equal(p_scaf.reflex, p1.reflex)
+
+
 def test_reward_components_are_commensurate(flock):
     """No single reward component may dwarf the others.
 
