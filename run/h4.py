@@ -96,7 +96,11 @@ def run_condition(cond: Condition, seed: int, cfg: CoopConfig,
         struck=float(jnp.sum(w_end.n_struck)) / cfg.n_hens,
         head_down=float(jnp.mean(s.head_down)),
         hunger=float(jnp.mean(s.hunger)),
-        heard=float(jnp.mean(s.calls[:, aerial])),
+        # Received, not emitted. The first version of this read `s.calls` and so
+        # reported the severed channel as carrying a signal -- C0 hens call exactly as
+        # much as anyone, and nobody hears them. Measuring production to check a
+        # manipulation of reception is the same mistake E019's guard test made.
+        heard=float(jnp.mean(s.audio[:, aerial])),
     )
 
 

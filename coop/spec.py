@@ -194,6 +194,11 @@ class CoopConfig(NamedTuple):
     hawk_period_s: float = 900.0      # a hawk passes over roughly every 15 min
     hawk_dive_s: float = 12.0
     hawk_strike_radius: float = 1.50
+    # How far off a targeted hen the hawk comes down. A hawk hunts rather than landing
+    # at random, so it aims at a bird; the spread keeps the encounter uncertain instead
+    # of scripted. At 3 m against a 1.5 m strike radius, the targeted hen is often but
+    # not always at risk, and who else is depends on where the flock is standing.
+    hawk_aim_spread: float = 3.0
     ground_pred_period_s: float = 1800.0
     ground_pred_dwell_s: float = 30.0
     ground_pred_speed: float = 0.60

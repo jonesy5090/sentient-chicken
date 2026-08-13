@@ -43,7 +43,9 @@ class Summary(NamedTuple):
     """Per-chunk record, for developmental runs."""
     t_s: jax.Array          # (C,) biological seconds at chunk end
     motor: jax.Array        # (C, MOTOR_DIM) flock-mean activation
-    calls: jax.Array        # (C, N_CALLS)
+    calls: jax.Array        # (C, N_CALLS) emitted
+    audio: jax.Array        # (C, N_CALLS) received -- differs whenever the channel is
+                            # manipulated, and is the only honest manipulation check
     hunger: jax.Array       # (C,)
     thirst: jax.Array
     cold: jax.Array
@@ -147,6 +149,12 @@ def _chunked(w, x, p, ps, key, cfg: CoopConfig, pc: PlasticConfig,
             t_s=w.t.astype(jnp.float32) * cfg.dt,
             motor=jnp.mean(motor, axis=(0, 1)),
             calls=jnp.mean(motor[:, :, list(spec.CALL_MOTOR_IDX)], axis=(0, 1)),
+            # What flockmates actually *hear*, as distinct from what is emitted. The
+            # two come apart the moment the channel is manipulated: a severed channel
+            # (E024's C0) has hens calling exactly as much and nobody receiving
+            # anything. E024's first manipulation check read `calls` and so reported a
+            # severed channel as working.
+            audio=jnp.mean(_obs[:, :, spec.AUDIO_LO:spec.AUDIO_HI], axis=(0, 1)),
             hunger=jnp.mean(w.hunger),
             thirst=jnp.mean(w.thirst),
             cold=jnp.mean(w.cold),

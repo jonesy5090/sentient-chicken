@@ -94,15 +94,29 @@ def _step_predators(w: World, key: jax.Array, cfg: CoopConfig):
     Both are Poisson arrivals, so they are genuinely unpredictable -- a hen cannot
     learn a schedule, only learn to watch, or to listen to a flockmate who was.
     """
-    k_hawk, k_fox, k_hpos, k_fpos = jax.random.split(key, 4)
     s = cfg.size
 
-    # --- Hawk: appears over a random point and dives for hawk_dive_s ---
+    # --- Hawk: picks a hen and dives near her, for hawk_dive_s ---
+    #
+    # It used to appear at a uniformly random point in the arena. A hawk is a hunter,
+    # not weather: it goes where the chickens are. The uniform version was also
+    # quietly fatal to any experiment about alarm calls -- the flock clumps, the strike
+    # radius is 1.5 m, and a uniform draw over a 20x20 m run therefore landed near the
+    # birds about 5% of the time. E024's smoke test recorded zero strikes across every
+    # condition, which is not a safe flock, it is a dead metric.
+    #
+    # The offset keeps the encounter uncertain rather than scripted: the targeted hen
+    # is not guaranteed to be hit, and whether *anyone* is depends on where the flock
+    # happens to be standing and who crouches -- which is the thing under test.
+    k_hawk, k_fox, k_hpos, k_fpos, k_target = jax.random.split(key, 5)
     hawk_arrives = jax.random.uniform(k_hawk) < (cfg.dt / cfg.hawk_period_s)
     start_hawk = jnp.logical_and(hawk_arrives, w.hawk_on < 0.5)
+    target = jax.random.randint(k_target, (), 0, w.pos.shape[0])
+    offset = jax.random.uniform(k_hpos, (2,), minval=-cfg.hawk_aim_spread,
+                                maxval=cfg.hawk_aim_spread)
     new_hawk_pos = jnp.where(
         start_hawk,
-        jax.random.uniform(k_hpos, (2,), minval=0.2 * s, maxval=0.8 * s),
+        jnp.clip(w.pos[target] + offset, 0.0, s),
         w.hawk_pos,
     )
     hawk_t = jnp.where(start_hawk, cfg.hawk_dive_s, jnp.maximum(w.hawk_t - cfg.dt, 0.0))
