@@ -30,6 +30,7 @@ class Drives(NamedTuple):
     """
     reflex: jax.Array      # (H, MOTOR_DIM)
     cortical: jax.Array    # (H, MOTOR_DIM)
+    predicted: jax.Array   # (H, OBS_DIM) top-down contribution to perception
 
 
 def initial_state(p: BrainParams, n_hens: int) -> jax.Array:
@@ -38,7 +39,8 @@ def initial_state(p: BrainParams, n_hens: int) -> jax.Array:
 
 
 def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
-         key: jax.Array = None, sigma: float = 0.0):
+         key: jax.Array = None, sigma: float = 0.0, pred_gain: float = 0.0,
+         pred_from: jax.Array = None):
     """Returns (x_next, motor, drives); motor in [0, 1], shape (H, MOTOR_DIM).
 
     `sigma` adds Gaussian noise to the motor drive before the output nonlinearity.
@@ -64,10 +66,28 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
     motor_stub = neurons.rate(x)[:, -n_motor:]
     cortical = jnp.einsum("hmn,hn->hm", p.W_out, motor_stub)
 
-    reflex = obs @ p.reflex.T
+    # Top-down association. The pallium writes onto the observation the *reflex arc*
+    # reads -- not onto the motor output, and not back into its own afferents. So a
+    # learned cue does not have to recreate a behaviour, only the percept that already
+    # drives it, and the innate arc supplies the rest. E007 measured why that matters:
+    # driving crouch directly needs +2.50 against a cortical capacity of 0.002, while
+    # driving it through the aerial channel needs ~0.3, because the reflex weight is 8.
+    #
+    # relu, so association can only add percepts, never suppress real ones; clipped to
+    # the observation's own range so a hen cannot perceive more vividly than reality.
+    # Sourced from a lagged pallial trace when one is supplied. E008 found the
+    # instantaneous version was an autoencoder -- it mapped the current state to the
+    # current observation, so during a hawk event it learned to predict the hawk from
+    # the hawk. A lag makes it map what the brain was doing *before* to what is
+    # observed *now*, which is the cue-to-outcome direction association needs.
+    src = neurons.rate(x) if pred_from is None else pred_from
+    predicted = jnp.einsum("hon,hn->ho", p.W_pred, src * p.pred_src[None, :])
+    reflex_in = jnp.clip(obs + pred_gain * jax.nn.relu(predicted), 0.0, 1.0)
+    reflex = reflex_in @ p.reflex.T
     drive = reflex + cortical + p.b_motor[None, :]
     # `sigma` is traced under jit (it decays with the world clock), so this cannot be
     # a Python conditional. A caller that wants no noise at all passes key=None.
     if key is not None:
         drive = drive + sigma * jax.random.normal(key, drive.shape)
-    return x, jax.nn.sigmoid(drive), Drives(reflex=reflex, cortical=cortical)
+    return x, jax.nn.sigmoid(drive), Drives(
+        reflex=reflex, cortical=cortical, predicted=predicted)

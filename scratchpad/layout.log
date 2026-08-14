@@ -1,0 +1,4 @@
+food layout FIXED across seeds, n=10:
+  hunger change: mean +0.0059  sd 0.0310   per-seed +0.042 -0.070 +0.003 +0.030 -0.009 +0.029 +0.020 +0.002 +0.014 -0.002
+  fed %:         mean 5.34   sd 0.91  range 4.11-7.43
+  (for comparison, random layout, n=27: hunger-change sd 0.0701, fed% 1.31-14.87)

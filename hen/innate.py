@@ -14,6 +14,8 @@ food-call far more readily with a hen present than when alone, graded by audienc
 type. That is *usage*, which is learned and socially contingent, so it is not wired
 in -- it is a prediction for phase 2/3 to reproduce, and a way for the model to be
 wrong.
+
+The auditory scaffold below is optional and off by default; see `AUDITORY_SCAFFOLD`.
 """
 
 import numpy as np
@@ -31,8 +33,27 @@ REST_BIAS = -2.5
 TONIC_FORWARD = 1.4     # a hatchling that never moves learns nothing
 
 
-def reflex_matrix() -> np.ndarray:
-    """The innate arc as a fixed (MOTOR_DIM, OBS_DIM) matrix."""
+# Weight of every auditory scaffold connection (E018). One number, not four, so that
+# it cannot be quietly tuned per-channel into the shape of a result.
+#
+# Chosen a priori against REST_BIAS: sigmoid(1.5 - 2.5) = 0.27, a partial graded
+# response rather than a full one. That is what the biology shows -- parentally naive
+# chicks stay in tonic immobility *longer* on hearing a conspecific fear squawk, they
+# do not perform the whole anti-predator sequence. It is 19% of the visual crouch
+# weight of 8.0, so seeing a hawk always dominates being told about one: first-hand
+# information beats second-hand, which is the correct ordering.
+SCAFFOLD_WEIGHT = 1.5
+
+
+def reflex_matrix(auditory_scaffold: bool = False) -> np.ndarray:
+    """The innate arc as a fixed (MOTOR_DIM, OBS_DIM) matrix.
+
+    `auditory_scaffold` adds an innate response to *hearing* an alarm call. It is off
+    by default and switched on only by E018's scaffolded conditions, because turning
+    it on silently would change the comparison basis for every experiment before it.
+    See `_add_auditory_scaffold` for what it wires and, more importantly, what it does
+    not.
+    """
     r = np.zeros((spec.MOTOR_DIM, spec.OBS_DIM), dtype=np.float32)
 
     def w(motor, obs_idx, weight):
@@ -93,7 +114,72 @@ def reflex_matrix() -> np.ndarray:
     for b in _FRONT:
         w(spec.M_CALL_FOOD, spec.vis_index(b, spec.CLS_FOOD), 4.0)
 
+    if auditory_scaffold:
+        _add_auditory_scaffold(w)
+
     return r
+
+
+def _add_auditory_scaffold(w) -> None:
+    """An innate response to *hearing* an alarm call. E018.
+
+    Until E018 the arc had no auditory entry at all -- every weight from the four call
+    channels was exactly zero, against 8.0 for crouch on seeing a hawk. That came from
+    reading "comprehension is learned" as "comprehension is learned from nothing",
+    which over-reads the biology. Parentally naive chicks already respond
+    differentially to conspecific fear calls, and what develops with experience is
+    *what the call is about* -- accurate predator identification forms gradually, and
+    chickens even come to respond to tit alarm calls, which cannot be innate. The
+    learned part is association off a stimulus that already arouses (Curio's mobbing
+    chain, transmitted through six naive birds with no reward anywhere in it), not
+    discovery by trial and error.
+
+    Two channels, matched to the two responses, keeping the aerial/terrestrial
+    distinction that makes chicken alarm calls functionally referential.
+    """
+    aerial_call = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
+    ground_call = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_GROUND)
+
+    w(spec.M_CROUCH, aerial_call, SCAFFOLD_WEIGHT)
+    w(spec.M_FLEE, ground_call, SCAFFOLD_WEIGHT)
+
+    # Raising the head. This is not decoration and it is not symmetry with the visual
+    # arc -- it is required, for a reason specific to how posture is computed here.
+    # `actuation.py` derives head_down from peck and scratch alone; crouching only
+    # zeroes locomotion. So a hen who crouches at a call while still pecking stays
+    # blind to the sky, and the call has restored nothing. Suppressing the head-down
+    # actions is what converts a heard call back into the information the caller had.
+    # It is also simply what birds do on hearing an alarm.
+    #
+    # The visual arc needs no equivalent, because a hen who can *see* a hawk already
+    # has her head up by definition.
+    #
+    # This is the part of the scaffold most likely to do E018's work for it: it opens
+    # a route to a survival benefit with no learning anywhere -- call, head up, she
+    # sees the hawk herself, and the visual reflex fires at weight 8.0. That route is
+    # real and is how it works in nature. It is pre-registered as *innate*, and the
+    # scaffold-without-learning condition exists to measure exactly how much of any
+    # benefit it accounts for.
+    for call in (aerial_call, ground_call):
+        w(spec.M_PECK, call, -SCAFFOLD_WEIGHT)
+        w(spec.M_SCRATCH, call, -SCAFFOLD_WEIGHT)
+
+    # Deliberately NOT wired, each for its own reason:
+    #
+    # *No relay.* Hearing an alarm does not trigger producing one, though real
+    # chickens do chain alarm calls. A relay makes the acoustic environment
+    # self-driving and changes it for every hen at once, which would confound the
+    # audience assay -- the quantity being measured is precisely whether a hen calls
+    # more when others are present.
+    #
+    # *No posture, audience or context dependence.* The scaffold fires identically
+    # whether she is head-down or head-up, alone or in company, hungry or fed. That
+    # conditioning is what learning has to add; wiring any of it in would be wiring in
+    # the answer.
+    #
+    # *Nothing on the food or contact channels.* They stay neutral with respect to
+    # predators, which keeps a second-order conditioning test available later -- the
+    # Curio design, where a neutral cue paired with an alarm becomes alarming itself.
 
 
 def reflex_bias() -> np.ndarray:

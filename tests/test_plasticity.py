@@ -7,6 +7,7 @@ easy to produce and proves nothing on its own.
 """
 
 import jax
+import numpy as np
 import jax.numpy as jnp
 import pytest
 
@@ -149,3 +150,427 @@ def test_being_caught_is_aversive(flock):
     w, _, _ = flock
     struck = w._replace(n_struck=w.n_struck + 1.0)
     assert float(jnp.mean(plasticity.reward(w, struck, CFG, LEARN))) < 0.0
+
+
+# --- Guards against the E010 confound ---------------------------------------
+
+def test_fixed_control_is_actually_fixed():
+    """A condition named 'fixed' must not silently carry exploration noise.
+
+    E010 compared a control running at explore_sigma=0.6 -- inherited from a default
+    added two experiments earlier -- against a historical noiseless one, and read the
+    difference as a result. The contrast varied two things at once.
+    """
+    from run.experiment import PHASE1
+    fixed = PHASE1[0]
+    assert not fixed.pc.enabled
+    assert fixed.pc.explore_sigma == 0.0, (
+        f"'{fixed.name}' carries explore_sigma={fixed.pc.explore_sigma}; "
+        "a fixed control must be deterministic")
+
+
+def test_every_condition_states_exploration_explicitly():
+    """No condition may inherit the exploration default -- it must be written down."""
+    import inspect
+    from run import experiment
+    src = inspect.getsource(experiment)
+    block = src[src.index("PHASE1 = ("):src.index(")\n", src.index("PHASE1 = ("))]
+    n_conditions = block.count("Condition(")
+    n_explicit = block.count("explore_sigma=")
+    assert n_explicit == n_conditions, (
+        f"{n_conditions} conditions but only {n_explicit} state explore_sigma; "
+        "an inherited default is how E010 went wrong")
+
+
+def test_disabled_plasticity_leaves_weights_untouched_even_with_noise(flock):
+    """Noise must perturb behaviour without ever writing to the connectome."""
+    _, _, p0 = flock
+    pc = PlasticConfig(enabled=False, explore_sigma=0.6)
+    _w, _x, p1, *_ = _run(flock, pc)
+    assert jnp.array_equal(p0.W, p1.W)
+    assert jnp.array_equal(p0.W_out, p1.W_out)
+
+
+# --- Guards on the three E019 defects ---------------------------------------
+#
+# All three survived eighteen experiments because nothing tested for them, and two of
+# them were invisible at the flock size the rest of this file uses. These run at
+# n_hens=16, the default, deliberately.
+
+E019_CFG = spec.DEFAULT_COOP           # 16 hens: the size the defects appeared at
+
+
+def test_a_flock_with_nothing_to_report_is_quiet_on_the_alarm_channels():
+    """A hen who is not alarm-calling must emit nothing on the alarm channels.
+
+    Motor channels are sigmoids, so a resting bird sits at sigmoid(-2.5) = 0.076 on
+    every channel including the four call ones. Until E019 that floor was emitted as a
+    real call, and summed across 15 flockmates it pinned every audio channel at 1.0.
+
+    Scoped to the two alarm channels on purpose. The *food* channel does saturate at
+    the default flock size, and that is real behaviour rather than a floor: the innate
+    arc food-calls on the sight of food out to 10 m, so a clumped flock near a feeder
+    has twelve of sixteen birds genuinely calling. It carries no information for the
+    same reason, but the cause is the reflex arc and the fix is a design decision, not
+    a bug fix. Tracked in docs/backlog.md rather than silently patched here.
+    """
+    from coop import sensing
+    w = world.reset(jax.random.key(0), E019_CFG)
+    p = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS,
+                         n_hens=E019_CFG.n_hens)
+    x = brain.initial_state(p, E019_CFG.n_hens)
+    w, x, *_ = simulate.rollout_quiet(w, x, p, jax.random.key(5), E019_CFG, 6_000)
+    audio = sensing.observe(w, E019_CFG)[:, spec.AUDIO_LO:spec.AUDIO_HI]
+    for name, motor_ch in (("aerial", spec.M_CALL_AERIAL),
+                           ("ground", spec.M_CALL_GROUND)):
+        i = spec.CALL_MOTOR_IDX.index(motor_ch)
+        level = float(jnp.max(audio[:, i]))
+        assert level < 0.3, (
+            f"resting flock hears {level:.3f} on the {name} alarm channel with no "
+            "predator anywhere; it is saturated before anyone has said anything")
+
+
+def test_a_call_is_audible_to_a_flockmate():
+    """The whole project depends on this one number being non-zero.
+
+    E019 measured it at exactly 0.0000 with 16 hens: a full-amplitude alarm from an
+    adjacent bird moved the receiver's channel not at all. Every experiment about
+    communication was running on a constant.
+    """
+    from coop import sensing
+    w = world.reset(jax.random.key(0), E019_CFG)
+    p = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS,
+                         n_hens=E019_CFG.n_hens)
+    x = brain.initial_state(p, E019_CFG.n_hens)
+    w, x, *_ = simulate.rollout_quiet(w, x, p, jax.random.key(5), E019_CFG, 6_000)
+
+    i = spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
+    ch = spec.AUDIO_LO + i
+    before = float(sensing.observe(w, E019_CFG)[0, ch])
+    loud = w._replace(calls=w.calls.at[1, i].set(1.0))
+    after = float(sensing.observe(loud, E019_CFG)[0, ch])
+    assert after - before > 0.1, (
+        f"a full-amplitude alarm call from a flockmate moves the channel by "
+        f"{after - before:+.4f}; nothing downstream can learn from that")
+
+
+def test_call_floor_matches_the_resting_motor_output():
+    """`CALL_FLOOR` and `REST_BIAS` live in different modules and must not drift."""
+    from hen import innate
+    resting = float(jax.nn.sigmoid(jnp.array(innate.REST_BIAS)))
+    assert abs(spec.CALL_FLOOR - resting) < 1e-3, (
+        f"CALL_FLOOR={spec.CALL_FLOOR} but a resting hen emits {resting:.4f}")
+
+
+def test_what_the_pallium_sends_to_the_muscles_depends_on_the_situation(flock):
+    """The cortical drive must vary as behaviour unfolds, not sit at a constant.
+
+    This is the property E019 found missing: what the pallium sent to the motor system
+    varied by 0.7% of its own magnitude over three seconds. It was an offset, and it
+    slid peck downward -- the hen learned to stop eating, which is the whole of the harm
+    E013-E016 spent four experiments characterising.
+
+    **The metric here is deliberately not the rank of `dW_out`.** The review that found
+    this defect measured rank, and rank is the wrong test: a rank-one change
+    `dW_out = u v^T` contributes `u (v . motor_stub)` to the drive, which varies
+    perfectly well as `motor_stub` varies. Rank stayed at 0.999 through the fix while
+    state-dependence improved elevenfold, so rank would have failed a working rule.
+    What matters is whether the drive tracks the situation, so that is what is asserted.
+    """
+    from coop import sensing
+    w, x, p0 = flock
+    _w, _x, p1, *_ = _run(flock, LEARN_NO_GROWTH, steps=20_000)
+    assert not jnp.allclose(p0.W_out, p1.W_out), "readout did not move at all"
+
+    cort = []
+    for t in range(200):
+        obs = sensing.observe(w, CFG)
+        x, motor, drives = brain.step(x, obs, p1, CFG.dt)
+        w = world.step(w, motor, jax.random.fold_in(jax.random.key(3), t), CFG)
+        cort.append(drives.cortical)
+    cort = jnp.stack(cort)
+    variability = float(jnp.mean(jnp.std(cort, axis=0))
+                        / (jnp.mean(jnp.abs(cort)) + 1e-9))
+    assert variability > 0.02, (
+        f"cortical drive varies by {variability:.4f} of its magnitude; the pallium is "
+        "applying a constant offset to the muscles rather than a state-dependent one")
+
+
+def test_reward_is_not_dominated_by_one_component(flock):
+    """No component may carry the reward signal on its own.
+
+    E019: the vigour (call-cost) term was 98.1% of reward *variance* -- a hen was taught
+    almost nothing except 'did you just call'. That term had been moved out of H2's
+    metric by E012 and into the teaching signal, where nobody checked it.
+
+    **This test measures variance in a rollout, and the reason is embarrassing.** The
+    first version, written the same day E019 found the defect, perturbed each drive by
+    an identical -0.01 and compared the reward *response*. Under the broken code all
+    four components entered `d_drive` with the same coefficient, so each scored exactly
+    25% and the guard passed on the bug it was written for (E022 3d). Sensitivity was
+    never the problem: vigour dominated because vigour *varied*, sd 0.23, while hunger
+    barely moved. Guard the quantity that broke, not the one that is easy to poke.
+
+    Each candidate's contribution is measured by *freezing* it -- recomputing the reward
+    with that field unchanged between the two steps -- and taking the variance of the
+    difference. That works whether or not the field is in the formula, so the test does
+    not have to be told which terms count. A second version of this test enumerated
+    components by name and failed for the opposite reason: it scored vigour's variance
+    after E019 had already removed vigour from the reward.
+
+    Run at 16 hens over 30 s, not on the module's 4-hen fixture. Feeding is sparse and
+    bursty -- hunger only moves when a hen actually eats -- so over a short window at a
+    small flock no hen eats at all and `cold` trivially scores 100%. That is the window
+    being too small, not the reward being broken, and a third version of this test
+    failed that way before the size was fixed.
+    """
+    from coop import sensing
+    pc = PlasticConfig()
+    w = world.reset(jax.random.key(0), E019_CFG)
+    p = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS,
+                         n_hens=E019_CFG.n_hens)
+    x = brain.initial_state(p, E019_CFG.n_hens)
+    CFG = E019_CFG
+    fields = ("hunger", "thirst", "cold", "vigour", "n_struck")
+    rewards, contrib = [], {k: [] for k in fields}
+    for t in range(3_000):
+        obs = sensing.observe(w, CFG)
+        x, motor, _ = brain.step(x, obs, p, CFG.dt)
+        wn = world.step(w, motor, jax.random.fold_in(jax.random.key(4), t), CFG)
+        r = plasticity.reward(w, wn, CFG, pc)
+        rewards.append(jnp.mean(r))
+        for k in fields:
+            frozen = wn._replace(**{k: getattr(w, k)})
+            contrib[k].append(jnp.mean(r - plasticity.reward(w, frozen, CFG, pc)))
+        w = wn
+
+    assert float(jnp.var(jnp.array(rewards))) > 0.0, "reward never varied; assay is dead"
+    var = {k: float(jnp.var(jnp.array(v))) for k, v in contrib.items()}
+    total = sum(var.values())
+    shares = {k: round(v / max(total, 1e-12), 3) for k, v in var.items()}
+    for name, v in var.items():
+        assert v / max(total, 1e-12) < 0.8, (
+            f"{name} carries {100 * v / max(total, 1e-12):.0f}% of the variance the "
+            f"reward actually responds to; a modulator dominated by one component "
+            f"teaches only that component ({shares})")
+
+
+def test_vigour_is_a_cost_in_the_world_but_not_in_the_reward(flock):
+    """Calling still costs something -- just not in the teaching signal.
+
+    Removing vigour from `reward()` must not remove the cost entirely, or
+    audience-sensitivity has nothing to emerge from. It still drains with calling and
+    still attenuates what flockmates hear.
+    """
+    w, _, _ = flock
+    pc = PlasticConfig()
+    spent = w._replace(vigour=w.vigour - 0.5)
+    r = float(jnp.mean(plasticity.reward(w, spent, CFG, pc)))
+    assert abs(r) < 1e-9, f"vigour still enters the reward ({r:+.6f})"
+
+
+# --- Guards on the E018 auditory scaffold -----------------------------------
+
+def test_bare_arc_has_no_auditory_response():
+    """Without the scaffold, hearing a call must drive nothing at all.
+
+    This is the baseline every E018 number is measured against. If the scaffold ever
+    leaks into the default, the 2x2's control condition silently becomes the treatment
+    and the experiment measures nothing -- the same shape of failure as E010.
+    """
+    from hen import innate
+    r = innate.reflex_matrix()
+    audio = r[:, spec.AUDIO_LO:spec.AUDIO_HI]
+    assert float(jnp.max(jnp.abs(jnp.asarray(audio)))) == 0.0
+
+
+def test_scaffold_is_off_by_default():
+    """The default connectome is the one E001-E017 were run on."""
+    from hen import innate
+    assert jnp.array_equal(jnp.asarray(innate.reflex_matrix()),
+                           jnp.asarray(innate.reflex_matrix(auditory_scaffold=False)))
+    p = connectome.build(jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=2)
+    assert float(jnp.max(jnp.abs(p.reflex[:, spec.AUDIO_LO:spec.AUDIO_HI]))) == 0.0
+
+
+def test_scaffold_wires_what_it_says_and_nothing_else():
+    """The scaffold must not quietly acquire channels it was pre-registered without.
+
+    Specifically: no relay (hearing a call must never drive producing one), and
+    nothing on the food or contact channels, which stay predator-neutral so that a
+    second-order conditioning test remains available.
+    """
+    from hen import innate
+    r = jnp.asarray(innate.reflex_matrix(auditory_scaffold=True))
+    aerial = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
+    ground = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_GROUND)
+    contact = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_CONTACT)
+    food = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_FOOD)
+
+    assert float(r[spec.M_CROUCH, aerial]) == innate.SCAFFOLD_WEIGHT
+    assert float(r[spec.M_FLEE, ground]) == innate.SCAFFOLD_WEIGHT
+    # head comes up, or the call restores no information she did not have
+    for call in (aerial, ground):
+        assert float(r[spec.M_PECK, call]) == -innate.SCAFFOLD_WEIGHT
+        assert float(r[spec.M_SCRATCH, call]) == -innate.SCAFFOLD_WEIGHT
+    # no relay: no heard call may drive any produced call
+    for heard in (aerial, ground, contact, food):
+        for produced in spec.CALL_MOTOR_IDX:
+            assert float(r[produced, heard]) == 0.0, "scaffold must not relay calls"
+    # the neutral channels stay neutral
+    assert float(jnp.max(jnp.abs(r[:, [contact, food]]))) == 0.0
+
+
+def test_scaffold_never_outweighs_seeing_it_yourself():
+    """First-hand information must always beat second-hand.
+
+    A hen who can see the hawk should not be talked out of it, so the auditory weight
+    has to stay well under the visual one. E018 fixes it at 1.5 against 8.0; this
+    guards the ordering rather than the value.
+    """
+    from hen import innate
+    r = jnp.asarray(innate.reflex_matrix(auditory_scaffold=True))
+    aerial_call = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
+    assert float(r[spec.M_CROUCH, aerial_call]) < float(r[spec.M_CROUCH,
+                                                          spec.IDX_AERIAL]) / 3.0
+
+
+def test_scaffold_leaves_the_arc_fixed_under_learning(flock):
+    """The scaffold is part of the reflex arc, so learning must never touch it."""
+    _, _, _p0 = flock
+    p_scaf = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS,
+                              n_hens=CFG.n_hens, auditory_scaffold=True)
+    x = brain.initial_state(p_scaf, CFG.n_hens)
+    w = world.reset(jax.random.key(0), CFG)
+    ps = plasticity.initial_state(p_scaf, CFG.n_hens, LEARN)
+    _w, _x, p1, *_ = simulate.rollout_quiet(
+        w, x, p_scaf, jax.random.key(9), CFG, 3_000, ps, LEARN)
+    assert jnp.array_equal(p_scaf.reflex, p1.reflex)
+
+
+def test_reward_components_are_commensurate(flock):
+    """No single reward component may dwarf the others.
+
+    E014: `struck * strike_penalty / dt` treated a discrete event as a rate, so one
+    predator strike contributed -100 against a feeding step worth ~0.5 -- about 150x
+    -- and the modulator slammed every eligible synapse at once. It took eight
+    experiments to find, and it should have been caught by construction.
+
+    The comparison is against a real *feeding* step, not against baseline hunger
+    drift. Drift is tiny by design, and measuring against it would flag a healthy
+    reward as broken -- which it did on the first version of this test.
+    """
+    w, _, _ = flock
+    pc = PlasticConfig()
+    # One timestep of successful feeding, as coop/world.py computes it.
+    eaten = CFG.dt * CFG.peck_food_rate * w.hunger
+    fed = w._replace(hunger=w.hunger - eaten)
+    struck = w._replace(n_struck=w.n_struck + 1.0)
+
+    r_fed = abs(float(jnp.mean(plasticity.reward(w, fed, CFG, pc))))
+    r_struck = abs(float(jnp.mean(plasticity.reward(w, struck, CFG, pc))))
+    ratio = r_struck / max(r_fed, 1e-9)
+    assert ratio < 20.0, (
+        f"a strike is worth {ratio:.0f}x a step of feeding; reward components must "
+        "stay within an order of magnitude, or the modulator is dominated by one "
+        "event and learning becomes a shock response")
+
+
+# --- Guards on the H4 channel ladder (E026) ---------------------------------
+#
+# Before E026 nothing in this suite touched `channel_mode` at all -- the single most
+# load-bearing manipulation in the headline experiment, in a repo whose CLAUDE.md has
+# a standing rule about exactly this. E024 ran a control that kept 98% of the
+# information it was supposed to destroy, and no test could have caught it.
+
+def _heard_vs_hawk(mode, seed=0, steps=9_000):
+    """corr(aerial audio, a hawk is inside MY strike radius) under a channel mode.
+
+    Jitted, and staged so hawks actually arrive. The first version ran a Python-level
+    loop over a 40 s window with a hawk every 60 s, so it usually observed no hawk at
+    all and returned "the assay is dead" -- a guard that cannot see the thing it guards.
+    `hawk_period_s` is cut to 15 s here purely to make the test observable; it is a
+    fixture setting, not the experiment's.
+
+    The warm-up matters: the yoked buffer is `cfg.call_log_steps` deep and its lags reach
+    most of the way back, so a run that starts measuring immediately reads unwritten
+    zeros and would pass for the wrong reason.
+    """
+    from functools import partial
+    from coop import sensing
+    aer = spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
+    # `call_log_steps` is off by default -- the buffer costs throughput and only the
+    # yoked control needs it (E026). A test that forgets it gets a loud ValueError
+    # rather than a silently zeroed channel, which would pass for the wrong reason.
+    cfg = spec.DEFAULT_COOP._replace(
+        n_hens=16, hawk_period_s=15.0, channel_mode=mode,
+        call_log_steps=(spec.YOKE_LOG_STEPS if mode == "yoked" else 1))
+
+    @partial(jax.jit, static_argnames=("cfg",))
+    def trace(w, x, p, key, cfg):
+        def step(carry, _):
+            w, x, key = carry
+            key, k = jax.random.split(key)
+            obs = sensing.observe(w, cfg)
+            x, motor, _ = brain.step(x, obs, p, cfg.dt)
+            d = jnp.linalg.norm(w.pos - w.hawk_pos[None, :], axis=-1)
+            near = (d < cfg.hawk_strike_radius) & (w.hawk_on > 0.5)
+            w = world.step(w, motor, k, cfg)
+            return (w, x, key), (obs[:, spec.AUDIO_LO + aer], near)
+        return jax.lax.scan(step, (w, x, key), None, length=steps)[1]
+
+    w = world.reset(jax.random.key(seed), cfg)
+    p = connectome.build(jax.random.fold_in(jax.random.key(seed), 1),
+                         regions.DEFAULT_REGIONS, n_hens=16, auditory_scaffold=True)
+    x = brain.initial_state(p, 16)
+    w, x, *_ = simulate.rollout_quiet(w, x, p, jax.random.key(9), cfg,
+                                      cfg.call_log_steps + 200)
+    heard, near = trace(w, x, p, jax.random.key(7), cfg)
+    h, n = np.asarray(heard).ravel(), np.asarray(near).ravel()
+    assert n.sum() > 0, "no hawk ever reached a hen; the assay is dead, not the channel"
+    assert h.std() > 0, "the audio channel never varied; nothing to correlate"
+    return float(np.corrcoef(h, n.astype(float))[0, 1])
+
+
+def test_the_intact_channel_carries_information():
+    """If this fails the experiment has no signal to detect, never mind a control."""
+    c = _heard_vs_hawk("intact")
+    assert c > 0.2, f"intact channel correlates {c:.3f} with a hawk being on her"
+
+
+def test_the_yoked_control_destroys_the_information():
+    """The control must actually be uninformative. E024's did not, and shipped.
+
+    Measured at E026: intact +0.56, permuted +0.55 (98% kept), yoked -0.13.
+    """
+    c = _heard_vs_hawk("yoked")
+    assert abs(c) < 0.2, (
+        f"yoked control still correlates {c:.3f} with a hawk being on her; "
+        "a control that carries the signal is not a control")
+
+
+def test_shuffled_is_not_a_control_and_is_labelled_so():
+    """Regression: the permutation must stay available and stay disclaimed.
+
+    Kept so E024 reproduces. The guard is that nobody quietly promotes it back to
+    being the headline control -- the source has to say it is not one.
+    """
+    import inspect
+    from coop import sensing
+    src = inspect.getsource(sensing._channel)
+    assert "NOT A CONTROL" in src.upper(), (
+        "the shuffled mode must be documented as not a valid control")
+
+
+def test_every_channel_mode_is_reachable():
+    """A typo in a mode name must fail loudly, not silently fall through to intact."""
+    from coop import sensing
+    for mode in ("intact", "none", "severed", "self", "yoked", "shuffled"):
+        cfg = spec.DEFAULT_COOP._replace(
+            n_hens=4, channel_mode=mode,
+            call_log_steps=(spec.YOKE_LOG_STEPS if mode == "yoked" else 1))
+        w = world.reset(jax.random.key(0), cfg)
+        assert sensing.observe(w, cfg).shape == (4, spec.OBS_DIM)
+    with pytest.raises(ValueError):
+        cfg = spec.DEFAULT_COOP._replace(n_hens=4, channel_mode="nonsense")
+        sensing.observe(world.reset(jax.random.key(0), cfg), cfg)

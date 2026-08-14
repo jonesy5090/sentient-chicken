@@ -84,6 +84,24 @@ MOTOR_DIM = 11
 CALL_MOTOR_IDX = (M_CALL_CONTACT, M_CALL_FOOD, M_CALL_AERIAL, M_CALL_GROUND)
 N_CALLS = 4
 
+# A silent hen must emit silence. Motor channels are sigmoids, so a bird at rest sits
+# at sigmoid(REST_BIAS) = 0.076 on *every* channel including the four call ones -- a
+# floor that is an artefact of the nonlinearity, not a vocalisation. Until E019 that
+# floor was emitted as a real call: with 16 hens summing into one clipped channel, the
+# aerial-alarm input read 0.999 at rest and a full-amplitude call from an adjacent bird
+# moved it by 0.0000. Every communication experiment before E019 ran on that constant.
+#
+# Subtracting the floor and rescaling removes exactly the artefact and nothing else.
+# It is deliberately not a 0.5 threshold like peck and crouch use: alarm calls are
+# *graded* by urgency in real fowl, and the audience assay stages its hawk at 7 m
+# precisely to read a mid-range call, which a half-threshold would silence.
+CALL_FLOOR = 0.0759   # sigmoid(REST_BIAS); asserted against innate.py in the tests
+
+# Depth the yoked control needs: must exceed `yoke_min_lag_s / dt` plus the spread of
+# per-hen lags, or it reads a slot that has not been written yet. 4096 = 41 s at 10 ms.
+# Set via `CoopConfig.call_log_steps`, which defaults to 1 -- see there.
+YOKE_LOG_STEPS = 4096
+
 # Actions that put the head down. This single fact is why the project can have
 # language at all: a hen with her beak in the dirt cannot scan for hawks, so a
 # flockmate's alarm call carries information she does not otherwise have. Without
@@ -133,21 +151,116 @@ class CoopConfig(NamedTuple):
     # target, not something to wire in here.
     peck_food_rate: float = 3.0e-2    # per second of feeding, scaled by hunger
     drink_rate: float = 4.0e-2
+
+    # Patches deplete as they are worked and recover when left alone. Until E025 they
+    # did neither: `food_amount` was initialised to 1.0 and never changed, so a patch
+    # was an infinite resource and there was no reason for any hen ever to leave one.
+    #
+    # Added on the theory that this would disperse the flock and rescue E024's control.
+    # **It does neither** (E025): patches genuinely draw down to 0.70 and the flock does
+    # not move -- strike-radius overlap went 23.0% -> 21.9%. The binding force is the
+    # gregariousness reflex, not foraging (E025 ablation), and the control was never a
+    # dispersal problem at all (E026). Kept because finite patches are biologically
+    # right, are a precondition for T2, and raise feeding 34% when hens do spread.
+    #
+    # Real hens work a patch and move on, and depletion-with-recovery is the standard
+    # way to make a foraging environment produce dispersal. Rates chosen so a patch
+    # supports a couple of birds for roughly a minute and recovers over about five --
+    # long enough that leaving is worthwhile, short enough that the coop does not run
+    # out of food over a 20-minute run.
+    food_deplete_rate: float = 2.0e-2   # per second per hen feeding at the patch
+    food_regrow_s: float = 300.0        # seconds for an empty patch to refill
     huddle_warm_rate: float = 4.0e-4  # per second, per flockmate within huddle_radius
     huddle_max: int = 3               # a hen needs 2-3 close neighbours to stay warm
 
-    # Calling costs energy. Without a cost there is no reason for a hen ever to stay
-    # quiet, so there is no gradient from which audience-sensitivity could emerge --
-    # she would simply call whenever the reflex fired, forever, for free. Vocalising
-    # is genuinely metabolically costly in birds, but this value is set for
-    # learnability within a short run rather than for metabolic realism: at typical
-    # call amplitudes it roughly doubles the rate at which a hen gets hungry.
-    call_energy_cost: float = 8.0e-4  # hunger per second per unit of call amplitude
+    # Calling costs energy, and that cost lives in its own budget rather than in
+    # hunger. It was charged to hunger from E005 until E012, which is how it came to
+    # triple the rate hunger accumulates and destroy the metric H2 is measured on --
+    # a parameter added for one hypothesis silently changing the measurement basis of
+    # another. `vigour` keeps the cost real without touching the foraging drive.
+    #
+    # Two things make the cost bite. It enters the reward signal, so calling is
+    # genuinely expensive and audience-sensitivity has a gradient to emerge from; and
+    # it attenuates the call that flockmates actually hear, because a tired bird
+    # cannot call loudly. The second makes vocal effort self-limiting without any
+    # arbitrary cap.
+    call_vigour_drain: float = 1.5e-2   # per second per unit of call amplitude
+    vigour_recovery_s: float = 90.0     # seconds to recover fully from empty
+
+    # Restores the pre-E019 audio path: emit the raw sigmoid (so a resting hen calls
+    # at 0.076 on every channel) and sum voices linearly into a clip. It exists purely
+    # so E021 can ask what the audio fix changed, and it is the only route by which a
+    # non-learning flock differed between E013 and E020 -- every other fix since E013
+    # touches plasticity, which those conditions have switched off. Never a default.
+    legacy_audio: bool = False
+
+    # --- The H4 condition ladder (docs/backlog.md §1) --------------------------
+    # How the auditory channel is wired between hens. Every condition delivers the
+    # same bandwidth and the same energetic cost; they differ only in *whose* calls
+    # reach whom, which is what isolates information transfer from everything else
+    # that carrying a channel involves.
+    #
+    #   "intact"   L  -- she hears her flockmates. The hypothesis.
+    #   "yoked"    C? -- she hears the flock's REAL call stream, shifted in time by a
+    #                    per-hen lag longer than a hawk dive. Identical rate, amplitude
+    #                    distribution, burst structure and cost; zero contingency with
+    #                    her current world. THE HEADLINE CONTROL.
+    #   "shuffled" -- RETAINED AND NOT A CONTROL. Permutes who-hears-whom within a
+    #                    timestep. E024 used it as the control and E026 showed it keeps
+    #                    98% of the intact channel's correlation with "a hawk is on me",
+    #                    because every hen already hears every other (hear_range 15 m in
+    #                    a 20 m arena) and any within-timestep permutation preserves
+    #                    "someone is calling right now" -- which in this coop is almost
+    #                    the whole signal. Kept only so E024 can be reproduced.
+    #   "severed"  C0 -- she emits; nobody hears. Isolates the motor cost of calling.
+    #   "self"     Cs -- she hears only herself. A channel used as private memory is
+    #                    not communication, and without this the difference is
+    #                    invisible.
+    #   "none"     N/C- -- no auditory input at all.
+    channel_mode: str = "intact"
+    # Re-drawn every `shuffle_period_s` so a permutation cannot be defeated by a fixed
+    # mapping the flock could, in principle, learn around.
+    shuffle_period_s: float = 10.0
+    # Minimum per-hen lag for the yoked channel, in seconds. Must exceed `hawk_dive_s`
+    # by a clear margin or the shifted stream still overlaps the event it is supposed
+    # to be decorrelated from.
+    yoke_min_lag_s: float = 20.0
+    # Depth of the call-history ring buffer. **1 by default, i.e. off.**
+    #
+    # It exists only for the yoked control, and it is not free: a 4096x16x4 array in
+    # the scan carry is 512 KB, and this simulation is memory-bandwidth bound. I wrote
+    # in the source that "one slot written and one gathered per step does not threaten
+    # the bandwidth budget", did not measure it, and the throughput guard caught the
+    # regression at 4.9x real time against a 5.0x floor. Reasoning about a bandwidth
+    # cost is not measuring one.
+    #
+    # So the default coop pays nothing and the yoked condition sets
+    # `call_log_steps=spec.YOKE_LOG_STEPS` for itself.
+    call_log_steps: int = 1
 
     # Predation
     hawk_period_s: float = 900.0      # a hawk passes over roughly every 15 min
     hawk_dive_s: float = 12.0
+    # How long the hawk is overhead and visible before it can strike.
+    #
+    # Without this there is no warning interval at all: `_step_predators` used to put
+    # the hawk at its final position the instant a dive began, so a hen was in danger
+    # from the same step she could first have been told about it. Measured consequence
+    # (E026) -- P(caught | blind and at risk at onset) was 1.000 deaf, 0.984 intact,
+    # 0.981 yoked. A ceiling in every condition, because no signal arriving at the
+    # instant of arrival can help anybody. That is why H4 was untestable, and why six
+    # attempts at a staged assay each had to invent a stoop phase by hand.
+    #
+    # A real raptor stoops from height and is visible during the descent; the whole
+    # point of an alarm call is that it reaches you during that window. 2 s against a
+    # 12 s dive, so most of the encounter is unchanged.
+    hawk_approach_s: float = 2.0
     hawk_strike_radius: float = 1.50
+    # How far off a targeted hen the hawk comes down. A hawk hunts rather than landing
+    # at random, so it aims at a bird; the spread keeps the encounter uncertain instead
+    # of scripted. At 3 m against a 1.5 m strike radius, the targeted hen is often but
+    # not always at risk, and who else is depends on where the flock is standing.
+    hawk_aim_spread: float = 3.0
     ground_pred_period_s: float = 1800.0
     ground_pred_dwell_s: float = 30.0
     ground_pred_speed: float = 0.60

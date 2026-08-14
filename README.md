@@ -108,24 +108,85 @@ objects, crouches at things overhead, runs from things on the ground, calls when
 is lonely, and huddles when she is cold. All of that is measured against real
 published chick behaviour. **7 out of 7 behavioural tests pass.**
 
-Then she learns. A hen who can learn regulates herself measurably better than a
-genetically identical hen in an identical coop who cannot: she gets *less* hungry over
-a run while her twin gets hungrier.
+Then she learns. Except she doesn't — and finding that out took thirteen experiments.
 
-**That result took four experiments, and three of them were about being wrong.** This
-is the honest part, and probably the most interesting:
+**The honest state of this project: the learning rule does not work. It makes hens
+measurably worse, and we can now say exactly why.** That arc is the most interesting
+thing here, so it is told straight:
 
 | | what happened |
 |---|---|
-| **E001** | Nothing. Twelve thousand synapses rewiring themselves, zero effect on behaviour. A busy brain doing nothing. |
-| **E002** | Found out why. The pathway from the "thinking" part of the brain to the muscles was effectively frozen — she could learn, but she could not *act* on what she learned. Also found a ceiling nobody expected: give the learned pathway too much control and behaviour gets **worse**, because a hen who overrides her instincts with a half-trained brain is worse off than one who just follows instinct. |
-| **E003** | Fixed that. The effect appeared — and we caught a bug in our own *statistics* that would have let us declare victory on a result that was still noise. |
-| **E004** | Ran it properly, twelve times. It holds. |
+| **E001** | Nothing. Twelve thousand synapses rewiring themselves, zero effect on behaviour. |
+| **E002** | Found out why: the path from the "thinking" brain to the muscles was frozen. Also found a ceiling — too much learned control makes behaviour **worse**. |
+| **E003–E004** | Fixed it. An effect appeared: **t=3.93, p≈0.002.** ~~Learning works.~~ Later reinterpreted, and it rests on a single seed block that has never been replicated. |
+| **E005–E007** | Three attempts to get one hen to *understand* another's alarm call. All null. |
+| **E008–E009** | Found a blocker underneath everything: **the brain was saturated.** A hen's internal state for "heard an alarm" and "saw a hawk" differed by under 1% — she could not tell them apart. |
+| **E010** | Fixed the saturation; the learning result collapsed. **Later found confounded and marked invalid.** |
+| **E011–E012** | Two wrong diagnoses before the right one. The real culprit: a cost added for a *different* experiment was charged to hunger, tripling it and destroying the metric. |
+| **E013** | Gave that cost its own budget. **The first clean test: learning makes hens significantly worse.** t=3.85. |
+
+**That refutation has itself since been withdrawn**, and the story of how is worth more
+than the claim was. E019 found three defects — the hens could not actually hear each
+other, the learned pathway could only slide a single number, and 98% of the reward
+signal was the cost of calling. With those fixed, E020 re-ran the same test and the harm
+vanished: **+0.001 instead of +0.062**, and 2.5% of the connectome lost instead of 48%.
+
+So the current honest state is **a clean null, not a refutation**: a hen who learns
+forages indistinguishably from one who cannot — +0.011 ± 0.012 across 24 seeds. Learning
+does not hurt her. It does not help her either.
+
+~~The learning hen ends with 19,088 of her 36,373 innate synapses. She has destroyed 48%
+of the brain she was born with, and forages worse for it: feeding 4.7% of the time
+against the control's 6.2%.~~ *(E013, superseded by E020.)*
+
+**E014 then found why the brain was being destroyed — and it was a units error.**
+Being caught by a predator is a one-off event, but the code treated it as a *rate* and
+divided it by the timestep. That turned a single strike into a reward signal 150 times
+larger than anything else the hen experiences, and every synapse got slammed at once.
+Hens in coops that happened to see no predators were fine; hens that were hunted lost
+three quarters of their brains.
+
+Fixing it restored the connectome. **It did not change the behaviour at all** — the
+hens still forage worse, by exactly the same margin. So the brain damage and the bad
+behaviour were two separate problems that merely happened together, and the second one
+is still open.
+
+**E015 then split the harm between the two things that learn**, and found something
+odd. Learning the wiring *inside* the brain costs a little. Learning the connection
+*out* to the muscles costs twice as much. But doing both at once costs far more than
+the two added together.
+
+The likely reason is that they are chasing each other: the output connection is trying
+to learn what the brain's internal states *mean*, while those states are being rewritten
+underneath it. Neither ever settles. If that is right, teaching them one at a time
+should fix it — which is cheap to test and is the next thing to do.
+
+The same experiment killed the last piece of the original story. **Throwing away 22% of
+the connectome costs almost nothing.** The damage was never about losing brain tissue.
+It is that the pallium is broadcasting *confident nonsense* — and that traces straight
+back to the saturation finding, because a brain that cannot tell an alarm call from a
+hawk has nothing sensible to say.
+
+That also reframes the earlier success. In the saturated brain, the learned pathway
+could only apply a *constant offset* to behaviour — so the same erosion was invisible,
+and what looked like learning was a tuned offset rather than an acquired policy.
+
+**A great deal has since been withdrawn** — and every withdrawal stands in the record
+next to the claim it replaced, which is the point. E013's refutation, E015's
+decomposition of the harm, E016's staging result and E020's own finding that exploration
+had become costly have all been superseded or struck. Nothing is deleted; the route is
+the record.
+
+The honest summary is that the bird does not yet learn, the rule no longer damages her,
+and the next question is not which knob to turn. It is whether the *task* can show
+learning at all: the metric turns out to sit exactly on a knife edge (a hen starts at
+hunger 0.30, and 0.30 is precisely the equilibrium for the feeding rate she achieves),
+so it measures the sign of a coin flip. See E022.
 
 An unplanned discovery along the way: the hens that **grow** new connections do
-*worse* than the ones that only prune. The best learner ends up throwing away 42% of
-the brain she was born with. That inverts the obvious expectation that more plasticity
-is better, and it now has its own open question.
+*worse* than the ones that only prune. The best learner throws away 42% of the brain
+she was born with. That inverts the obvious expectation that more plasticity is
+better, and it now has its own open question.
 
 Not yet built: memory of places, social hierarchy, and the language itself.
 
@@ -293,9 +354,19 @@ achieve, what has been built versus what has actually been *proven*, and what is
 
 ## Current state
 
-**Phase 0** (a credible newly-hatched hen) and **phase 1** (she learns) are done and
-measured. **Phase 2** — does she learn *when* to call, the way a real chicken does? —
-is next. **Phase 4** is the language experiment, and it is designed but not built.
+**Phase 0** — a credible newly-hatched hen — is done and measured, and it holds up: she
+does seven documented chick behaviours nobody taught her.
+
+**Phase 1** — she learns — is *built* but not *proven*, and the distinction is the
+honest part. The machinery all works: eligibility traces, a neuromodulator, synapses
+that grow and prune. What it does not yet do is make her measurably better at anything.
+The current result is a clean null — a hen who learns forages indistinguishably from one
+who cannot (E020). An earlier version of this file said phase 1 was complete, on the
+strength of a finding that later turned out to be an artefact of three defects in the
+environment and the learning rule. That correction is in `docs/experiments/E019` and
+`E020`, and the record of it is worth more than the claim was.
+
+**Phase 4** is the language experiment. It is designed in detail and not built.
 
 Full detail in [`docs/hypothesis.md`](docs/hypothesis.md).
 

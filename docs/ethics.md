@@ -147,7 +147,14 @@ without it.
 any plausible threshold, has no valence machinery, and has a legitimate Replacement
 argument available to it.
 
-**Phase 1 boundary** (learning demonstrated, E004). Verdict: **proceed, unchanged.**
+**Phase 1 boundary.** Verdict: **proceed, unchanged.**
+
+*Amended after [E013](experiments/E013-clean-test-of-h2.md):* this review was written
+when learning appeared demonstrated (E004). It is not — the clean test found the rule
+significantly harmful. **No tripwire moves either way**, and the review below stands
+on its own terms: the checks are about scale, valence machinery and self-modelling,
+none of which depend on whether learning works. Recorded rather than silently
+re-dated, since an ethics review that cites a withdrawn result should say so.
 
 The phase added plasticity, structural growth, and a neuromodulator. Checked against
 each tripwire:

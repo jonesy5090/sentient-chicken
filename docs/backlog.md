@@ -177,9 +177,17 @@ Worth writing down now, while it is still cheap to be honest:
 
 ## 7. Order of work
 
-1. ~~**Phase 1 plasticity**~~ — **done.** Learning has a demonstrated behavioural
-   effect ([E004](experiments/E004-replication-at-twelve-seeds.md): t=3.93, p≈0.002).
-   This was the prerequisite for everything below it.
+1. **Phase 1 plasticity — REOPENED, and it blocks everything below.**
+   [E013](experiments/E013-clean-test-of-h2.md) is the first clean test and learning
+   comes out *significantly worse* than no learning (t=3.85). E004's positive result is
+   best explained as an artefact of the saturated regime.
+
+   The reason is **not** connectome damage, though E013 said so at the time: that was a
+   units bug, fixed in [E014](experiments/E014-strike-units-bug.md), and
+   [E015](experiments/E015-decomposing-the-harm.md) measured pruning as nearly free
+   (22% of the connectome for +0.010). The harm is the learned pathways themselves,
+   superadditively. Nothing below is worth running until a rule exists that does not
+   make the bird worse.
 2. Condition harness: the six-way ladder as a config, sharing one simulation path.
    `run/experiment.py` has the matched-seed skeleton; it currently knows three
    conditions, not six.
@@ -189,6 +197,123 @@ Worth writing down now, while it is still cheap to be honest:
 6. Playback and lesion assays.
 7. T3 safe corridor.
 
+## 7-. What to do next, after the second review ([E022](experiments/E022-second-review-verified.md))
+
+This supersedes the ordering in §7 and §7a. Verified independently; the review's own
+top-ranked item is **not** here, because its headline number did not replicate.
+
+1. **Fix the `dale` sampling.** The pallium has **zero inhibitory neurons** — E/I is
+   assigned by flat index over a region-ordered array, so it segregates by region
+   instead of mixing. Sensory, pallium and hippocampus are 100% excitatory; hypothalamus
+   and motor stub are 100% inhibitory. Two lines. Invalidates every genome, so it needs a
+   deliberate re-baselining like E010's. Almost certainly the source of the knife-edge
+   gain that `connectome.py:78-81` complains about without diagnosing.
+
+2. **Promote `fed %` to the primary metric.** Hunger change measures the *sign of*
+   `f − 6.17%`, and hens start at hunger 0.30 which is exactly that equilibrium. It
+   correlates −0.94 with `fed %`, which is already printed beside it, and `fed %` has the
+   better pairing correlation (ρ +0.914 against +0.791) as well as no knife edge.
+
+   **Do not block on food layout.** The review ranked that first as a free 5× win; it is
+   the opposite. Measured on the quantity that actually powers a matched-seed contrast —
+   the paired-difference sd, not the marginal spread both earlier checks used — pinning
+   the layout *raises* sd_d (hunger 0.0387 → 0.0443; fed % 1.69 → 2.89) and destroys the
+   pairing (ρ +0.791 → +0.335; +0.914 → **−0.525**). Layout is a *shared* nuisance, so
+   pairing already cancels it for free; removing it removes the correlated component that
+   was making the pairing work. E022 addendum.
+
+3. ~~**Run H4 with no plasticity at all.**~~ **Done and the control failed
+   ([E024](experiments/E024-h4-without-plasticity.md)).** The ladder works; T1 does not.
+   A shuffled sender still reports your hawk because 38.8% of the flock shares it. See
+   item 0 below — **flock dispersal now blocks the headline experiment outright.**
+
+0. **Make the flock spread out.** Promoted above everything. Nearest-neighbour is
+   ~0.23 m in a 20 × 20 m run and nothing disperses them: food never depletes, so there
+   is no foraging competition, and the gregariousness reflex pulls them together with
+   nothing pushing back. This was filed as a T2 problem ("a signal naming a feeder is
+   useless when everyone stands at one"); E024 showed it is a T1 problem too, and it
+   defeats *any* sender-scrambling control. Depleting food patches is the obvious
+   candidate and is biologically right — real hens move on when a patch is worked out.
+
+~~3. **Run H4 with no plasticity at all.**~~ *(superseded, see above)* §7 says phase 1 blocks everything below; it does
+   not block H4, whose prediction mentions no learning. Production is innate and passes
+   7/7; calls are audible since E019; comprehension can be innate via the E018 scaffold.
+   Needs the capacity ladder wired into `run_condition` (it hardcodes `DEFAULT_REGIONS`)
+   and a channel-shuffle path in `sensing.py`. **Neither exists, and this is the
+   project's actual thesis.**
+
+**Owed checks, not yet verified** (from the same review): the 0.2 s credit window against
+a 10–30 s approach task; the audience assay's saturated aerial channel in its audience
+cell; E006's kin term moving the teaching signal by 0.5–3%; `W_pred` costing ~11% of
+throughput unconditionally; `strike_penalty` still charging per-step.
+
+**Abandon:** H2a (six comparisons, never significant, sign flipped in E020) and the E016
+"last word" follow-up (a workaround for a harm that no longer exists).
+
+## 7a. The three E019 defects — ~~blocking everything~~ **all fixed**
+
+All three verified and fixed in [E019](experiments/E019-three-verified-defects.md) §7,
+with six guard tests at `n_hens=16`.
+
+1. ~~**Make calls audible.**~~ **Done.** Floor-subtraction at emission plus power-domain
+   combination at sensing. A full-amplitude alarm from an adjacent bird now moves the
+   receiver's channel by **+0.908**, from 0.0000. Holds 4–32 hens.
+
+2. ~~**Give `W_out` more than one degree of freedom.**~~ **Done**, and the framing was
+   wrong: rank is not the right measure. A rank-one `ΔW_out = u vᵀ` still contributes a
+   state-*dependent* `u (v · motor_stub)`. Centring both traces made the rule a
+   covariance rule and raised drive variability 11× (0.007 → 0.080) while rank stayed
+   at 0.999. Whether 8% is *enough* is what re-running E013 answers.
+
+3. ~~**Take the vigour term out of `reward()`.**~~ **Done.** Reward is now hunger 54%,
+   cold 46%. The cost stays real in the world.
+
+**The meta-item stands and is the durable part.** All three were quantities checked in
+the place they had just been moved *from*. When a term is relocated, measure it in its
+new home.
+
+### Immediate follow-ups created by the fixes
+
+- ~~**Re-run E013.**~~ **Done — [E020](experiments/E020-h2-after-the-e019-fixes.md).**
+  The harm is gone (+0.062 → +0.001, t=0.08) and the erosion with it (48% → 2.5%). H2
+  moves from `REFUTED at this timescale` to a clean null. E013, E015 and E016 superseded.
+
+- ~~**Does learning repay the cost of its own exploration?**~~ **Struck — tested and
+  failed ([E021](experiments/E021-the-cost-of-exploration.md)).** On fresh seeds
+  (12–23) learning is **+0.021 ± 0.027 against noise-only, the wrong sign and not
+  significant**. H2's one nearly-positive result is gone. Recorded rather than quietly
+  dropped: it was flagged post-hoc, tested properly, and falsified, which is the process
+  working.
+
+- ~~**Why did exploration became costly?**~~ **Moot ([E021](experiments/E021-the-cost-of-exploration.md)).**
+  There is no cost to explain. It did not replicate in either audio regime; the
+  current-audio pair went from +0.032 (t=3.84) to −0.000 (t=0.01).
+
+- **Re-check every tree status that rests on a single seed block.** This is now the
+  highest-value statistical item. E021 showed the same contrast can move from t=3.84 to
+  t=0.01 across blocks, with a 4.4× swing in standard error. **E004's t=3.93 and E016's
+  staging result are both single-block and both still cited.** Neither has been
+  replicated on fresh seeds.
+
+- **Report per-seed spread in `run/experiment.py`**, not just the mean and SE. A
+  homogeneous block should be visible while the run is happening, not two experiments
+  later.
+
+- **Attribution ladder.** Four things changed between E013 and E020. Now that the status
+  has actually moved, which one did it is worth the runs.
+
+- **Re-run E018**, unchanged in design — only its instrument was broken.
+- **Re-measure H2d** against a call channel that now varies.
+- **The innate food call fires on sight, out to 10 m.** Twelve of sixteen hens
+  food-call continuously, so that channel is saturated by *genuine* calling and carries
+  no information. Real cockerels food-call on *finding* food, and are audience-sensitive
+  about it. This is a reflex-arc change and needs its own hypothesis node — it is not a
+  bug fix and should not be done as one.
+- **The flock clumps** — nearest-neighbour 0.23 m in a 20 × 20 m run. Flagged by the
+  same review. T1 (divided vigilance) and T2 (which feeder is poisoned) both assume
+  hens are somewhere different from each other. Nothing disperses them: food never
+  depletes, so there is no foraging competition.
+
 ## 8. Open items from experiments
 
 - ~~**Does the cortical pathway ever influence behaviour?**~~ **Answered by
@@ -197,20 +322,69 @@ Worth writing down now, while it is still cheap to be honest:
   `eta_out` raised 2e-3 → 2e-2.
 - ~~**Is synaptic scaling cancelling the learning signal?**~~ Moot — E003/E004 found
   the effect once the readout could learn, so scaling was not the blocker.
-- **H2a: does structural growth hurt learning?** Weaker in all three runs of the
-  contrast, and E004 attached a cost: no-growth reaches significance with 21,148
-  synapses (pruning 42% of the innate connectome) while growth ends with 40,753 and
-  does not clear. Needs a growth-*rate* sweep, not another on/off contrast.
+- **H2a: does structural growth hurt learning?** Weaker in *all five* runs that have
+  compared them, now including E013 (+0.077 vs +0.062, both significantly worse than
+  no learning). Growth has never helped in any regime. Largely subsumed by the
+  erosion question above.
 - **The innate/learned control balance is a parameter worth studying, not tuning.**
   E002 found that too much cortical influence makes behaviour *worse* — an untrained
   pallium overriding good reflexes. There is an optimum, and it plausibly maps onto
   the trade-off real precocial birds face between hatching competent and staying
   plastic. Worth a proper sweep rather than a single tuned value.
-- **Does the learning effect grow over a realistic rearing?** H2 is supported at 20
-  min of chicken time. A hen learns her surroundings over days, so the interesting
-  question is whether the effect compounds or plateaus. 1 day, 8 seeds, ~4 h wall
-  clock. Lower priority than H3, which is cheap and tests something the model was
-  never told.
+- ~~**Why does the rule erode?**~~ **Answered (E014):** a units error made one
+  predator strike worth −100 in reward. Fixed; the connectome recovers. It was **not**
+  the cause of the behavioural harm, and pruning turns out to be nearly free (E015:
+  22% of the connectome lost for +0.010).
+- ~~**Is the superadditivity a moving-target problem?**~~ **No (E016).** Staging was
+  tested and the prediction was falsified: letting the pallium settle first does
+  nothing (t=0.25), while doing the readout first cuts harm 69% (+0.052 → +0.016,
+  significant). The moving-target story is withdrawn.
+- **Does the pathway that learns *last* dominate the harm?** (E016) That is the new
+  reading, and it makes a sharp cheap test: append a short pallium-only stage to an
+  otherwise simultaneous schedule and see whether it absorbs the harm regardless of
+  what came before. Worth one run — but note this is a **workaround**, not a fix.
+  Even at its best, staging leaves the hen worse than not learning at all.
+- **Fix the representation (H2d).** Both pathways learn from or into a pallium whose
+  states for "heard an alarm" and "saw a hawk" differ by ~6% of mean rate. The gain
+  correction helped 8x and was not enough. ~~Likely needs something that decorrelates
+  the sensory projections rather than the random overlapping ones we have.~~
+  **[E017](experiments/E017-where-separability-is-lost.md) relocated the problem:** the
+  sensory projections are already near-orthogonal (separability 1.055 at the stub,
+  9% shared units). The loss is fan-in dilution at sensory → pallium, and it is not
+  recurrence — zeroing recurrence makes it slightly worse. **Still the critical path**
+  — H2, H2b, H2c and H3 all trace back to it — but the fix is a projection problem,
+  not a decorrelation problem.
+
+- **Wire an innate auditory reflex arc.** (E017) `hen/innate.py` has *no* response to
+  hearing any call: every auditory entry in `reflex_matrix()` is zero, against 8.0 for
+  crouch on seeing a hawk. That was a deliberate reading of "comprehension is learned",
+  and it over-read the biology — parentally naive chicks already respond differentially
+  to conspecific fear calls, and the learned part is association off a stimulus that is
+  already arousing, not discovery from scratch. Propose: weak crouch on hearing an
+  aerial alarm, weak flee/vigilance on a ground alarm, both well below the visual
+  weights so they scaffold rather than solve. **This is also the cleanest available fix
+  for the E006/E007 exploration null** — she cannot learn to crouch at a call she has
+  never once crouched at. Needs its own hypothesis node and a falsifier that
+  distinguishes "the scaffold works" from "we wired in the answer".
+
+- **Modality-segregated afferents.** (E017) Audition currently shares the sensory stub
+  and its pallial targets with vision. Real birds keep them apart — Field L via nucleus
+  ovoidalis, entopallium via rotundus, two separate thalamic relays. A hand-cut
+  segregation measured **2.06x** separability. Cheap, biologically motivated, and not
+  sufficient on its own (2x against a 17x loss). Should be done via the connectivity
+  prior in `regions.py`, not a slice.
+
+- **Is the learning rule the wrong *kind*?** (E017, open — no node yet.) `plasticity.py`
+  is reward-modulated three-factor, i.e. instrumental conditioning: act, get rewarded,
+  strengthen. The mechanism the biology points at for alarm-call comprehension is
+  Pavlovian — Curio's mobbing work has naive birds acquiring enemy recognition by
+  *observation*, with no reward and no action of their own, transmitted along a chain
+  of six individuals. `W_pred` is much closer to that machinery than `W_out` is. This
+  may be why every attempt to route learning (E002, E007, E008, E009) has failed:
+  right routing, wrong learning rule. Needs a hypothesis node before anything is built.
+- ~~**Does the learning effect grow over a realistic rearing?**~~ Moot until a
+  non-destructive rule exists. Running longer with the current rule strips more of
+  the connectome, not less.
 - ~~**Predator exposure as a metric.**~~ Retired. Uninformative in both E003 and E004
   (SEs of 1460-2469 on means of 13-44). E001's apparent 43% difference was noise, as
   it was flagged at the time.

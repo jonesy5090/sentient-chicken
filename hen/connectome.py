@@ -29,6 +29,8 @@ class BrainParams(NamedTuple):
     growable: jax.Array   # (N, N) bool -- where an axon could ever reach
     W_in: jax.Array       # (N, OBS_DIM) sensory afferents (shared, fixed)
     W_out: jax.Array      # (H, MOTOR_DIM, n_motor) cortical motor readout
+    W_pred: jax.Array     # (H, OBS_DIM, N) top-down associative projection
+    pred_src: jax.Array   # (N,) bool -- which neurons may source a prediction
     b: jax.Array          # (N,) resting bias
     tau: jax.Array        # (N,) membrane time constants, seconds
     reflex: jax.Array     # (MOTOR_DIM, OBS_DIM) innate arc, fixed
@@ -43,12 +45,57 @@ def _region_of(reg: Regions) -> np.ndarray:
 
 def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           n_hens: int = spec.DEFAULT_COOP.n_hens,
-          gain: float = 0.9, readout_scale: float = 0.05) -> BrainParams:
+          gain: float = 0.95, readout_scale: float = 0.05,
+          auditory_scaffold: bool = False) -> BrainParams:
     """Sample a newly hatched flock.
 
     `readout_scale` is small on purpose: at hatch the cortical pathway is near-silent
     and behaviour is dominated by the innate reflex arc. The pallium is present and
     connected, but it has nothing to say yet.
+
+    `auditory_scaffold` gives her an innate response to hearing an alarm call (E018).
+    Off by default, because switching it on changes the innate repertoire and so the
+    comparison basis for E001-E017.
+
+    `gain` has been re-baselined twice. It was 0.9 through E009, dropped to 0.70 in
+    E010 when the pallium was found saturated, and set to **0.95** in E023 after E022
+    found the E/I bug: until then the pallium contained no inhibitory neurons at all,
+    so every earlier gain figure describes a different network.
+
+    Measured across 6 genomes, relative separability of "saw a hawk" against "heard an
+    aerial alarm", on the corrected connectome:
+
+        gain   mean pallial rate   genome sd   separability
+        0.60         0.172           0.001         3.8%
+        0.70         0.189           0.002         4.5%
+        0.85         0.228           0.004         5.8%
+        0.95         0.276           0.009         7.4%   <- default
+        1.00         0.320           0.016         9.4%
+        1.05         0.415           0.041         9.4%
+        1.10         0.603           0.061         4.5%   <- transition
+        1.40         0.916           0.008         1.0%
+
+    **The knife edge is gone, and that is what the fix bought.** The old network
+    bifurcated between 0.75 and 0.78 (rate 0.35 -> 0.50) and was unusable by 0.90. This
+    one climbs smoothly from 0.60 to 1.00 with genome-to-genome spread under 0.02, and
+    does not break until past 1.05. The usable band is roughly four times wider.
+
+    0.95 rather than the peak at 1.00-1.05, on E010's reasoning, which still holds:
+    weights move during learning, so leave margin. 0.95 sits ~0.12 below the
+    transition where the old 0.70 sat ~0.08 below its own, and its genome spread is
+    3.3% of the mean rate against 10% at 1.05. Take 0.90 if a run is ever seen to
+    drift its operating point upward.
+
+    **What the fix did not buy is separability.** At 0.95 it is 7.4%, against 7.5% for
+    the old usable default. Comparable, not better -- and the review that found the E/I
+    bug predicted a 1.4x improvement that did not materialise (E023). H2d's problem is
+    untouched: a hen still barely distinguishes a heard alarm from a seen hawk. What
+    changed is that the number no longer depends on holding a parameter to two decimal
+    places.
+
+    Separability still varies a lot between genomes, which is individual variation in
+    how well a given hen's wiring separates her world. It means per-seed results are
+    noisy and contrasts need replicates.
     """
     k_mask, k_w, k_in = jax.random.split(key, 3)
     n = reg.total
@@ -66,8 +113,26 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     growable = jnp.asarray(p_ij > 0.0) & ~jnp.eye(n, dtype=bool)
 
     # --- Dale's law: a neuron's outgoing weights all share its sign ---
-    n_exc = int(round(regions.EXCITATORY_FRACTION * n))
-    dale = jnp.asarray(np.where(np.arange(n) < n_exc, 1.0, -1.0), dtype=jnp.float32)
+    #
+    # Stratified *within each region*, not by flat index across the whole array. The
+    # old version took the first 80% of neurons by index; since regions are laid out
+    # contiguously that cut fell mid-arcopallium and left the pallium 100% excitatory,
+    # the hypothalamus and motor stub 100% inhibitory (E022). Interneurons are
+    # distributed throughout a real pallium, and a recurrent pool without them sits on
+    # a saddle-node, which is what made the gain a two-decimal-place quantity.
+    #
+    # Which neurons within a region are inhibitory is a genetic fact shared by the
+    # flock, so it is drawn from the mask key rather than the per-hen weight key.
+    rng_dale = np.random.default_rng(int(jax.random.randint(k_mask, (), 0, 2**30)))
+    dale_np = np.empty(n, dtype=np.float32)
+    for r_id, size in enumerate(reg.sizes):
+        lo, hi = reg.bounds(r_id)
+        n_exc = int(round(regions.EXCITATORY_FRACTION * size))
+        signs = np.full(size, -1.0, dtype=np.float32)
+        signs[:n_exc] = 1.0
+        rng_dale.shuffle(signs)
+        dale_np[lo:hi] = signs
+    dale = jnp.asarray(dale_np)
 
     fan_in = jnp.maximum(jnp.sum(mask, axis=1, keepdims=True), 1.0)
     w_raw = jnp.abs(jax.random.normal(k_w, (n_hens, n, n))) * (gain / jnp.sqrt(fan_in))
@@ -92,6 +157,19 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         jax.random.fold_in(k_w, 1), (n_hens, spec.MOTOR_DIM, m_hi - m_lo)
     ) * readout_scale
 
+    # Top-down projection onto the sensory representation the reflex arc reads.
+    # Starts at exactly zero: a newly hatched hen predicts nothing and perceives only
+    # what is in front of her. Every association she ever has is one she formed.
+    w_pred = jnp.zeros((n_hens, spec.OBS_DIM, n))
+
+    # Predictions come from the pallium only, never from the sensory stub. E008 found
+    # the first version was circular: sourced from the whole brain, it learned "when
+    # in hawk-state, predict hawk", because the sensory stub carries the hawk percept
+    # directly and dominates the association. Association cortex, one step removed
+    # from the relay, is also where top-down predictions come from in a real brain.
+    p_lo, p_hi = reg.bounds(regions.PALLIUM)
+    pred_src = jnp.zeros((n,), dtype=bool).at[p_lo:p_hi].set(True)
+
     tau = jnp.asarray(np.asarray(regions.REGION_TAU, dtype=np.float32)[rid])
 
     return BrainParams(
@@ -100,9 +178,11 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         growable=growable,
         W_in=jnp.asarray(w_in),
         W_out=w_out,
+        W_pred=w_pred,
+        pred_src=pred_src,
         b=jnp.full((n,), -2.0),
         tau=tau,
-        reflex=jnp.asarray(innate.reflex_matrix()),
+        reflex=jnp.asarray(innate.reflex_matrix(auditory_scaffold)),
         b_motor=jnp.asarray(innate.reflex_bias()),
         dale=dale,
     )

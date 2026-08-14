@@ -43,12 +43,17 @@ class Summary(NamedTuple):
     """Per-chunk record, for developmental runs."""
     t_s: jax.Array          # (C,) biological seconds at chunk end
     motor: jax.Array        # (C, MOTOR_DIM) flock-mean activation
-    calls: jax.Array        # (C, N_CALLS)
+    calls: jax.Array        # (C, N_CALLS) emitted
+    audio: jax.Array        # (C, N_CALLS) received -- differs whenever the channel is
+                            # manipulated, and is the only honest manipulation check
     hunger: jax.Array       # (C,)
     thirst: jax.Array
     cold: jax.Array
     head_down: jax.Array    # (C,) fraction of time with the beak down
     struck: jax.Array       # (C,) cumulative predator contacts, flock total
+    exposed: jax.Array      # (C,) cumulative steps in strike range, hiding or not
+    at_risk: jax.Array      # (C,) (hen, dive) pairs beginning inside the radius
+    caught: jax.Array       # (C,) of those, ones ending in a strike
     fed: jax.Array
     reward: jax.Array       # (C,) mean neuromodulator input
     synapses: jax.Array     # (C,) mean live synapses per hen
@@ -68,7 +73,8 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
     sigma = pc.explore_sigma / (1.0 + age_s / pc.explore_tau_s)
 
     obs = sensing.observe(w, cfg)
-    x, motor, drives = brain.step(x, obs, p, cfg.dt, k_explore, sigma)
+    x, motor, drives = brain.step(x, obs, p, cfg.dt, k_explore, sigma,
+                                  pc.pred_gain, ps.z_lag if pc.pred_enabled else None)
     w_next = world.step(w, motor, k_world, cfg)
 
     # Pathway magnitudes, carried out of the loop so a run can report whether the
@@ -81,7 +87,14 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
 
     r = neurons.rate(x)
     reward = plasticity.reward(w, w_next, cfg, pc)
-    ps = plasticity.update_traces(ps, r, motor, reward, cfg, pc)
+
+    # Prediction error, masked by what she could actually observe. A head-down hen is
+    # not seeing an empty sky; she is not looking, and training on that sample would
+    # teach her that alarm calls mean no hawk.
+    pred_err = None
+    if pc.pred_enabled:
+        pred_err = sensing.observability(w, cfg) * (obs - drives.predicted)
+    ps = plasticity.update_traces(ps, r, motor, reward, cfg, pc, pred_err)
 
     # Reward prediction error: what just happened, minus what she had come to expect.
     m = reward - ps.baseline
@@ -139,12 +152,21 @@ def _chunked(w, x, p, ps, key, cfg: CoopConfig, pc: PlasticConfig,
             t_s=w.t.astype(jnp.float32) * cfg.dt,
             motor=jnp.mean(motor, axis=(0, 1)),
             calls=jnp.mean(motor[:, :, list(spec.CALL_MOTOR_IDX)], axis=(0, 1)),
+            # What flockmates actually *hear*, as distinct from what is emitted. The
+            # two come apart the moment the channel is manipulated: a severed channel
+            # (E024's C0) has hens calling exactly as much and nobody receiving
+            # anything. E024's first manipulation check read `calls` and so reported a
+            # severed channel as working.
+            audio=jnp.mean(_obs[:, :, spec.AUDIO_LO:spec.AUDIO_HI], axis=(0, 1)),
             hunger=jnp.mean(w.hunger),
             thirst=jnp.mean(w.thirst),
             cold=jnp.mean(w.cold),
             head_down=jnp.mean(jnp.max(
                 motor[:, :, list(spec.HEAD_DOWN_ACTIONS)], axis=-1)),
             struck=jnp.sum(w.n_struck),
+            exposed=jnp.sum(w.n_exposed),
+            at_risk=jnp.sum(w.n_at_risk),
+            caught=jnp.sum(w.n_caught),
             fed=jnp.sum(w.n_fed),
             reward=jnp.mean(reward),
             synapses=jnp.mean(jnp.sum(p.W != 0.0, axis=(1, 2))),
