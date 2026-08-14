@@ -591,6 +591,25 @@ a change to the core architecture and has not been made.
 
 **Status: NOT STARTED** (phase 4) — **this is the headline**
 
+> **[E024](experiments/E024-h4-without-plasticity.md) attempted it and the control did
+> not work.** The full six-way ladder ran with no plasticity anywhere, and L came out
+> indistinguishable from C? (caught rate 0.280 vs 0.282, t=0.05) — which looks like the
+> falsifier firing. It is not. The shuffled channel **retains 90% of the intact
+> channel's correlation** with "a hawk is on *me*", because 38.8% of the flock sits
+> inside a live hawk's strike radius and hens standing together share a sky. Scrambling
+> the sender cannot destroy information carried by proximity.
+>
+> **No result is recorded against H4.** E024 is a design failure, not a null.
+>
+> What it did establish, on the clean C−/C0 contrast: an audible alarm channel with
+> innate comprehension roughly **halves the caught rate** (0.533 → 0.280) at unchanged
+> feeding. A channel helps. Whether the *information* in it helps is what H4 asks, and
+> is still untested.
+>
+> **T1 is retired as H4's vehicle.** Its information is shared by geometry, so no
+> sender-scrambling control can work there. H4 needs a task where the private
+> information is private to one hen.
+
 **Prediction:** on a task where information is private, costly to acquire alone, and
 changes at an intermediate rate, a flock with an intact channel outperforms a
 capacity-matched flock whose channel is shuffled between hens.
@@ -661,4 +680,5 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E020 | H2 re-run after the fixes. **The harm is gone** (+0.062 → +0.001, t=0.08) and so is the erosion (48% → 2.5%). H2 returns to a clean null; E013, E015 and E016 superseded. ~~Exploration is now costly~~ (withdrawn by E021). |
 | E021 | Both predictions wrong, both deleting claims. Learning does **not** repay its exploration cost (+0.021, wrong sign). The exploration cost **did not replicate** (t=3.84 → t=0.01). **SE was 4.4× larger on a fresh seed block** — no status may now change on one block. |
 | E022 | Second outside review, verified. **The pallium has no inhibitory neurons.** The primary metric sits on a knife edge (hens start at hunger 0.30; equilibrium *is* 0.30). Its top-ranked item — food layout as 80% of variance — **did not replicate** (30%, not 80%). |
+| E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
 | E023 | E/I fixed, gain re-baselined 0.70 → 0.95. **The knife-edge gain is gone** — usable band 4× wider. **Separability unchanged** (7.4% vs 7.5%), so H2d is untouched and the review's predicted 1.4× did not appear. Invalidates every prior number as *comparable*. |

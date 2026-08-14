@@ -222,7 +222,20 @@ top-ranked item is **not** here, because its headline number did not replicate.
    pairing already cancels it for free; removing it removes the correlated component that
    was making the pairing work. E022 addendum.
 
-3. **Run H4 with no plasticity at all.** §7 says phase 1 blocks everything below; it does
+3. ~~**Run H4 with no plasticity at all.**~~ **Done and the control failed
+   ([E024](experiments/E024-h4-without-plasticity.md)).** The ladder works; T1 does not.
+   A shuffled sender still reports your hawk because 38.8% of the flock shares it. See
+   item 0 below — **flock dispersal now blocks the headline experiment outright.**
+
+0. **Make the flock spread out.** Promoted above everything. Nearest-neighbour is
+   ~0.23 m in a 20 × 20 m run and nothing disperses them: food never depletes, so there
+   is no foraging competition, and the gregariousness reflex pulls them together with
+   nothing pushing back. This was filed as a T2 problem ("a signal naming a feeder is
+   useless when everyone stands at one"); E024 showed it is a T1 problem too, and it
+   defeats *any* sender-scrambling control. Depleting food patches is the obvious
+   candidate and is biologically right — real hens move on when a patch is worked out.
+
+~~3. **Run H4 with no plasticity at all.**~~ *(superseded, see above)* §7 says phase 1 blocks everything below; it does
    not block H4, whose prediction mentions no learning. Production is innate and passes
    7/7; calls are audible since E019; comprehension can be innate via the E018 scaffold.
    Needs the capacity ladder wired into `run_condition` (it hardcodes `DEFAULT_REGIONS`)

@@ -110,12 +110,96 @@ problem is deferred, not solved.
 
 ## 7. Result
 
-*To be written after the run.*
+48/48 cells, 8 matched seeds, 20 min, 16 hens.
 
-## 8. Interpretation
+| condition | fed % | caught rate | exposed | head down | alarm heard |
+|---|---|---|---|---|---|
+| N natural | 5.69 | 0.412 | 2878 | 0.662 | 0.1359 |
+| C− capacity | 5.36 | 0.533 | 2331 | 0.676 | 0.0000 |
+| C0 severed | 5.36 | 0.533 | 2331 | 0.676 | 0.0000 |
+| C? shuffled | 5.13 | **0.282** | 2662 | 0.621 | 0.1442 |
+| Cs self-only | 5.76 | 0.406 | 2616 | 0.662 | 0.0420 |
+| **L language** | 5.39 | **0.280** | 2680 | 0.637 | 0.1481 |
 
-*To be written after the run.*
+```
+HEADLINE  L vs C?:  caught rate  -0.002 +/- 0.051  t=0.05  noise
+                    fed %        +0.256 +/- 0.204  t=1.25  not significant
+```
+
+## 8. **The control does not work. This is not a test of H4.**
+
+Before writing the null up, the assumption the control rests on was measured: does the
+shuffled channel actually destroy information about a hen's *own* hawk?
+
+| | corr(heard, hawk on me) | heard given hawk | heard given no hawk | ratio |
+|---|---|---|---|---|
+| **intact** | 0.6239 | 0.9991 | 0.1408 | 7.09 |
+| **shuffled** | **0.5610** | 0.9596 | 0.1473 | **6.52** |
+
+**The shuffle retains 90% of the correlation and 92% of the signal-to-background
+ratio.** It is not an uninformative channel. It is a slightly degraded copy of the
+intact one.
+
+The cause is geometry, measured directly: **when a hawk is live, 38.8% of the flock on
+average (max 50%) is inside its strike radius.** Roughly six of sixteen hens share every
+hawk, and hens standing together see the same sky. So a randomly reassigned sender is
+very often reporting *your* hawk, and the permutation changes almost nothing.
+
+`L ≈ C?` is therefore close to an identity, not a finding. **E024 cannot refute H4 and
+does not.**
+
+**The error is one sentence in this file's own §6**, written before the run: *"For T1
+that is benign and arguably realistic — a hawk is a shared threat and a tight flock is
+what real birds form."* That reasoning is about whether clumping is **realistic**. The
+control does not need clumping to be unrealistic; it needs the shuffle to destroy
+information. Those are different claims and I substituted one for the other, in a
+caveat I wrote specifically to flag the risk.
+
+Worse, the deeper problem was visible in the task choice from the start. **T1's
+information is shared by construction** — a hawk over a flock is a common threat, so a
+flockmate's alarm is informative about your situation *because* you are in the same
+place. A control that scrambles the sender cannot destroy information that is carried
+by proximity rather than by identity. `docs/backlog.md` §3 even says T1 "is not the
+headline experiment"; I used it as one anyway.
+
+### What E024 does establish
+
+One contrast in the ladder is clean, because C− and C0 have **no** channel at all and so
+carry no such confound:
+
+**An audible alarm channel with innate comprehension roughly halves the caught rate** —
+0.533 with no channel against 0.280 with one, at essentially unchanged feeding (5.36 vs
+5.39). That is a real, measured benefit of having a channel.
+
+It is *not* H4. H4 asks whether the **information** in the channel does the work, and
+that question remains open: this design cannot separate information from arousal.
+
+### Predictions, scored
+
+All five wrong, and one instructively so.
+
+1. L beats C? on strikes 15–40% — **wrong**, t=0.05.
+2. L ≥ C? on fed % — direction right, not significant.
+3. C? ≈ C0 — **wrong, and this was the tell.** A "zero-information" channel nearly
+   halved the caught rate. I read that as a surprising result about arousal. It was the
+   control announcing that it was not uninformative, and I should have checked then
+   rather than after the full run.
+4. L > C− on fed % — **wrong**, +0.030, t=0.16.
+5. Cs ≈ C0 — **wrong**, 0.406 vs 0.533.
 
 ## 9. Consequence
 
-*To be written after the run.*
+- **H4 stays `NOT STARTED`.** No result is recorded against it. E024 is marked as a
+  design failure rather than a null, because a null implies a valid test.
+- **The flock clumping item is promoted to the top of the backlog.** It was filed as a
+  T2 problem; it is a T1 problem too, and it blocks the headline experiment outright.
+- **T1 is retired as the vehicle for H4.** It can still validate the harness and it does
+  test *usage*, but its information is shared by geometry and no sender-scrambling
+  control can work there. H4 needs a task where the private information is genuinely
+  private to one hen.
+- **New requirement for any H4 control:** the shuffle-informativeness diagnostic in
+  `scratchpad/shuffle_info.py` must be run and reported *before* the ladder, not after.
+  A control whose validity is untested is not a control.
+- **Retained:** the ladder, the channel modes, capacity scaling, `caught_rate`, hawk
+  targeting and the checkpointing all work and are reusable. The instrument is sound;
+  the task was wrong.
