@@ -40,6 +40,9 @@ from run import simulate
 from run.experiment import _t_critical
 
 ABSENT = 1e4
+# Where the hawk hangs while stooping: outside the strike radius, inside the caller's
+# vision. She can see it coming; the head-down focal hen cannot.
+STOOP_DIST = 6.0
 # The focal hen forages here; the caller stands within earshot but far enough that a
 # hawk over one is not automatically over the other.
 FOCAL = (10.0, 10.0)
@@ -74,7 +77,8 @@ def _variant(p, keep: str):
 
 
 def trial(dist: float, jitter: jax.Array, *, channel: str, keep: str,
-          scaffold: bool, settle: int = 300, steps: int = 400) -> Trial:
+          scaffold: bool, settle: int = 300, stoop: int = 150,
+          steps: int = 250) -> Trial:
     """One staged dive, in two phases. The focal hen is head-down and blind.
 
     **The two phases are not optional.** The first version placed the hawk live at
@@ -142,19 +146,36 @@ def trial(dist: float, jitter: jax.Array, *, channel: str, keep: str,
             pecking = True
             break
 
-    # Phase 2: the hawk commits, while her beak is down. Strikes counted from here.
-    struck_before = float(w.n_struck[0])
-    w = w._replace(hawk_pos=jnp.asarray([FOCAL[0], FOCAL[1]]) + off * dist,
+    # Phase 2: the STOOP. The hawk is up and closing, far enough that it cannot
+    # strike yet but close enough for the head-up caller to see it and call.
+    #
+    # Without this the assay has no response window at all. A hawk placed straight
+    # inside the strike radius lands a hit on the first step, before anything -- heard
+    # or seen -- can propagate through a 50 ms membrane constant, so `struck` came out
+    # at 62.5% in all five conditions: purely the fraction of distance bins inside
+    # 1.5 m. Real raptors stoop, and the second or two of approach is precisely the
+    # window an alarm call is *for*.
+    w = w._replace(hawk_pos=jnp.asarray([FOCAL[0], FOCAL[1]]) + off * STOOP_DIST,
                    hawk_on=jnp.array(1.0), hawk_t=jnp.array(1e4))
+    w, x, _p, _ps, _k, tr_stoop = simulate.rollout(
+        w, x, p, jax.random.key(3), cfg, stoop)
+
+    # Phase 3: contact. Strikes counted from here only.
+    struck_before = float(w.n_struck[0])
+    w = w._replace(hawk_pos=jnp.asarray([FOCAL[0], FOCAL[1]]) + off * dist)
     w_end, _x, _p, _ps, _k, tr = simulate.rollout(
-        w, x, p, jax.random.key(3), cfg, steps)
+        w, x, p, jax.random.key(4), cfg, steps)
     aer = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
     return Trial(
         valid=pecking,
         struck=bool(float(w_end.n_struck[0]) - struck_before > 0),
-        crouched=bool(jnp.max(tr.motor[:, 0, spec.M_CROUCH]) > 0.5),
-        saw_hawk=bool(jnp.max(tr.obs[:, 0, spec.IDX_AERIAL]) > 0.05),
-        heard=float(jnp.max(tr.obs[:, 0, aer])),
+        # Read during the STOOP, not the whole trial: the question is what she knew
+        # and did while the hawk was still closing. Maxing over the contact phase too
+        # would count her seeing it after it had already landed on her, which is why
+        # `saw hawk` read 100% in every condition including the blind one.
+        crouched=bool(jnp.max(tr_stoop.motor[:, 0, spec.M_CROUCH]) > 0.5),
+        saw_hawk=bool(jnp.max(tr_stoop.obs[:, 0, spec.IDX_AERIAL]) > 0.05),
+        heard=float(jnp.max(tr_stoop.obs[:, 0, aer])),
     )
 
 
@@ -180,8 +201,8 @@ def main() -> None:
 
     print(f"staged predator trials: {args.trials} dive directions x {len(dists)} "
           f"distances = {args.trials * len(dists)} per condition")
-    print("focal hen settles onto food for 3 s first, so the aerial gate is genuinely")
-    print("shut when the hawk commits; caller 4 m away is head-up and can see.")
+    print("focal hen pecks (gate shut) -> hawk stoops at 6 m for 1.5 s -> contact.")
+    print("the caller can see the stoop; the focal hen can only hear about it.")
     print(f"strike radius {spec.DEFAULT_COOP.hawk_strike_radius} m\n")
 
     hdr = (f"{'condition':<26}{'struck %':>10}{'crouched %':>12}{'saw hawk %':>12}"
