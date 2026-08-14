@@ -589,38 +589,44 @@ a change to the core architecture and has not been made.
 
 ## H4 — an intact channel beats a shuffled one on a task requiring private information
 
-**Status: NOT STARTED** (phase 4) — **this is the headline**
+**Status: SUPPORTED** at this capacity and this task —
+[E026](experiments/E026-h4-supported.md). **The first status past H1a to be supported,
+and the headline.**
 
-> **[E024](experiments/E024-h4-without-plasticity.md) attempted it and the control did
-> not work.** The full six-way ladder ran with no plasticity anywhere, and L came out
-> indistinguishable from C? (caught rate 0.280 vs 0.282, t=0.05) — which looks like the
-> falsifier firing. It is not. The shuffled channel **retains 90% of the intact
-> channel's correlation** with "a hawk is on *me*", because 38.8% of the flock sits
-> inside a live hawk's strike radius and hens standing together share a sky. Scrambling
-> the sender cannot destroy information carried by proximity.
->
-> **No result is recorded against H4.** E024 is a design failure, not a null.
->
-> What it did establish, on the clean C−/C0 contrast: an audible alarm channel with
-> innate comprehension roughly **halves the caught rate** (0.533 → 0.280) at unchanged
-> feeding. A channel helps. Whether the *information* in it helps is what H4 asks, and
-> is still untested.
->
-> **T1 is retired as H4's vehicle.** Its information is shared by geometry, so no
-> sender-scrambling control can work there. H4 needs a task where the private
-> information is private to one hen.
+A hen who can hear her flockmates is caught **~20 percentage points less often** in
+exactly the moments she could not see the hawk herself.
 
-**Prediction:** on a task where information is private, costly to acquire alone, and
-changes at an intermediate rate, a flock with an intact channel outperforms a
-capacity-matched flock whose channel is shuffled between hens.
+Metric: P(caught | at risk **and blind** at dive onset) — a denominator fixed the
+instant the hawk commits, restricted to hens who could not see it, so the treatment
+cannot move it and the subset is the only one where a call carries information the
+receiver lacks.
 
-**Design:** the six-way condition ladder in `docs/backlog.md`. The headline contrast
-is **L vs C?** (shuffled), not L vs a smaller brain — a reduced-capacity control
-confounds capacity with language and cannot answer this.
+| contrast vs deaf | block A (0–11) | block B (12–23) | **pooled, 24 seeds** |
+|---|---|---|---|
+| **intact channel** | −0.187 ± 0.071 | −0.208 ± 0.095 | **−0.198 ± 0.059, t=3.33** |
+| **yoked control** | +0.017 ± 0.040 | +0.052 ± 0.077 | +0.035 ± 0.043, noise |
+| intact, no scaffold | +0.031 ± 0.046 | +0.103 ± 0.043 | +0.067 ± 0.031 |
 
-**Falsifiers:** L ≈ C? at every capacity; or muting the channel in a *trained* L
-flock costs nothing; or C− (extra capacity, no channel) ≈ L, meaning the neurons did
-the work.
+**Both falsifiers were checked and neither fires.** The yoked control — identical calls,
+rate, amplitude and energetic cost, shifted in time so it carries no contingency — is
+flat in *both* blocks. The benefit is the **information**, not the arousal. And an
+intact channel without comprehension gives no benefit, so the channel needs a receiver.
+
+**Replicated on seeds decided before they were run**, per the E021 rule. −0.187 then
+−0.208; block B misses significance alone (t=2.19 vs 2.201) with a *larger* magnitude,
+the opposite shape to E021's collapse.
+
+**What this does not license.** No plasticity anywhere — comprehension is innate via the
+E018 scaffold, so this shows a working channel helps, not that language is *learned*.
+H4's prediction never mentioned learning, so this is H4 as written; H0 wants more, and
+H2 remains a clean null. T1 only: the signal means "danger", not *which* feeder. And it
+runs on a world that changed the same day (the hawk approach phase), so no other number
+in this tree is directly comparable to it.
+
+**Four defects stood in the way and all were measurement errors, not brain problems:**
+a control that retained 98% of the information it was meant to destroy; a risk metric
+confounded three different ways; a world with no interval in which a warning could
+arrive; and an innate response arithmetically incapable of hiding a hen. See E026 §2.
 
 ---
 
@@ -680,5 +686,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E020 | H2 re-run after the fixes. **The harm is gone** (+0.062 → +0.001, t=0.08) and so is the erosion (48% → 2.5%). H2 returns to a clean null; E013, E015 and E016 superseded. ~~Exploration is now costly~~ (withdrawn by E021). |
 | E021 | Both predictions wrong, both deleting claims. Learning does **not** repay its exploration cost (+0.021, wrong sign). The exploration cost **did not replicate** (t=3.84 → t=0.01). **SE was 4.4× larger on a fresh seed block** — no status may now change on one block. |
 | E022 | Second outside review, verified. **The pallium has no inhibitory neurons.** The primary metric sits on a knife edge (hens start at hunger 0.30; equilibrium *is* 0.30). Its top-ranked item — food layout as 80% of variance — **did not replicate** (30%, not 80%). |
+| E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
+| E025 | Food depletion added; it does **not** disperse the flock, and dispersal was never the problem. No file. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
 | E023 | E/I fixed, gain re-baselined 0.70 → 0.95. **The knife-edge gain is gone** — usable band 4× wider. **Separability unchanged** (7.4% vs 7.5%), so H2d is untouched and the review's predicted 1.4× did not appear. Invalidates every prior number as *comparable*. |
