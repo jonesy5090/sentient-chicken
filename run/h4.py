@@ -24,6 +24,8 @@ score starvation as success.
 """
 
 import argparse
+import json
+import os
 import time
 from typing import NamedTuple
 
@@ -116,6 +118,33 @@ def run_condition(cond: Condition, seed: int, cfg: CoopConfig,
     )
 
 
+# --- Checkpointing -----------------------------------------------------------
+#
+# A full ladder is ~10 minutes per condition, and this environment reclaims the
+# container between turns -- two runs were killed mid-ladder before this existed, one
+# of them after five of six conditions. Every (condition, seed) cell is therefore
+# written to disk the moment it completes, and a restart skips what is already there.
+# Nothing about the experiment changes; the runs are deterministic, so a resumed
+# ladder is bit-identical to one that ran straight through.
+
+def _cache_load(path: str) -> dict:
+    if not os.path.exists(path):
+        return {}
+    with open(path) as f:
+        return json.load(f)
+
+
+def _cache_save(path: str, cache: dict) -> None:
+    tmp = path + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(cache, f)
+    os.replace(tmp, path)          # atomic: a kill mid-write cannot corrupt the cache
+
+
+def _key(cond_name: str, seed: int, minutes: float, hens: int, hawk: float) -> str:
+    return f"{cond_name}|{seed}|{minutes}|{hens}|{hawk}"
+
+
 def _paired(a, b, seeds: int):
     d = jnp.array(a) - jnp.array(b)
     mean = float(jnp.mean(d))
@@ -135,6 +164,11 @@ def main() -> None:
     ap.add_argument("--seeds", type=int, default=8)
     ap.add_argument("--seed-offset", type=int, default=0)
     ap.add_argument("--hens", type=int, default=spec.DEFAULT_COOP.n_hens)
+    ap.add_argument("--cache", default="scratchpad/e024_cache.json",
+                    help="per-cell results, so a killed run resumes instead of restarting")
+    ap.add_argument("--budget", type=float, default=480.0,
+                    help="stop starting new cells after this many seconds and exit "
+                         "cleanly, so a turn-bounded environment always makes progress")
     ap.add_argument("--hawk-period", type=float, default=60.0,
                     help="seconds between hawk passes; the default coop's 900 gives "
                          "~1.3 passes in 20 min, so the whole H4 signal would rest on "
@@ -158,15 +192,39 @@ def main() -> None:
     print("-" * len(hdr))
 
     t0 = time.perf_counter()
-    table = {}
+    cache = _cache_load(args.cache)
+    table, missing = {}, 0
     for cond in LADDER:
-        rs = [run_condition(cond, s, cfg, seconds) for s in seeds]
+        rs = []
+        for sd in seeds:
+            k = _key(cond.name, sd, args.minutes, cfg.n_hens, args.hawk_period)
+            if k in cache:
+                rs.append(H4Result(*cache[k]))
+                continue
+            if time.perf_counter() - t0 > args.budget:
+                missing += 1
+                continue
+            r = run_condition(cond, sd, cfg, seconds)
+            cache[k] = list(r)
+            _cache_save(args.cache, cache)
+            rs.append(r)
+        if len(rs) < len(seeds):
+            missing += len(seeds) - len(rs)
+            continue
         table[cond.name] = rs
         m = lambda f: float(jnp.mean(jnp.array([f(r) for r in rs])))
         print(f"{cond.name:<14}{m(lambda r: r.fed_rate):>8.2f}"
               f"{m(lambda r: r.caught_rate):>13.3f}{m(lambda r: r.exposed):>10.0f}"
               f"{m(lambda r: r.head_down):>11.3f}"
               f"{m(lambda r: r.hunger):>8.3f}{m(lambda r: r.heard):>13.4f}")
+
+    done = len(table) * len(seeds)
+    total = len(LADDER) * len(seeds)
+    if missing:
+        print(f"\nINCOMPLETE: {done}/{total} cells cached, {missing} still to run.")
+        print(f"Re-run the same command to continue; finished cells are not repeated.")
+        print(f"wall clock this pass: {time.perf_counter() - t0:.0f} s")
+        return
 
     n = len(seeds)
     col = lambda name, g: [g(r) for r in table[name]]
