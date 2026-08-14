@@ -13,9 +13,12 @@ environment lets us refuse to pay for vision and motor control and spend the
 remainder on a pallium.
 
 Current state: phase 0 proven; phase 1 **built but not proven** — the learning rule is
-currently a clean null (E020), and saying "phase 1 complete" is exactly the
-built-versus-proven conflation this file warns about. `docs/hypothesis.md` is
-authoritative; `/status` will read it for you.
+a clean null (E020/E021), and saying "phase 1 complete" is exactly the
+built-versus-proven conflation this file warns about. **H4, the headline, is SUPPORTED**
+(E026): an intact channel beats a time-shifted one by −0.198 ± 0.059 on P(caught while
+blind), 24 seeds, two blocks — with no plasticity anywhere, so it shows a channel helps,
+not that language is learned. `docs/hypothesis.md` is authoritative; `/status` will read
+it for you.
 
 ## Why this is worth doing, and therefore what not to break
 
@@ -37,16 +40,25 @@ lacks something the sender has, so without that asymmetry no signal is ever wort
 making, at any brain size. It reads like an odd sensory quirk. It is the load-bearing
 wall. Measured at 0.01 vs 0.87 aerial signal in the same bird seconds apart.
 
-**The control design is what makes the result falsifiable.** The headline comparison
-is an intact channel against a *shuffled* one — identical brain, identical bandwidth,
-zero information — plus a lesion of a trained flock. Anything less rigorous cannot
-distinguish "language helps" from "more neurons help". `docs/backlog.md` §1 is not
-bureaucracy; it is the experiment.
+**The control design is what makes the result falsifiable.** The headline comparison is
+an intact channel against one carrying no information — plus a lesion of a trained
+flock. Anything less rigorous cannot distinguish "language helps" from "more neurons
+help". `docs/backlog.md` §1 is not bureaucracy; it is the experiment.
 
-**The negative results are assets.** E001 is a null and it is the most useful file in
-`docs/experiments/`. E002 found a ceiling nobody predicted. E003 caught a bug in our
-own statistics. E004 found that structural growth *hurts*. A version of this project
-that reports only its successes would be worth much less.
+**And the control must be *measured*, not argued.** E024's control permuted which
+flockmate you hear, which sounds airtight and retained **98%** of the information it was
+meant to destroy — every hen already hears every other, so scrambling the sender leaves
+"someone is calling right now" intact, and that is nearly the whole signal. The control
+that works is **yoked**: the flock's real calls, shifted in time. Correlation with "a
+hawk is on me" goes +0.56 → −0.13. Any future control gets the same treatment before
+the ladder runs, never after.
+
+**The negative results are assets, and the corrections are worth more.** E001 is a null
+and one of the most useful files in `docs/experiments/`. E003 caught a bug in our own
+statistics. E019 found three defects that invalidated eighteen experiments. E021 showed
+a t=3.84 evaporating on fresh seeds. E026 got H4 supported only after correcting a
+control, a metric and the world itself. A version of this project that reported only its
+successes would be worth much less — and would still be stuck at experiment 25.
 
 **The ethics question is live, not ceremonial.** See below.
 
@@ -160,6 +172,8 @@ rather than a footnote.
   t=3.84 into t=0.01. The pairing and the t table are both fine; what is not safe is
   assuming a block's *variance* is representative. A homogeneous block makes a small
   difference look decisive.
+- **Before the run, not after: does the instrument work?** See §3 above. The single
+  highest-value habit in this repo.
 - **Test a post-hoc observation on data that did not generate it.** E021's question A
   came from noticing something in E020. Re-reading it off E020's own seeds would have
   confirmed it; fresh seeds falsified it, sign and all.
@@ -167,6 +181,62 @@ rather than a footnote.
 
 If asked to run something that does not ladder up to H0, say so and propose where it
 would attach.
+
+### 3. Test the instrument before the hypothesis
+
+**This is the most expensive lesson the project has learned and it is worth the space.**
+
+H4 took twenty-six experiments. Every single thing that blocked it was a **measurement
+error, not a fact about the brain**:
+
+| what was concluded | what was actually true |
+|---|---|
+| comprehension will not emerge (E005–E009) | a full-amplitude alarm moved the receiver's channel by **0.0000** |
+| learning erodes the connectome (E013–E016) | the readout could only slide a constant, and reward was **98% call cost** |
+| the pallium cannot separate stimuli (H2d) | it had **zero inhibitory neurons** — E/I was assigned by array index |
+| learning does not improve foraging (H2) | hens start at hunger 0.30, which **is** the equilibrium; the metric was a coin flip |
+| an intact channel ≈ a shuffled one (E024) | the "shuffled" control **retained 98%** of the information |
+| a channel halves predation risk (E024) | the metric's denominator moved *with* the treatment |
+| hearing an alarm does not save a hen (E026) | the world gave **no interval** in which a warning could arrive |
+
+Twenty-five experiments reasoning about a bird whose instruments were broken. The
+brain was rarely the problem.
+
+**So before running a contrast, measure that the instrument can see the effect.** Not
+"does the code run" — whether a positive result is *physically reachable*. Six checks,
+each of which has caught a real defect here:
+
+1. **Does the manipulated variable actually vary?** Measure it in the running
+   simulation, at the configuration the experiment uses. The audio channel read 0.999
+   at rest and 1.000 during an alarm for eighteen experiments.
+2. **Does the control destroy what it claims to?** Measure the correlation it is
+   supposed to break. Permuting senders left 98% intact because every hen hears every
+   other; only a *time*-shift worked.
+3. **Can the treatment move the denominator?** If crouching keeps a hen in the strike
+   radius, then "strikes per exposure-step" rewards her for lingering. Anchor
+   denominators to something fixed before the response.
+4. **Is there a physical path from cause to effect?** Do the arithmetic. Hearing an
+   alarm drove crouch to `sigmoid(1.5 − 2.5) = 0.269`; hiding required `> 0.5`. Both
+   numbers were in the source, written by the same person, never multiplied together.
+5. **Does the dependent variable have room to move in both directions?**
+   P(caught | blind) was 1.000, 0.984, 0.981 across three conditions — a ceiling, not
+   a finding.
+6. **Would a positive result be detectable at all?** If the rule has a 0.2 s credit
+   window and the task pays off over 10–30 s, a null says nothing about the rule.
+
+**The rule that follows: a null is only informative if the instrument could have shown
+a positive.** When an experiment returns nothing, the first question is not "why did the
+brain fail" but "could this setup have detected success?" Twenty-five times the answer
+was no, and each time the project generated a mechanism instead.
+
+**A positive control is not optional.** Before concluding a rule cannot learn something,
+show the harness detecting an effect you have deliberately planted. If it cannot see a
+hand-wired success, it cannot see a real one.
+
+**Corollary for reviews and comments.** A plausible sentence sitting next to the code is
+not evidence. `_channel`'s docstring claimed the shuffle carried no information, directly
+above the code, while the measured correction lived in another file. Prose is a claim;
+only a measurement is a fact.
 
 ## Design invariants
 
