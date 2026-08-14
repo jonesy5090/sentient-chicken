@@ -51,10 +51,10 @@ CALLER = (14.0, 10.0)
 
 class Trial(NamedTuple):
     valid: bool           # was she actually head-down when the hawk committed?
-    struck: bool          # was the focal hen hit during the dive?
-    crouched: bool        # did she ever cross the hiding threshold?
-    saw_hawk: bool        # did the aerial channel ever open for her?
-    heard: float          # peak alarm-channel input
+    struck: bool          # was the focal hen hit after contact?
+    crouched: bool        # was she hiding at the moment of contact?
+    blind: bool           # could she NOT see the hawk at the moment of contact?
+    heard: float          # peak alarm-channel input during the stoop
 
 
 def _variant(p, keep: str):
@@ -108,8 +108,15 @@ def trial(dist: float, jitter: jax.Array, *, channel: str, keep: str,
         pos=jnp.asarray([FOCAL, CALLER], dtype=jnp.float32),
         heading=jnp.zeros((2,)),
         # Food under the focal hen only: she forages, the caller watches the sky.
-        food_pos=jnp.full((cfg.n_food, 2), ABSENT).at[0].set(
-            jnp.asarray([FOCAL[0] + 0.15, FOCAL[1]])),
+        # A ring of patches, not one. She cannot hold station -- TONIC_FORWARD plus
+        # the hunger drive walk her ~0.2 m/s -- so a single patch means she is off it
+        # within a second and her head comes up for reasons that have nothing to do
+        # with the hawk. A cluster keeps her genuinely foraging through the stoop,
+        # which is the state the whole assay is about.
+        food_pos=jnp.stack([
+            jnp.asarray([FOCAL[0] + 0.25 * jnp.cos(a),
+                         FOCAL[1] + 0.25 * jnp.sin(a)])
+            for a in jnp.linspace(0.0, 2 * jnp.pi, cfg.n_food, endpoint=False)]),
         water_pos=jnp.full((cfg.n_water, 2), ABSENT),
         hawk_pos=jnp.asarray([ABSENT, ABSENT]),
         hawk_on=jnp.array(0.0),
@@ -155,26 +162,48 @@ def trial(dist: float, jitter: jax.Array, *, channel: str, keep: str,
     # at 62.5% in all five conditions: purely the fraction of distance bins inside
     # 1.5 m. Real raptors stoop, and the second or two of approach is precisely the
     # window an alarm call is *for*.
-    w = w._replace(hawk_pos=jnp.asarray([FOCAL[0], FOCAL[1]]) + off * STOOP_DIST,
+    # Relative to where she IS, not where she started. She forages for several
+    # seconds first and drifts a metre or more; placing the hawk at the original
+    # staging point put it outside the strike radius no matter what `dist` said, so
+    # nobody was ever struck -- deaf, blind and uncrouched included.
+    here = w.pos[0]
+    # Re-centre the food on her before the stoop. She walks ~0.2 m/s, so a ring placed
+    # at staging time is behind her by the time the hawk arrives -- measured: head_down
+    # 0.988 after settling, 0.500 after a 1.5 s stoop, because the patches had passed
+    # under her and there was nothing in her front bins to peck at. Half a gate is wide
+    # open at half a metre, so she saw the hawk, crouched, and was never struck in any
+    # condition. Re-centring holds the posture the assay is about.
+    ring = jnp.stack([here + 0.25 * jnp.stack([jnp.cos(a), jnp.sin(a)])
+                      for a in jnp.linspace(0.0, 2 * jnp.pi, cfg.n_food, endpoint=False)])
+    w = w._replace(food_pos=ring, food_amount=jnp.ones((cfg.n_food,)),
+                   hawk_pos=here + off * STOOP_DIST,
                    hawk_on=jnp.array(1.0), hawk_t=jnp.array(1e4))
     w, x, _p, _ps, _k, tr_stoop = simulate.rollout(
         w, x, p, jax.random.key(3), cfg, stoop)
 
     # Phase 3: contact. Strikes counted from here only.
     struck_before = float(w.n_struck[0])
-    w = w._replace(hawk_pos=jnp.asarray([FOCAL[0], FOCAL[1]]) + off * dist)
+    w = w._replace(hawk_pos=w.pos[0] + off * dist)
     w_end, _x, _p, _ps, _k, tr = simulate.rollout(
         w, x, p, jax.random.key(4), cfg, steps)
     aer = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
+    # Read at the LAST step of the stoop -- the instant before contact.
+    #
+    # The previous version maxed over the whole 1.5 s stoop and so answered "did she
+    # glance up at any point in a second and a half", which is nearly always yes and
+    # read 100% in every condition including the deaf one. The question is what she
+    # could see *when it arrived*. Free-flock measurement puts that at 47.4% blind at
+    # dive onset, so roughly half of trials should land in the informative subset.
     return Trial(
         valid=pecking,
         struck=bool(float(w_end.n_struck[0]) - struck_before > 0),
-        # Read during the STOOP, not the whole trial: the question is what she knew
-        # and did while the hawk was still closing. Maxing over the contact phase too
-        # would count her seeing it after it had already landed on her, which is why
-        # `saw hawk` read 100% in every condition including the blind one.
-        crouched=bool(jnp.max(tr_stoop.motor[:, 0, spec.M_CROUCH]) > 0.5),
-        saw_hawk=bool(jnp.max(tr_stoop.obs[:, 0, spec.IDX_AERIAL]) > 0.05),
+        crouched=bool(tr_stoop.motor[-1, 0, spec.M_CROUCH] > 0.5),
+        # Blindness AT CONTACT, read from the first contact step before she can react.
+        # The previous version read it at the end of the stoop, when the hawk was still
+        # 6 m off -- so it reported 100% blind while she could see the same hawk
+        # perfectly once it closed to half a metre. Different distance, different
+        # question.
+        blind=bool(tr.obs[0, 0, spec.IDX_AERIAL] < 0.3125),
         heard=float(jnp.max(tr_stoop.obs[:, 0, aer])),
     )
 
@@ -205,8 +234,8 @@ def main() -> None:
     print("the caller can see the stoop; the focal hen can only hear about it.")
     print(f"strike radius {spec.DEFAULT_COOP.hawk_strike_radius} m\n")
 
-    hdr = (f"{'condition':<26}{'struck %':>10}{'crouched %':>12}{'saw hawk %':>12}"
-           f"{'heard':>8}{'valid':>10}")
+    hdr = (f"{'condition':<26}{'struck %':>10}{'struck|blind':>13}{'blind %':>9}"
+           f"{'crouched %':>12}{'heard':>8}")
     print(hdr); print("-" * len(hdr))
 
     out = {}
@@ -219,10 +248,11 @@ def main() -> None:
             print(f"{name:<26}  NO VALID TRIALS -- she was never head-down at onset")
             continue
         f = lambda g: 100 * float(np.mean([g(r) for r in rs]))
-        print(f"{name:<26}{f(lambda r: r.struck):>10.1f}{f(lambda r: r.crouched):>12.1f}"
-              f"{f(lambda r: r.saw_hawk):>12.1f}"
-              f"{np.mean([r.heard for r in rs]):>8.3f}"
-              f"{100*len(rs)/len(all_rs):>9.0f}%")
+        blind = [r for r in rs if r.blind]
+        sb = (100 * float(np.mean([r.struck for r in blind])) if blind else float("nan"))
+        print(f"{name:<26}{f(lambda r: r.struck):>10.1f}{sb:>13.1f}"
+              f"{f(lambda r: r.blind):>9.1f}{f(lambda r: r.crouched):>12.1f}"
+              f"{np.mean([r.heard for r in rs]):>8.3f}")
 
     base = np.array([r.struck for r in out["deaf (no channel)"]], dtype=float)
     n = len(base)
@@ -244,8 +274,11 @@ def main() -> None:
                 else f"suggestive (t={t:.2f})" if t > 1.0 else f"noise (t={t:.2f})")
         print(f"  {name:<26} struck {100*mean:+6.1f} pp +/- {100*se:.1f}   {flag}")
 
-    print("\nIf 'response only' matches the deaf hen, the call cannot save her by itself")
-    print("and the channel is an interrupt. If it matches the full scaffold, it can.")
+    print("\nstruck|blind is the number that matters: of the trials where she could NOT")
+    print("see the hawk at contact, how often was she caught? That is the subset where")
+    print("a call carries information she does not already have.")
+    print("\nIf 'response only' matches the deaf hen there, the call cannot save her by")
+    print("itself and the channel is an interrupt. If it matches the full scaffold, it can.")
 
 
 if __name__ == "__main__":
