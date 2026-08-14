@@ -21,6 +21,7 @@ from run.experiment import _t_critical
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--seeds", type=int, default=12)
+ap.add_argument("--seed-offset", type=int, default=0)
 ap.add_argument("--minutes", type=float, default=10.0)
 args = ap.parse_args()
 
@@ -31,8 +32,8 @@ CONDITIONS = (
     ("intact, no scaffold",     dict(channel="intact", scaffold=False)),
 )
 
-print(f"blind-at-onset risk, {args.seeds} matched seeds x {args.minutes:.0f} min, "
-      f"hawk every 20 s\n")
+print(f"blind-at-onset risk, seeds {args.seed_offset}-"
+      f"{args.seed_offset + args.seeds - 1} x {args.minutes:.0f} min, hawk every 20 s\n")
 hdr = (f"{'condition':<24}{'blind risks':>13}{'caught|blind':>14}"
        f"{'all risks':>11}{'caught|risk':>13}{'fed %':>8}")
 print(hdr); print("-" * len(hdr))
@@ -40,9 +41,14 @@ print(hdr); print("-" * len(hdr))
 out = {}
 for name, kw in CONDITIONS:
     per_seed = []
-    for s in range(args.seeds):
-        cfg = spec.DEFAULT_COOP._replace(n_hens=16, hawk_period_s=20.0,
-                                         channel_mode=kw["channel"])
+    for s in range(args.seed_offset, args.seed_offset + args.seeds):
+        cfg = spec.DEFAULT_COOP._replace(
+            n_hens=16, hawk_period_s=20.0, channel_mode=kw["channel"],
+            # The ring buffer is off by default (it costs throughput); only the yoked
+            # control needs it, and asking for yoked without it raises rather than
+            # silently reading unwritten zeros.
+            call_log_steps=(spec.YOKE_LOG_STEPS
+                            if kw["channel"] == "yoked" else 1))
         w = world.reset(jax.random.key(s), cfg)
         p = connectome.build(jax.random.fold_in(jax.random.key(s), 1),
                              regions.DEFAULT_REGIONS.with_pallium(1.5),

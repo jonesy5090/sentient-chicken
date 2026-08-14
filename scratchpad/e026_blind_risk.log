@@ -1,0 +1,16 @@
+blind-at-onset risk, 12 matched seeds x 10 min, hawk every 20 s
+
+condition                 blind risks  caught|blind  all risks  caught|risk   fed %
+-----------------------------------------------------------------------------------
+deaf (no channel)                 400         0.725        661        0.567    3.06
+intact channel                    380         0.582        617        0.379    3.07
+yoked control                     356         0.753        614        0.547    3.00
+intact, no scaffold               372         0.739        586        0.565    3.20
+
+--- vs the deaf hen, paired across seeds, on blind risks only ---
+  intact channel           -0.187 +/- 0.071  (n=12)  SIGNIFICANT
+  yoked control            +0.017 +/- 0.040  (n=12)  noise (t=0.43)
+  intact, no scaffold      +0.031 +/- 0.046  (n=12)  noise (t=0.66)
+
+negative = fewer catches than the deaf hen among the moments she was blind.
+intact should beat deaf; if yoked matches intact, the content is doing no work.
