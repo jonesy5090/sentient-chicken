@@ -63,13 +63,35 @@ def _channel(atten: jax.Array, w, cfg: CoopConfig) -> jax.Array:
     if mode == "intact":
         return atten
     if mode == "none" or mode == "severed":
-        # C0 severs at the receiver, not the sender: she still pays to call.
+        # Both deliver silence. They are meant to differ in whether she still *pays*
+        # to call, which lives in `call_vigour_drain`, not here -- so as conditions
+        # they are only distinct if the caller sets that too. E024 ran them as separate
+        # rungs and got bit-identical results on all 8 seeds (E026); its prediction
+        # "C? ~ C0" was scored against a duplicate row.
         return jnp.zeros_like(atten)
     if mode == "self":
         # Cs: only her own voice, at the amplitude a flockmate beside her would hear.
         # `atten` has the diagonal suppressed (world.py adds 1e6 to self-distance),
         # so it is restored explicitly rather than read back off the matrix.
         return jnp.eye(h)
+    if mode == "yoked":
+        # THE CONTROL. She hears the flock's real calls, shifted in time by a per-hen
+        # lag longer than a hawk dive. Identical rate, amplitude distribution, burst
+        # structure and cost; no contingency with her current world.
+        #
+        # A within-timestep permutation cannot do this. Every hen already hears every
+        # other (hear_range 15 m in a 20 m arena), so permuting the sender preserves
+        # "someone is calling right now" -- which in this coop is almost the whole
+        # signal. Measured (E026), correlation with "a hawk is on me":
+        #     intact 0.5595 | permuted 0.5496 (98% kept) | yoked -0.1288 (destroyed)
+        # The surviving component is temporal, which is why no amount of dispersal
+        # rescued it.
+        #
+        # Implemented at the caller: `world.step` keeps a ring buffer of past calls and
+        # hands `sensing.observe` the lagged slice, because the lag has to reach back
+        # further than one step. Here the routing is simply intact -- the shift has
+        # already been applied to `w.calls`.
+        return atten
     if mode == "shuffled":
         epoch = jnp.floor(w.t * cfg.dt / cfg.shuffle_period_s).astype(jnp.int32)
         perm = jax.random.permutation(jax.random.fold_in(jax.random.key(0xC0FFEE),
@@ -123,6 +145,22 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     # background, while still letting a chorus be louder than a soloist.
     atten = jnp.clip(1.0 - d_hens / cfg.hear_range, 0.0, 1.0)   # self excluded by 1e6
     atten = _channel(atten, w, cfg)
+
+    if cfg.channel_mode == "yoked":
+        # Each receiver hears the whole flock as it was `lag_i` ago. Lags are fixed per
+        # hen and spread across the buffer so no two receivers share a timeline, and
+        # every lag exceeds a hawk dive -- otherwise the shifted stream still overlaps
+        # the event it is meant to be decorrelated from.
+        lag0 = int(cfg.yoke_min_lag_s / cfg.dt)
+        span = spec.CALL_LOG_STEPS - lag0
+        lags = lag0 + (jnp.arange(h) * (span // max(h, 1))) % max(span, 1)
+        idx = (w.t - lags) % spec.CALL_LOG_STEPS                # (H,)
+        heard = w.call_log[idx]                                 # (H, H, N_CALLS)
+        power = jnp.einsum("ij,ijc->ic", atten ** 2, heard ** 2)
+        return jnp.concatenate(
+            [vis, aerial[:, None], intero, somatic,
+             jnp.clip(jnp.sqrt(power), 0.0, 1.0)], axis=-1)
+
     if cfg.legacy_audio:
         audio = jnp.clip(atten @ w.calls, 0.0, 1.0)             # pre-E019, for E021
     else:

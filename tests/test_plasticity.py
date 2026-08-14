@@ -7,6 +7,7 @@ easy to produce and proves nothing on its own.
 """
 
 import jax
+import numpy as np
 import jax.numpy as jnp
 import pytest
 
@@ -473,3 +474,97 @@ def test_reward_components_are_commensurate(flock):
         f"a strike is worth {ratio:.0f}x a step of feeding; reward components must "
         "stay within an order of magnitude, or the modulator is dominated by one "
         "event and learning becomes a shock response")
+
+
+# --- Guards on the H4 channel ladder (E026) ---------------------------------
+#
+# Before E026 nothing in this suite touched `channel_mode` at all -- the single most
+# load-bearing manipulation in the headline experiment, in a repo whose CLAUDE.md has
+# a standing rule about exactly this. E024 ran a control that kept 98% of the
+# information it was supposed to destroy, and no test could have caught it.
+
+def _heard_vs_hawk(mode, seed=0, steps=9_000):
+    """corr(aerial audio, a hawk is inside MY strike radius) under a channel mode.
+
+    Jitted, and staged so hawks actually arrive. The first version ran a Python-level
+    loop over a 40 s window with a hawk every 60 s, so it usually observed no hawk at
+    all and returned "the assay is dead" -- a guard that cannot see the thing it guards.
+    `hawk_period_s` is cut to 15 s here purely to make the test observable; it is a
+    fixture setting, not the experiment's.
+
+    The warm-up matters: the yoked buffer is `CALL_LOG_STEPS` deep and its lags reach
+    most of the way back, so a run that starts measuring immediately reads unwritten
+    zeros and would pass for the wrong reason.
+    """
+    from functools import partial
+    from coop import sensing
+    aer = spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
+    cfg = spec.DEFAULT_COOP._replace(n_hens=16, hawk_period_s=15.0,
+                                     channel_mode=mode)
+
+    @partial(jax.jit, static_argnames=("cfg",))
+    def trace(w, x, p, key, cfg):
+        def step(carry, _):
+            w, x, key = carry
+            key, k = jax.random.split(key)
+            obs = sensing.observe(w, cfg)
+            x, motor, _ = brain.step(x, obs, p, cfg.dt)
+            d = jnp.linalg.norm(w.pos - w.hawk_pos[None, :], axis=-1)
+            near = (d < cfg.hawk_strike_radius) & (w.hawk_on > 0.5)
+            w = world.step(w, motor, k, cfg)
+            return (w, x, key), (obs[:, spec.AUDIO_LO + aer], near)
+        return jax.lax.scan(step, (w, x, key), None, length=steps)[1]
+
+    w = world.reset(jax.random.key(seed), cfg)
+    p = connectome.build(jax.random.fold_in(jax.random.key(seed), 1),
+                         regions.DEFAULT_REGIONS, n_hens=16, auditory_scaffold=True)
+    x = brain.initial_state(p, 16)
+    w, x, *_ = simulate.rollout_quiet(w, x, p, jax.random.key(9), cfg,
+                                      spec.CALL_LOG_STEPS + 200)
+    heard, near = trace(w, x, p, jax.random.key(7), cfg)
+    h, n = np.asarray(heard).ravel(), np.asarray(near).ravel()
+    assert n.sum() > 0, "no hawk ever reached a hen; the assay is dead, not the channel"
+    assert h.std() > 0, "the audio channel never varied; nothing to correlate"
+    return float(np.corrcoef(h, n.astype(float))[0, 1])
+
+
+def test_the_intact_channel_carries_information():
+    """If this fails the experiment has no signal to detect, never mind a control."""
+    c = _heard_vs_hawk("intact")
+    assert c > 0.2, f"intact channel correlates {c:.3f} with a hawk being on her"
+
+
+def test_the_yoked_control_destroys_the_information():
+    """The control must actually be uninformative. E024's did not, and shipped.
+
+    Measured at E026: intact +0.56, permuted +0.55 (98% kept), yoked -0.13.
+    """
+    c = _heard_vs_hawk("yoked")
+    assert abs(c) < 0.2, (
+        f"yoked control still correlates {c:.3f} with a hawk being on her; "
+        "a control that carries the signal is not a control")
+
+
+def test_shuffled_is_not_a_control_and_is_labelled_so():
+    """Regression: the permutation must stay available and stay disclaimed.
+
+    Kept so E024 reproduces. The guard is that nobody quietly promotes it back to
+    being the headline control -- the source has to say it is not one.
+    """
+    import inspect
+    from coop import sensing
+    src = inspect.getsource(sensing._channel)
+    assert "NOT A CONTROL" in src.upper(), (
+        "the shuffled mode must be documented as not a valid control")
+
+
+def test_every_channel_mode_is_reachable():
+    """A typo in a mode name must fail loudly, not silently fall through to intact."""
+    from coop import sensing
+    for mode in ("intact", "none", "severed", "self", "yoked", "shuffled"):
+        cfg = spec.DEFAULT_COOP._replace(n_hens=4, channel_mode=mode)
+        w = world.reset(jax.random.key(0), cfg)
+        assert sensing.observe(w, cfg).shape == (4, spec.OBS_DIM)
+    with pytest.raises(ValueError):
+        cfg = spec.DEFAULT_COOP._replace(n_hens=4, channel_mode="nonsense")
+        sensing.observe(world.reset(jax.random.key(0), cfg), cfg)

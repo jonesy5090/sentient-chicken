@@ -97,6 +97,11 @@ N_CALLS = 4
 # precisely to read a mid-range call, which a half-threshold would silence.
 CALL_FLOOR = 0.0759   # sigmoid(REST_BIAS); asserted against innate.py in the tests
 
+# Depth of the call history ring buffer, in steps. Must exceed `yoke_min_lag_s / dt`
+# plus the spread of per-hen lags, or the yoked control reads a slot that has not been
+# written yet. 4096 steps = 41 s at dt=10 ms.
+CALL_LOG_STEPS = 4096
+
 # Actions that put the head down. This single fact is why the project can have
 # language at all: a hen with her beak in the dirt cannot scan for hawks, so a
 # flockmate's alarm call carries information she does not otherwise have. Without
@@ -151,11 +156,12 @@ class CoopConfig(NamedTuple):
     # did neither: `food_amount` was initialised to 1.0 and never changed, so a patch
     # was an infinite resource and there was no reason for any hen ever to leave one.
     #
-    # This is what made the flock clump at ~0.23 m nearest-neighbour in a 20x20 m run.
-    # Nothing pushed the birds apart -- the gregariousness reflex pulled them together
-    # and no counter-pressure existed. That clumping is why E024's headline control
-    # failed: a shuffled sender still reported *your* hawk, because 38.8% of the flock
-    # stood inside one strike radius.
+    # Added on the theory that this would disperse the flock and rescue E024's control.
+    # **It does neither** (E025): patches genuinely draw down to 0.70 and the flock does
+    # not move -- strike-radius overlap went 23.0% -> 21.9%. The binding force is the
+    # gregariousness reflex, not foraging (E025 ablation), and the control was never a
+    # dispersal problem at all (E026). Kept because finite patches are biologically
+    # right, are a precondition for T2, and raise feeding 34% when hens do spread.
     #
     # Real hens work a patch and move on, and depletion-with-recovery is the standard
     # way to make a foraging environment produce dispersal. Rates chosen so a patch
@@ -195,18 +201,30 @@ class CoopConfig(NamedTuple):
     # that carrying a channel involves.
     #
     #   "intact"   L  -- she hears her flockmates. The hypothesis.
-    #   "shuffled" C? -- she hears a randomly reassigned flockmate instead of the one
-    #                    near her. Same statistics, same cost, zero information about
-    #                    *her* situation. THE HEADLINE CONTROL.
+    #   "yoked"    C? -- she hears the flock's REAL call stream, shifted in time by a
+    #                    per-hen lag longer than a hawk dive. Identical rate, amplitude
+    #                    distribution, burst structure and cost; zero contingency with
+    #                    her current world. THE HEADLINE CONTROL.
+    #   "shuffled" -- RETAINED AND NOT A CONTROL. Permutes who-hears-whom within a
+    #                    timestep. E024 used it as the control and E026 showed it keeps
+    #                    98% of the intact channel's correlation with "a hawk is on me",
+    #                    because every hen already hears every other (hear_range 15 m in
+    #                    a 20 m arena) and any within-timestep permutation preserves
+    #                    "someone is calling right now" -- which in this coop is almost
+    #                    the whole signal. Kept only so E024 can be reproduced.
     #   "severed"  C0 -- she emits; nobody hears. Isolates the motor cost of calling.
     #   "self"     Cs -- she hears only herself. A channel used as private memory is
     #                    not communication, and without this the difference is
     #                    invisible.
     #   "none"     N/C- -- no auditory input at all.
     channel_mode: str = "intact"
-    # Re-drawn every `shuffle_period_s` so C? cannot be defeated by a fixed
-    # permutation the flock could, in principle, learn around.
+    # Re-drawn every `shuffle_period_s` so a permutation cannot be defeated by a fixed
+    # mapping the flock could, in principle, learn around.
     shuffle_period_s: float = 10.0
+    # Minimum per-hen lag for the yoked channel, in seconds. Must exceed `hawk_dive_s`
+    # by a clear margin or the shifted stream still overlaps the event it is supposed
+    # to be decorrelated from.
+    yoke_min_lag_s: float = 20.0
 
     # Predation
     hawk_period_s: float = 900.0      # a hawk passes over roughly every 15 min

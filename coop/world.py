@@ -27,6 +27,12 @@ class World(NamedTuple):
     head_down: jax.Array    # (H,) in [0, 1], from the previous motor vector
     speed: jax.Array        # (H,) metres/sec last step
     calls: jax.Array        # (H, N_CALLS) amplitudes emitted last step
+    # Ring buffer of recent emissions, for the yoked control (E026). A receiver in
+    # that condition hears the flock's REAL calls from `t - lag_i`, so the lag has to
+    # reach back further than one step and the history has to be carried. Only one
+    # slot is written and one gathered per step, so the cost is a few hundred bytes of
+    # traffic against W's megabytes -- it does not threaten the bandwidth budget.
+    call_log: jax.Array     # (CALL_LOG_STEPS, H, N_CALLS)
 
     # Resources
     food_pos: jax.Array     # (F, 2)
@@ -74,6 +80,7 @@ def reset(key: jax.Array, cfg: CoopConfig = spec.DEFAULT_COOP) -> World:
         head_down=jnp.zeros((h,)),
         speed=jnp.zeros((h,)),
         calls=jnp.zeros((h, spec.N_CALLS)),
+        call_log=jnp.zeros((spec.CALL_LOG_STEPS, h, spec.N_CALLS)),
         food_pos=jax.random.uniform(k_food, (cfg.n_food, 2),
                                     minval=0.1 * s, maxval=0.9 * s),
         food_amount=jnp.ones((cfg.n_food,)),
@@ -215,6 +222,8 @@ def step(w: World, motor: jax.Array, key: jax.Array,
                            - n_huddled * cfg.huddle_warm_rate),
         0.0, 1.0)
 
+    emitted = _emit(motor, cfg) * vigour[:, None]
+
     # --- Predation. Crouching hides you from a hawk; fleeing outruns a fox. ---
     d_hawk = jnp.linalg.norm(kin.pos - hawk_pos[None, :], axis=-1)
     crouched = motor[:, spec.M_CROUCH] > 0.5
@@ -239,7 +248,8 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         # which makes vocal effort self-limiting without an arbitrary cap; and the
         # resting sigmoid floor is subtracted off, so a hen who is not calling emits
         # nothing at all rather than 0.076 of every call in the repertoire (E019).
-        calls=_emit(motor, cfg) * vigour[:, None],
+        calls=emitted,
+        call_log=w.call_log.at[w.t % spec.CALL_LOG_STEPS].set(emitted),
         hunger=hunger,
         thirst=thirst,
         cold=cold,
