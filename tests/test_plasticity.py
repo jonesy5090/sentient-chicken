@@ -492,15 +492,19 @@ def _heard_vs_hawk(mode, seed=0, steps=9_000):
     `hawk_period_s` is cut to 15 s here purely to make the test observable; it is a
     fixture setting, not the experiment's.
 
-    The warm-up matters: the yoked buffer is `CALL_LOG_STEPS` deep and its lags reach
+    The warm-up matters: the yoked buffer is `cfg.call_log_steps` deep and its lags reach
     most of the way back, so a run that starts measuring immediately reads unwritten
     zeros and would pass for the wrong reason.
     """
     from functools import partial
     from coop import sensing
     aer = spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
-    cfg = spec.DEFAULT_COOP._replace(n_hens=16, hawk_period_s=15.0,
-                                     channel_mode=mode)
+    # `call_log_steps` is off by default -- the buffer costs throughput and only the
+    # yoked control needs it (E026). A test that forgets it gets a loud ValueError
+    # rather than a silently zeroed channel, which would pass for the wrong reason.
+    cfg = spec.DEFAULT_COOP._replace(
+        n_hens=16, hawk_period_s=15.0, channel_mode=mode,
+        call_log_steps=(spec.YOKE_LOG_STEPS if mode == "yoked" else 1))
 
     @partial(jax.jit, static_argnames=("cfg",))
     def trace(w, x, p, key, cfg):
@@ -520,7 +524,7 @@ def _heard_vs_hawk(mode, seed=0, steps=9_000):
                          regions.DEFAULT_REGIONS, n_hens=16, auditory_scaffold=True)
     x = brain.initial_state(p, 16)
     w, x, *_ = simulate.rollout_quiet(w, x, p, jax.random.key(9), cfg,
-                                      spec.CALL_LOG_STEPS + 200)
+                                      cfg.call_log_steps + 200)
     heard, near = trace(w, x, p, jax.random.key(7), cfg)
     h, n = np.asarray(heard).ravel(), np.asarray(near).ravel()
     assert n.sum() > 0, "no hawk ever reached a hen; the assay is dead, not the channel"
@@ -562,7 +566,9 @@ def test_every_channel_mode_is_reachable():
     """A typo in a mode name must fail loudly, not silently fall through to intact."""
     from coop import sensing
     for mode in ("intact", "none", "severed", "self", "yoked", "shuffled"):
-        cfg = spec.DEFAULT_COOP._replace(n_hens=4, channel_mode=mode)
+        cfg = spec.DEFAULT_COOP._replace(
+            n_hens=4, channel_mode=mode,
+            call_log_steps=(spec.YOKE_LOG_STEPS if mode == "yoked" else 1))
         w = world.reset(jax.random.key(0), cfg)
         assert sensing.observe(w, cfg).shape == (4, spec.OBS_DIM)
     with pytest.raises(ValueError):

@@ -46,16 +46,17 @@ def _channel(atten: jax.Array, w, cfg: CoopConfig) -> jax.Array:
     of calling untouched and changes only the routing, which is the point: the ladder
     has to vary information and nothing else.
 
-    The shuffle is the load-bearing one. It gives each hen a randomly reassigned
-    flockmate's voice at her own attenuation profile, so she receives the same number
-    of calls, at the same amplitudes, with the same statistics -- carrying no
-    information about *her* surroundings. If an intact flock beats a shuffled one, it
-    is information transfer doing the work and not the mere presence of a channel.
+    **`shuffled` is NOT A CONTROL, and the paragraph that used to sit here claiming
+    otherwise is why E024 was invalid.** It said a reassigned sender carries "no
+    information about *her* surroundings". Measured (E026): the permutation keeps 98%
+    of the intact channel's correlation with "a hawk is on me". Every hen already
+    hears every other -- `hear_range` 15 m in a 20 m arena, mean 15.0 of 15 audible --
+    so any within-timestep permutation preserves "someone is calling right now", which
+    in this coop is almost the whole signal. Retained only so E024 reproduces.
 
-    The permutation is re-drawn every `shuffle_period_s`. A fixed permutation is a
-    stable mapping, and a stable mapping is something a flock could in principle learn
-    to invert; re-drawing keeps the channel genuinely uninformative rather than merely
-    scrambled once.
+    `yoked` is the control: the flock's real calls, shifted in time per hen by more
+    than a hawk dive. Same rate, amplitudes and cost; correlation -0.13 against
+    intact's +0.56.
     """
     h = atten.shape[0]
     mode = cfg.channel_mode
@@ -151,10 +152,15 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
         # hen and spread across the buffer so no two receivers share a timeline, and
         # every lag exceeds a hawk dive -- otherwise the shifted stream still overlaps
         # the event it is meant to be decorrelated from.
+        if cfg.call_log_steps < spec.YOKE_LOG_STEPS:
+            raise ValueError(
+                "channel_mode='yoked' needs cfg.call_log_steps=spec.YOKE_LOG_STEPS; "
+                f"got {cfg.call_log_steps}. The buffer is off by default because it "
+                "costs throughput the other conditions should not pay for.")
         lag0 = int(cfg.yoke_min_lag_s / cfg.dt)
-        span = spec.CALL_LOG_STEPS - lag0
+        span = cfg.call_log_steps - lag0
         lags = lag0 + (jnp.arange(h) * (span // max(h, 1))) % max(span, 1)
-        idx = (w.t - lags) % spec.CALL_LOG_STEPS                # (H,)
+        idx = (w.t - lags) % cfg.call_log_steps                 # (H,)
         heard = w.call_log[idx]                                 # (H, H, N_CALLS)
         power = jnp.einsum("ij,ijc->ic", atten ** 2, heard ** 2)
         return jnp.concatenate(

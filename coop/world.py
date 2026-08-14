@@ -32,7 +32,7 @@ class World(NamedTuple):
     # reach back further than one step and the history has to be carried. Only one
     # slot is written and one gathered per step, so the cost is a few hundred bytes of
     # traffic against W's megabytes -- it does not threaten the bandwidth budget.
-    call_log: jax.Array     # (CALL_LOG_STEPS, H, N_CALLS)
+    call_log: jax.Array     # (cfg.call_log_steps, H, N_CALLS); 1 unless yoked
 
     # Resources
     food_pos: jax.Array     # (F, 2)
@@ -103,7 +103,7 @@ def reset(key: jax.Array, cfg: CoopConfig = spec.DEFAULT_COOP) -> World:
         head_down=jnp.zeros((h,)),
         speed=jnp.zeros((h,)),
         calls=jnp.zeros((h, spec.N_CALLS)),
-        call_log=jnp.zeros((spec.CALL_LOG_STEPS, h, spec.N_CALLS)),
+        call_log=jnp.zeros((cfg.call_log_steps, h, spec.N_CALLS)),
         food_pos=jax.random.uniform(k_food, (cfg.n_food, 2),
                                     minval=0.1 * s, maxval=0.9 * s),
         food_amount=jnp.ones((cfg.n_food,)),
@@ -257,7 +257,13 @@ def step(w: World, motor: jax.Array, key: jax.Array,
     # --- Predation. Crouching hides you from a hawk; fleeing outruns a fox. ---
     d_hawk = jnp.linalg.norm(kin.pos - hawk_pos[None, :], axis=-1)
     crouched = motor[:, spec.M_CROUCH] > 0.5
-    hawk_hit = (d_hawk < cfg.hawk_strike_radius) & (hawk_on > 0.5) & ~crouched
+    # The hawk is overhead and visible for `hawk_approach_s` before it can strike.
+    # `hawk_t` counts down from `hawk_dive_s`, so the approach is the first slice of
+    # it. This is the interval an alarm call exists to fill; without it a warning can
+    # never arrive in time and every condition sits at the same ceiling (E026).
+    committed = hawk_t < (cfg.hawk_dive_s - cfg.hawk_approach_s)
+    hawk_hit = ((d_hawk < cfg.hawk_strike_radius) & (hawk_on > 0.5)
+                & committed & ~crouched)
 
     d_fox = jnp.linalg.norm(kin.pos - fox_pos[None, :], axis=-1)
     fleeing = motor[:, spec.M_FLEE] > 0.5
@@ -266,7 +272,7 @@ def step(w: World, motor: jax.Array, key: jax.Array,
     struck = (hawk_hit | fox_hit).astype(jnp.float32)
     # In range of a live predator, hiding or not: the denominator that makes `struck`
     # mean something.
-    exposed = (((d_hawk < cfg.hawk_strike_radius) & (hawk_on > 0.5))
+    exposed = (((d_hawk < cfg.hawk_strike_radius) & (hawk_on > 0.5) & committed)
                | ((d_fox < cfg.hawk_strike_radius) & (fox_on > 0.5))).astype(jnp.float32)
 
     # --- Event-anchored risk. See the World fields for why exposure-time is unusable.
@@ -298,7 +304,7 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         # resting sigmoid floor is subtracted off, so a hen who is not calling emits
         # nothing at all rather than 0.076 of every call in the repertoire (E019).
         calls=emitted,
-        call_log=w.call_log.at[w.t % spec.CALL_LOG_STEPS].set(emitted),
+        call_log=w.call_log.at[w.t % cfg.call_log_steps].set(emitted),
         hunger=hunger,
         thirst=thirst,
         cold=cold,

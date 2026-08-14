@@ -97,10 +97,10 @@ N_CALLS = 4
 # precisely to read a mid-range call, which a half-threshold would silence.
 CALL_FLOOR = 0.0759   # sigmoid(REST_BIAS); asserted against innate.py in the tests
 
-# Depth of the call history ring buffer, in steps. Must exceed `yoke_min_lag_s / dt`
-# plus the spread of per-hen lags, or the yoked control reads a slot that has not been
-# written yet. 4096 steps = 41 s at dt=10 ms.
-CALL_LOG_STEPS = 4096
+# Depth the yoked control needs: must exceed `yoke_min_lag_s / dt` plus the spread of
+# per-hen lags, or it reads a slot that has not been written yet. 4096 = 41 s at 10 ms.
+# Set via `CoopConfig.call_log_steps`, which defaults to 1 -- see there.
+YOKE_LOG_STEPS = 4096
 
 # Actions that put the head down. This single fact is why the project can have
 # language at all: a hen with her beak in the dirt cannot scan for hawks, so a
@@ -225,10 +225,36 @@ class CoopConfig(NamedTuple):
     # by a clear margin or the shifted stream still overlaps the event it is supposed
     # to be decorrelated from.
     yoke_min_lag_s: float = 20.0
+    # Depth of the call-history ring buffer. **1 by default, i.e. off.**
+    #
+    # It exists only for the yoked control, and it is not free: a 4096x16x4 array in
+    # the scan carry is 512 KB, and this simulation is memory-bandwidth bound. I wrote
+    # in the source that "one slot written and one gathered per step does not threaten
+    # the bandwidth budget", did not measure it, and the throughput guard caught the
+    # regression at 4.9x real time against a 5.0x floor. Reasoning about a bandwidth
+    # cost is not measuring one.
+    #
+    # So the default coop pays nothing and the yoked condition sets
+    # `call_log_steps=spec.YOKE_LOG_STEPS` for itself.
+    call_log_steps: int = 1
 
     # Predation
     hawk_period_s: float = 900.0      # a hawk passes over roughly every 15 min
     hawk_dive_s: float = 12.0
+    # How long the hawk is overhead and visible before it can strike.
+    #
+    # Without this there is no warning interval at all: `_step_predators` used to put
+    # the hawk at its final position the instant a dive began, so a hen was in danger
+    # from the same step she could first have been told about it. Measured consequence
+    # (E026) -- P(caught | blind and at risk at onset) was 1.000 deaf, 0.984 intact,
+    # 0.981 yoked. A ceiling in every condition, because no signal arriving at the
+    # instant of arrival can help anybody. That is why H4 was untestable, and why six
+    # attempts at a staged assay each had to invent a stoop phase by hand.
+    #
+    # A real raptor stoops from height and is visible during the descent; the whole
+    # point of an alarm call is that it reaches you during that window. 2 s against a
+    # 12 s dive, so most of the encounter is unchanged.
+    hawk_approach_s: float = 2.0
     hawk_strike_radius: float = 1.50
     # How far off a targeted hen the hawk comes down. A hawk hunts rather than landing
     # at random, so it aims at a bird; the spread keeps the encounter uncertain instead

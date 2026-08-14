@@ -65,7 +65,11 @@ LADDER = (
     Condition("C0 severed", INNATE, cfg_patch=(("channel_mode", "severed"),),
               pallium_scale=EXPANDED, scaffold=True),
     # C? -- THE CONTROL. Same bandwidth, same cost, wrong sender.
-    Condition("C? shuffled", INNATE, cfg_patch=(("channel_mode", "shuffled"),),
+    # The yoked control. `call_log_steps` is set here rather than globally because the
+    # buffer costs throughput and no other condition needs it (E026).
+    Condition("C? yoked", INNATE,
+              cfg_patch=(("channel_mode", "yoked"),
+                         ("call_log_steps", spec.YOKE_LOG_STEPS)),
               pallium_scale=EXPANDED, scaffold=True),
     # Cs -- she hears only herself. A channel as private memory is not communication.
     Condition("Cs self-only", INNATE, cfg_patch=(("channel_mode", "self"),),
@@ -75,7 +79,7 @@ LADDER = (
               pallium_scale=EXPANDED, scaffold=True),
 )
 
-HEADLINE = ("L  language", "C? shuffled")
+HEADLINE = ("L  language", "C? yoked")
 
 
 class H4Result(NamedTuple):
