@@ -181,6 +181,15 @@ def step(w: World, motor: jax.Array, key: jax.Array,
                              - fed * cfg.peck_food_rate * w.hunger),
         0.0, 1.0)
 
+    # Patches deplete under pressure and recover when abandoned. This is the only
+    # force in the coop that pushes hens *apart*; without it a patch is infinite, the
+    # flock piles onto one, and every bird shares every hawk (E024, E025).
+    feeders = jnp.sum((at_food & pecking[:, None]).astype(jnp.float32), axis=0)
+    food_amount = jnp.clip(
+        w.food_amount + cfg.dt * ((1.0 - w.food_amount) / cfg.food_regrow_s
+                                  - feeders * cfg.food_deplete_rate),
+        0.0, 1.0)
+
     # --- Vocal effort, on its own budget. Calling spends vigour; silence restores it.
     call_effort = jnp.sum(motor[:, list(spec.CALL_MOTOR_IDX)], axis=-1)
     vigour = jnp.clip(
@@ -235,7 +244,7 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         thirst=thirst,
         cold=cold,
         vigour=vigour,
-        food_amount=w.food_amount,   # patches are not depleted in phase 0
+        food_amount=food_amount,
         hawk_pos=hawk_pos, hawk_on=hawk_on, hawk_t=hawk_t,
         fox_pos=fox_pos, fox_on=fox_on, fox_t=fox_t,
         t=w.t + 1,

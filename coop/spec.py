@@ -146,6 +146,24 @@ class CoopConfig(NamedTuple):
     # target, not something to wire in here.
     peck_food_rate: float = 3.0e-2    # per second of feeding, scaled by hunger
     drink_rate: float = 4.0e-2
+
+    # Patches deplete as they are worked and recover when left alone. Until E025 they
+    # did neither: `food_amount` was initialised to 1.0 and never changed, so a patch
+    # was an infinite resource and there was no reason for any hen ever to leave one.
+    #
+    # This is what made the flock clump at ~0.23 m nearest-neighbour in a 20x20 m run.
+    # Nothing pushed the birds apart -- the gregariousness reflex pulled them together
+    # and no counter-pressure existed. That clumping is why E024's headline control
+    # failed: a shuffled sender still reported *your* hawk, because 38.8% of the flock
+    # stood inside one strike radius.
+    #
+    # Real hens work a patch and move on, and depletion-with-recovery is the standard
+    # way to make a foraging environment produce dispersal. Rates chosen so a patch
+    # supports a couple of birds for roughly a minute and recovers over about five --
+    # long enough that leaving is worthwhile, short enough that the coop does not run
+    # out of food over a 20-minute run.
+    food_deplete_rate: float = 2.0e-2   # per second per hen feeding at the patch
+    food_regrow_s: float = 300.0        # seconds for an empty patch to refill
     huddle_warm_rate: float = 4.0e-4  # per second, per flockmate within huddle_radius
     huddle_max: int = 3               # a hen needs 2-3 close neighbours to stay warm
 
