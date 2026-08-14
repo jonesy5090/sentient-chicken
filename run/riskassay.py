@@ -47,6 +47,7 @@ CALLER = (14.0, 10.0)
 
 
 class Trial(NamedTuple):
+    valid: bool           # was she actually head-down when the hawk committed?
     struck: bool          # was the focal hen hit during the dive?
     crouched: bool        # did she ever cross the hiding threshold?
     saw_hawk: bool        # did the aerial channel ever open for her?
@@ -73,8 +74,21 @@ def _variant(p, keep: str):
 
 
 def trial(dist: float, jitter: jax.Array, *, channel: str, keep: str,
-          scaffold: bool, steps: int = 400) -> Trial:
-    """One staged dive. The focal hen is head-down and blind; the caller can see.
+          scaffold: bool, settle: int = 300, steps: int = 400) -> Trial:
+    """One staged dive, in two phases. The focal hen is head-down and blind.
+
+    **The two phases are not optional.** The first version placed the hawk live at
+    step 0 and got identical numbers in all five conditions: `saw hawk` was 100% and
+    `struck` was 62.5% everywhere. Two reasons, both fatal, both fixed by settling
+    first. `head_down` is derived from the *previous* motor vector and is zero at
+    reset, so the aerial gate was wide open and the "blind" hen could see perfectly.
+    And a hawk already inside the strike radius at step 0 lands a hit within a few
+    milliseconds, long before any response -- heard or seen -- can develop, so the
+    assay measured geometry rather than behaviour.
+
+    So: phase one has no hawk at all and lets her settle into foraging until the gate
+    is genuinely shut. Phase two introduces the hawk and counts only strikes from
+    that moment.
 
     `dist` is how far the hawk comes down from the focal hen. Below
     `hawk_strike_radius` she is in real danger; the sweep spans both sides of it.
@@ -93,9 +107,9 @@ def trial(dist: float, jitter: jax.Array, *, channel: str, keep: str,
         food_pos=jnp.full((cfg.n_food, 2), ABSENT).at[0].set(
             jnp.asarray([FOCAL[0] + 0.15, FOCAL[1]])),
         water_pos=jnp.full((cfg.n_water, 2), ABSENT),
-        hawk_pos=jnp.asarray([FOCAL[0], FOCAL[1]]) + off * dist,
-        hawk_on=jnp.array(1.0),
-        hawk_t=jnp.array(1e4),
+        hawk_pos=jnp.asarray([ABSENT, ABSENT]),
+        hawk_on=jnp.array(0.0),
+        hawk_t=jnp.array(0.0),
         fox_pos=jnp.asarray([ABSENT, ABSENT]),
         fox_on=jnp.array(0.0),
         hunger=jnp.full((2,), 0.8),        # hungry, so she really does keep her head down
@@ -106,11 +120,38 @@ def trial(dist: float, jitter: jax.Array, *, channel: str, keep: str,
                          n_hens=2, auditory_scaffold=scaffold)
     p = _variant(p, keep)
     x = brain.initial_state(p, 2)
+
+    # Phase 1: no hawk, and we wait for an actual peck rather than assuming one.
+    #
+    # A hen cannot hold a head-down posture here: TONIC_FORWARD plus the hunger->
+    # forward drive walk her off the patch within a second or two, after which
+    # `head_down` is ~0.5 from scratching alone and the aerial gate is only half
+    # shut -- she sees enough of a hawk at 1 m to crouch, and the assay has no
+    # asymmetry to test. Measured: after 3 s of settling, peck 0.08, scratch 0.50,
+    # 0.73 m from the food she started on.
+    #
+    # `run/probes.py::head_down_blindness` already handles this by conditioning on
+    # posture per step rather than staging a steady state. Same approach: advance in
+    # short chunks until she is genuinely pecking, and drop the hawk then. Trials
+    # where that never happens are reported and excluded rather than silently kept.
+    pecking = False
+    for _ in range(max(settle // 20, 1)):
+        w, x, _p, _ps, _k, tr0 = simulate.rollout(
+            w, x, p, jax.random.key(2), cfg, 20)
+        if float(tr0.motor[-1, 0, spec.M_PECK]) > 0.5:
+            pecking = True
+            break
+
+    # Phase 2: the hawk commits, while her beak is down. Strikes counted from here.
+    struck_before = float(w.n_struck[0])
+    w = w._replace(hawk_pos=jnp.asarray([FOCAL[0], FOCAL[1]]) + off * dist,
+                   hawk_on=jnp.array(1.0), hawk_t=jnp.array(1e4))
     w_end, _x, _p, _ps, _k, tr = simulate.rollout(
         w, x, p, jax.random.key(3), cfg, steps)
     aer = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
     return Trial(
-        struck=bool(w_end.n_struck[0] > 0),
+        valid=pecking,
+        struck=bool(float(w_end.n_struck[0]) - struck_before > 0),
         crouched=bool(jnp.max(tr.motor[:, 0, spec.M_CROUCH]) > 0.5),
         saw_hawk=bool(jnp.max(tr.obs[:, 0, spec.IDX_AERIAL]) > 0.05),
         heard=float(jnp.max(tr.obs[:, 0, aer])),
@@ -139,27 +180,41 @@ def main() -> None:
 
     print(f"staged predator trials: {args.trials} dive directions x {len(dists)} "
           f"distances = {args.trials * len(dists)} per condition")
-    print("focal hen head-down over food and blind to the sky; caller 4 m away can see.")
+    print("focal hen settles onto food for 3 s first, so the aerial gate is genuinely")
+    print("shut when the hawk commits; caller 4 m away is head-up and can see.")
     print(f"strike radius {spec.DEFAULT_COOP.hawk_strike_radius} m\n")
 
-    hdr = f"{'condition':<26}{'struck %':>10}{'crouched %':>12}{'saw hawk %':>12}{'heard':>8}"
+    hdr = (f"{'condition':<26}{'struck %':>10}{'crouched %':>12}{'saw hawk %':>12}"
+           f"{'heard':>8}{'valid':>10}")
     print(hdr); print("-" * len(hdr))
 
     out = {}
     for name, kw in CONDITIONS:
-        rs = [trial(float(d), jitters[i], **kw)
-              for d in dists for i in range(args.trials)]
+        all_rs = [trial(float(d), jitters[i], **kw)
+                  for d in dists for i in range(args.trials)]
+        rs = [r for r in all_rs if r.valid]
         out[name] = rs
+        if not rs:
+            print(f"{name:<26}  NO VALID TRIALS -- she was never head-down at onset")
+            continue
         f = lambda g: 100 * float(np.mean([g(r) for r in rs]))
         print(f"{name:<26}{f(lambda r: r.struck):>10.1f}{f(lambda r: r.crouched):>12.1f}"
               f"{f(lambda r: r.saw_hawk):>12.1f}"
-              f"{np.mean([r.heard for r in rs]):>8.3f}")
+              f"{np.mean([r.heard for r in rs]):>8.3f}"
+              f"{100*len(rs)/len(all_rs):>9.0f}%")
 
     base = np.array([r.struck for r in out["deaf (no channel)"]], dtype=float)
     n = len(base)
+    if n < 2:
+        print("\nno usable trials; the staging failed, not the hypothesis")
+        return
     print(f"\n--- vs the deaf hen, on {n} matched trials each ---")
     for name, _ in CONDITIONS[1:]:
-        d = np.array([r.struck for r in out[name]], dtype=float) - base
+        other = np.array([r.struck for r in out[name]], dtype=float)
+        if len(other) != n:
+            print(f"  {name:<26} skipped: {len(other)} valid vs {n} baseline")
+            continue
+        d = other - base
         mean = float(d.mean())
         se = float(d.std(ddof=1)) / (n ** 0.5)
         t = abs(mean) / (se + 1e-12)
