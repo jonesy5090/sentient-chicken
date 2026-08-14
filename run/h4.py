@@ -82,7 +82,10 @@ class H4Result(NamedTuple):
     fed_rate: float        # % of timesteps feeding -- the intake half of the trade-off
     struck: float          # predator contact-steps per hen
     exposed: float         # steps in strike range, hiding or not
-    caught_rate: float     # struck / exposed -- THE risk metric. See below.
+    caught_rate: float     # struck / exposed -- CONFOUNDED, see below. Kept for E024.
+    at_risk: float         # (hen, dive) pairs where she began inside the radius
+    caught: float          # of those, how many she was struck in
+    caught_per_event: float   # caught / at_risk -- THE risk metric
     head_down: float       # fraction of time foraging, i.e. blind to the sky
     hunger: float
     heard: float           # mean alarm-channel input, a manipulation check
@@ -102,6 +105,8 @@ def run_condition(cond: Condition, seed: int, cfg: CoopConfig,
     aerial = spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
     struck = float(jnp.sum(w_end.n_struck))
     exposed = float(jnp.sum(w_end.n_exposed))
+    at_risk = float(jnp.sum(w_end.n_at_risk))
+    caught = float(jnp.sum(w_end.n_caught))
     return H4Result(
         fed_rate=float(jnp.sum(w_end.n_fed) / steps) * 100,
         struck=struck / cfg.n_hens,
@@ -112,7 +117,18 @@ def run_condition(cond: Condition, seed: int, cfg: CoopConfig,
         # conditions that was positional luck, and the conditions differ in position
         # precisely because they differ in behaviour, so the confound is not random.
         # Dividing by opportunity removes it and asks the question H4 actually poses.
+        # CONFOUNDED. Introduced mid-E024 to fix a positional confound in raw strikes,
+        # and it imported a behavioural one: crouching zeroes locomotion, so a
+        # partially-crouching hen lingers in the radius and the denominator moves with
+        # the treatment. Exposure varied 15x across E026's ablation conditions, and this
+        # ratio disagreed with raw strikes about the sign. Retained only so E024's
+        # numbers remain reproducible; do not compare conditions on it.
         caught_rate=struck / max(exposed, 1.0),
+        at_risk=at_risk,
+        caught=caught,
+        # THE metric. Denominator is fixed at the instant the hawk commits, before any
+        # response can alter it, so the treatment cannot move it.
+        caught_per_event=caught / max(at_risk, 1.0),
         head_down=float(jnp.mean(s.head_down)),
         hunger=float(jnp.mean(s.hunger)),
         # Received, not emitted. The first version of this read `s.calls` and so
@@ -203,8 +219,8 @@ def main() -> None:
     print("intake and risk are a trade-off, not a score: a flock that never forages")
     print("is safe and starving. Read the two columns together.\n")
 
-    hdr = (f"{'condition':<14}{'fed %':>8}{'caught rate':>13}{'exposed':>10}"
-           f"{'head down':>11}{'hunger':>8}{'alarm heard':>13}")
+    hdr = (f"{'condition':<14}{'fed %':>8}{'caught/event':>14}{'at risk':>9}"
+           f"{'caught rate':>13}{'head down':>11}{'alarm heard':>13}")
     print(hdr)
     print("-" * len(hdr))
 
@@ -230,9 +246,9 @@ def main() -> None:
         table[cond.name] = rs
         m = lambda f: float(jnp.mean(jnp.array([f(r) for r in rs])))
         print(f"{cond.name:<14}{m(lambda r: r.fed_rate):>8.2f}"
-              f"{m(lambda r: r.caught_rate):>13.3f}{m(lambda r: r.exposed):>10.0f}"
-              f"{m(lambda r: r.head_down):>11.3f}"
-              f"{m(lambda r: r.hunger):>8.3f}{m(lambda r: r.heard):>13.4f}")
+              f"{m(lambda r: r.caught_per_event):>14.3f}{m(lambda r: r.at_risk):>9.1f}"
+              f"{m(lambda r: r.caught_rate):>13.3f}"
+              f"{m(lambda r: r.head_down):>11.3f}{m(lambda r: r.heard):>13.4f}")
 
     total = len(LADDER) * len(seeds)
     done = sum(1 for c in LADDER for sd in seeds
@@ -252,7 +268,8 @@ def main() -> None:
     print("identical brain, identical bandwidth, identical calling cost. The only")
     print("difference is whether what she hears is about her own surroundings.\n")
     for label, get, good in (("fed %", lambda r: r.fed_rate, "higher"),
-                             ("caught rate", lambda r: r.caught_rate, "lower"),
+                             ("caught/event", lambda r: r.caught_per_event, "lower"),
+                             ("caught rate*", lambda r: r.caught_rate, "lower"),
                              ("struck/hen", lambda r: r.struck, "lower"),
                              ("hunger", lambda r: r.hunger, "lower")):
         mean, se, verdict = _paired(col(L, get), col(Cq, get), n)

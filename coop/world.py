@@ -58,6 +58,20 @@ class World(NamedTuple):
     # behaviour. The quantity that tests the hypothesis is n_struck / n_exposed -- of
     # the moments when a hawk was actually on her, how often did she fail to hide?
     n_exposed: jax.Array    # (H,)
+    # Event-anchored risk (E026). `n_exposed` turned out to be moved by the treatment
+    # itself: crouching zeroes locomotion, so a hen at crouch 0.269 -- below the hiding
+    # threshold but above zero -- lingers inside the strike radius instead of walking
+    # out. Exposure varied 15x across conditions in E026's ablation, and `struck /
+    # exposed` and raw `struck` disagreed about the *sign* of the effect.
+    #
+    # These anchor to the predator event instead. At the moment a dive begins, whoever
+    # is inside the strike radius is at risk -- a denominator fixed before any response
+    # can alter it. The numerator is whether such a hen was caught during that dive.
+    # P(caught | at risk at dive onset) is the quantity the hypothesis is about.
+    at_risk: jax.Array      # (H,) in the radius when the current dive began
+    hit_this_dive: jax.Array   # (H,) struck at least once during the current dive
+    n_at_risk: jax.Array    # (H,) dives she began inside the radius
+    n_caught: jax.Array     # (H,) of those, dives she was struck in
     n_fed: jax.Array        # (H,) cumulative successful pecks
     n_drunk: jax.Array      # (H,)
 
@@ -95,6 +109,10 @@ def reset(key: jax.Array, cfg: CoopConfig = spec.DEFAULT_COOP) -> World:
         t=jnp.array(0, dtype=jnp.int32),
         n_struck=jnp.zeros((h,)),
         n_exposed=jnp.zeros((h,)),
+        at_risk=jnp.zeros((h,)),
+        hit_this_dive=jnp.zeros((h,)),
+        n_at_risk=jnp.zeros((h,)),
+        n_caught=jnp.zeros((h,)),
         n_fed=jnp.zeros((h,)),
         n_drunk=jnp.zeros((h,)),
     )
@@ -239,6 +257,17 @@ def step(w: World, motor: jax.Array, key: jax.Array,
     exposed = (((d_hawk < cfg.hawk_strike_radius) & (hawk_on > 0.5))
                | ((d_fox < cfg.hawk_strike_radius) & (fox_on > 0.5))).astype(jnp.float32)
 
+    # --- Event-anchored risk. See the World fields for why exposure-time is unusable.
+    onset = (hawk_on > 0.5) & (w.hawk_on < 0.5)
+    ended = (hawk_on < 0.5) & (w.hawk_on > 0.5)
+    in_radius = (d_hawk < cfg.hawk_strike_radius).astype(jnp.float32)
+    # Who is in the radius the instant the hawk commits, before anyone can react.
+    at_risk = jnp.where(onset, in_radius, w.at_risk)
+    hit_this_dive = jnp.where(onset, 0.0,
+                              jnp.maximum(w.hit_this_dive, hawk_hit.astype(jnp.float32)))
+    n_at_risk = w.n_at_risk + jnp.where(ended, at_risk, 0.0)
+    n_caught = w.n_caught + jnp.where(ended, at_risk * hit_this_dive, 0.0)
+
     return w._replace(
         pos=kin.pos,
         heading=kin.heading,
@@ -260,6 +289,10 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         t=w.t + 1,
         n_struck=w.n_struck + struck,
         n_exposed=w.n_exposed + exposed,
+        at_risk=at_risk,
+        hit_this_dive=hit_this_dive,
+        n_at_risk=n_at_risk,
+        n_caught=n_caught,
         n_fed=w.n_fed + fed.astype(jnp.float32),
         n_drunk=w.n_drunk + drinking.astype(jnp.float32),
     )
