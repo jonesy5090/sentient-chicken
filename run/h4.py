@@ -54,7 +54,12 @@ LADDER = (
     Condition("N  natural", INNATE, cfg_patch=(("channel_mode", "intact"),),
               pallium_scale=1.0, scaffold=False),
     # C- -- expanded capacity, no channel at all. If this matches L, the neurons did it.
-    Condition("C- capacity", INNATE, cfg_patch=(("channel_mode", "none"),),
+    # C- pays nothing for calling either -- otherwise it is byte-identical to C0,
+    # which is what E024 shipped (all 8 seeds identical on every field, E026). The
+    # difference between them IS the energetic cost of calling, and it only exists if
+    # one of them is charged and the other is not.
+    Condition("C- capacity", INNATE, cfg_patch=(("channel_mode", "none"),
+                                                ("call_vigour_drain", 0.0)),
               pallium_scale=EXPANDED, scaffold=True),
     # C0 -- she calls, nobody hears. Isolates the energetic cost of calling.
     Condition("C0 severed", INNATE, cfg_patch=(("channel_mode", "severed"),),
@@ -92,7 +97,7 @@ def run_condition(cond: Condition, seed: int, cfg: CoopConfig,
                          n_hens=cfg.n_hens, auditory_scaffold=cond.scaffold)
     x = brain.initial_state(p, cfg.n_hens)
     w_end, _x, _p, _ps, _k, s = simulate.simulate(
-        w, x, p, jax.random.fold_in(key, 2), cfg, seconds, 60.0, INNATE)
+        w, x, p, jax.random.fold_in(key, 2), cfg, seconds, 60.0, cond.pc)
     steps = cfg.n_hens * seconds / cfg.dt
     aerial = spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
     struck = float(jnp.sum(w_end.n_struck))
@@ -141,8 +146,20 @@ def _cache_save(path: str, cache: dict) -> None:
     os.replace(tmp, path)          # atomic: a kill mid-write cannot corrupt the cache
 
 
-def _key(cond_name: str, seed: int, minutes: float, hens: int, hawk: float) -> str:
-    return f"{cond_name}|{seed}|{minutes}|{hens}|{hawk}"
+def _key(cond_name: str, seed: int, minutes: float, hens: int, hawk: float,
+         cfg=None) -> str:
+    """Cell identity, including a hash of the whole world config.
+
+    Without the config hash a cell computed under one world is served as current under
+    another. E024's 48 cells were cached before E025 added food depletion, and rerunning
+    the same command afterwards reprinted them unchanged (E026). The world is part of
+    the measurement; it belongs in the key.
+    """
+    import hashlib
+    tag = ""
+    if cfg is not None:
+        tag = hashlib.sha1(repr(tuple(cfg)).encode()).hexdigest()[:10]
+    return f"{cond_name}|{seed}|{minutes}|{hens}|{hawk}|{tag}"
 
 
 def _paired(a, b, seeds: int):
@@ -197,7 +214,8 @@ def main() -> None:
     for cond in LADDER:
         rs = []
         for sd in seeds:
-            k = _key(cond.name, sd, args.minutes, cfg.n_hens, args.hawk_period)
+            k = _key(cond.name, sd, args.minutes, cfg.n_hens, args.hawk_period,
+                     cond.coop(cfg))
             if k in cache:
                 rs.append(H4Result(*cache[k]))
                 continue
@@ -218,7 +236,8 @@ def main() -> None:
 
     total = len(LADDER) * len(seeds)
     done = sum(1 for c in LADDER for sd in seeds
-               if _key(c.name, sd, args.minutes, cfg.n_hens, args.hawk_period) in cache)
+               if _key(c.name, sd, args.minutes, cfg.n_hens, args.hawk_period,
+                       c.coop(cfg)) in cache)
     if done < total:
         print(f"\nINCOMPLETE: {done}/{total} cells cached, {total - done} to go.")
         print(f"Re-run the same command to continue; finished cells are not repeated.")
