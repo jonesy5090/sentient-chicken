@@ -193,7 +193,7 @@ def main() -> None:
 
     t0 = time.perf_counter()
     cache = _cache_load(args.cache)
-    table, missing = {}, 0
+    table = {}
     for cond in LADDER:
         rs = []
         for sd in seeds:
@@ -202,14 +202,12 @@ def main() -> None:
                 rs.append(H4Result(*cache[k]))
                 continue
             if time.perf_counter() - t0 > args.budget:
-                missing += 1
                 continue
             r = run_condition(cond, sd, cfg, seconds)
             cache[k] = list(r)
             _cache_save(args.cache, cache)
             rs.append(r)
         if len(rs) < len(seeds):
-            missing += len(seeds) - len(rs)
             continue
         table[cond.name] = rs
         m = lambda f: float(jnp.mean(jnp.array([f(r) for r in rs])))
@@ -218,10 +216,11 @@ def main() -> None:
               f"{m(lambda r: r.head_down):>11.3f}"
               f"{m(lambda r: r.hunger):>8.3f}{m(lambda r: r.heard):>13.4f}")
 
-    done = len(table) * len(seeds)
     total = len(LADDER) * len(seeds)
-    if missing:
-        print(f"\nINCOMPLETE: {done}/{total} cells cached, {missing} still to run.")
+    done = sum(1 for c in LADDER for sd in seeds
+               if _key(c.name, sd, args.minutes, cfg.n_hens, args.hawk_period) in cache)
+    if done < total:
+        print(f"\nINCOMPLETE: {done}/{total} cells cached, {total - done} to go.")
         print(f"Re-run the same command to continue; finished cells are not repeated.")
         print(f"wall clock this pass: {time.perf_counter() - t0:.0f} s")
         return
