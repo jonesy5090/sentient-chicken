@@ -47,6 +47,12 @@ class Condition(NamedTuple):
     # Innate comprehension. H4 asks whether an intact channel beats a shuffled one,
     # and a receiver who cannot respond to a call makes every condition identical.
     scaffold: bool = False
+    # Zero `W_out`, severing the only route from the pallium to a muscle. A condition,
+    # not a debugging switch: E027 found the whole H4 effect survived this lesion, which
+    # means the result was about two hand-set reflex weights rather than the neural
+    # model. A ladder that carries this rung reports that on every run instead of
+    # waiting for an outside reviewer to try it.
+    lesion_readout: bool = False
 
     def coop(self, cfg: CoopConfig) -> CoopConfig:
         return cfg._replace(**dict(self.cfg_patch)) if self.cfg_patch else cfg
@@ -203,15 +209,25 @@ def main() -> None:
 # At the seed counts this project can afford, "exceeds 2 SE" is far too lenient --
 # with 4 seeds (3 df) the threshold is 3.18, not 2. Using 2 SE at n=4 would call
 # p=0.09 a result.
+#
+# Every df from 1 to 30 is listed. The table used to skip 11, 13, 14 and the gaps
+# between 15/20/30, and `_t_critical` substituted the *nearest* entry -- which for df=11
+# broke the 10-vs-12 tie by dict order and returned 2.228 where the true value is 2.201.
+# Conservative, so nothing was miscalled, but E026 quoted 2.201 in prose while the
+# harness had used 2.228: the write-up and the code disagreed about the threshold of the
+# project's headline claim. A complete table costs nothing (E028).
 _T_CRIT = {1: 12.71, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447,
-           7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228, 12: 2.179, 15: 2.131,
-           20: 2.086, 30: 2.042}
+           7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228, 11: 2.201, 12: 2.179,
+           13: 2.160, 14: 2.145, 15: 2.131, 16: 2.120, 17: 2.110, 18: 2.101,
+           19: 2.093, 20: 2.086, 21: 2.080, 22: 2.074, 23: 2.069, 24: 2.064,
+           25: 2.060, 26: 2.056, 27: 2.052, 28: 2.048, 29: 2.045, 30: 2.042}
 
 
 def _t_critical(df: int) -> float:
     if df in _T_CRIT:
         return _T_CRIT[df]
-    return 1.96 if df > 30 else _T_CRIT[min(_T_CRIT, key=lambda k: abs(k - df))]
+    # Only df < 1 or df > 30 can reach here now. Erring high is the safe direction.
+    return 1.96 if df > 30 else _T_CRIT[1]
 
 
 def _contrast(table: dict, label: str, pick, seeds, treat: str, ctrl: str,

@@ -94,6 +94,24 @@ class World(NamedTuple):
     # its own about 47% of the time (E026).
     blind_at_onset: jax.Array   # (H,)
     hit_this_dive: jax.Array   # (H,) struck at least once during the current dive
+    # (H,) every dive that happened, whether or not she was near it. This is the
+    # intent-to-treat denominator and it is the only one the treatment provably cannot
+    # reach: it is fixed by `hawk_period_s`, the run length and the flock size.
+    #
+    # E026 claimed `n_at_risk` had that property -- "the denominator is fixed the instant
+    # the hawk commits" -- in four separate files. The *within-dive* denominator is
+    # fixed; the number of dives that find a hen at risk and blind is a behavioural
+    # outcome, because crouching zeroes locomotion and a crouching hen is still standing
+    # there when the next hawk arrives. E027 measured it moving up to **63%** between
+    # conditions.
+    n_dives: jax.Array      # (H,)
+    # (H,) dives in which she was caught, whether or not she was in the radius when it
+    # began. The intent-to-treat numerator, and it is NOT `n_caught`: that one is gated
+    # on `at_risk`, so a hen who wandered into the radius mid-dive and was taken is not
+    # counted. Measured on a short smoke run: contact steps in the dozens with
+    # `n_caught` at exactly zero, because nobody happened to be inside the radius at the
+    # instant of onset.
+    n_caught_any: jax.Array # (H,)
     n_at_risk: jax.Array    # (H,) dives she began inside the radius
     n_caught: jax.Array     # (H,) of those, dives she was struck in
     n_blind_risk: jax.Array # (H,) dives she began inside the radius AND blind
@@ -140,6 +158,8 @@ def reset(key: jax.Array, cfg: CoopConfig = spec.DEFAULT_COOP) -> World:
         at_risk=jnp.zeros((h,)),
         blind_at_onset=jnp.zeros((h,)),
         hit_this_dive=jnp.zeros((h,)),
+        n_dives=jnp.zeros((h,)),
+        n_caught_any=jnp.zeros((h,)),
         n_at_risk=jnp.zeros((h,)),
         n_caught=jnp.zeros((h,)),
         n_blind_risk=jnp.zeros((h,)),
@@ -311,6 +331,9 @@ def step(w: World, motor: jax.Array, key: jax.Array,
                                w.blind_at_onset)
     hit_this_dive = jnp.where(onset, 0.0,
                               jnp.maximum(w.hit_this_dive, hawk_hit.astype(jnp.float32)))
+    # Every dive counts for every hen, near it or not: intent to treat.
+    n_dives = w.n_dives + jnp.where(ended, 1.0, 0.0)
+    n_caught_any = w.n_caught_any + jnp.where(ended, hit_this_dive, 0.0)
     n_at_risk = w.n_at_risk + jnp.where(ended, at_risk, 0.0)
     n_caught = w.n_caught + jnp.where(ended, at_risk * hit_this_dive, 0.0)
     blind_risk = at_risk * blind_at_onset
@@ -343,6 +366,8 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         at_risk=at_risk,
         blind_at_onset=blind_at_onset,
         hit_this_dive=hit_this_dive,
+        n_dives=n_dives,
+        n_caught_any=n_caught_any,
         n_at_risk=n_at_risk,
         n_caught=n_caught,
         n_blind_risk=n_blind_risk,
