@@ -589,8 +589,27 @@ a change to the core architecture and has not been made.
 
 ## H4 — an intact channel beats a shuffled one on a task requiring private information
 
-**Status: UNDER TEST — the effect is real and does not require the pallium** —
-[E027](experiments/E027-third-review-verified.md).
+**Status: UNDER TEST — smaller than reported, and it does not require the pallium** —
+[E027](experiments/E027-third-review-verified.md),
+[E028](experiments/E028-instrument-repair.md).
+
+**On a repaired instrument the headline does not clear.** E028 rebuilt the metric so its
+denominator is every (hen, dive) pair — fixed by the predator schedule and flock size,
+unreachable by any behaviour — and re-ran the full ladder on fresh seeds 36–47:
+
+| contrast | metric | result |
+|---|---|---|
+| **L vs C? (registered)** | caught/dive (ITT) | **−0.029 ± 0.020, t=1.42 — not significant** |
+| L vs C? | caught/event (E026's, confounded) | −0.142 ± 0.061 — SIGNIFICANT |
+| **L vs Lx (`W_out` lesioned)** | caught/dive | **+0.006 ± 0.013 — noise** |
+| L vs C? | fed % (T1's registered metric) | +0.053 ± 0.087 — null, third block running |
+
+Two metrics, one dataset, opposite verdicts. `dives` is flat to **0.0%** across all seven
+conditions; `blind risk` — E026's denominator — spans a **60% range**. The previous
+headline was substantially an artefact of that.
+
+**−0.198 became −0.029.** The direction still favours the intact channel in every
+contrast, so a small real effect is likely; it is not what `SUPPORTED` claimed.
 
 ~~**Status: SUPPORTED** at this capacity and this task —
 [E026](experiments/E026-h4-supported.md). **The first status past H1a to be supported,
@@ -720,6 +739,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | Food depletion added; it does **not** disperse the flock, and dispersal was never the problem. No file. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E028b | **The ladder re-run on the repaired instrument (seeds 36–47) does not clear.** L vs C? is **−0.029 ± 0.020, t=1.42** on the unmovable denominator, against **−0.142, SIGNIFICANT** on E026's confounded one — same 12 seeds, opposite verdicts. **L vs Lx = +0.006, noise**: the pallium is not in the causal path, replicated on fresh seeds. T1's registered fed % null for a third time. |
 | E028 | **Instrument repair, and a re-baselining.** Strikes become events: the strike share of reward variance goes **87.3% → 0.2%**. Dale's law reaches `W_out` (0/48 → 48/48) — and the naive fix broke the flock, which the measurement caught in one run. Metric moves to intent-to-treat `caught/dive`, whose denominator is flat to **0.0%** where E026's swung **−57.7% to +50.0%**. `Lx lesioned` becomes a permanent rung. Registered contrasts (L vs C?, T1's fed %) reported at last. |
 | E027 | **Third review, verified. H4 downgraded: the effect survives lesioning `W_out`**, so it is not a result about the neural model. The metric's denominator moves **up to 63%**; the headline is 15.0 pp pooled, not 19.8. **The reward is 87% `n_struck` at the H4 configuration** and the guard that forbids this runs where no hawk arrives. Dale's law violated on `W_out` (0/48). |
 | E023 | E/I fixed, gain re-baselined 0.70 → 0.95. **The knife-edge gain is gone** — usable band 4× wider. **Separability unchanged** (7.4% vs 7.5%), so H2d is untouched and the review's predicted 1.4× did not appear. Invalidates every prior number as *comparable*. |

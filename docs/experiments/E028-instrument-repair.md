@@ -142,12 +142,82 @@ rather than dismissed; `CLAUDE.md` treats throughput as a correctness constraint
 
 ## 6. Result
 
-_Pending — the ladder is running on seeds 36–47, 12 seeds × 10 min × 7 conditions._
+Seeds **36–47**, 12 seeds × 10 min × 7 conditions, on the re-baselined genome.
+
+```
+condition        fed %  caught/dive   dives  at risk  blind risk  caught/event
+N  natural        2.69        0.137     305     50.0        27.8         0.482
+C- capacity       2.91        0.118     305     39.2        23.2         0.452
+C0 severed        2.91        0.118     305     39.2        23.2         0.452
+C? yoked          2.62        0.115     305     39.6        18.9         0.404
+Cs self-only      2.72        0.113     305     52.6        26.4         0.386
+L  language       2.67        0.086     305     48.4        28.0         0.262
+Lx lesioned       2.68        0.080     305     55.2        30.3         0.261
+```
+
+### The headline, on a denominator the treatment cannot move
+
+**L vs C? — the registered contrast — is −0.029 ± 0.020, t=1.42. Not significant**
+(needs 2.20 at 11 df). Pooled over events: 0.084 vs 0.112, difference −0.028, which
+agrees with the paired estimate.
+
+**And the metric E026 used still says otherwise.** On `caught/event` — the confounded
+one — the same 12 seeds give **−0.142 ± 0.061, SIGNIFICANT**. Two metrics, one dataset,
+opposite verdicts. The difference is entirely the denominator: `dives` is flat to 0.0%
+across all seven conditions, while `blind risk` ranges from C?'s 18.9 to Lx's 30.3, a
+**60% spread**.
+
+That is the whole of E027's finding, reproduced deliberately rather than discovered
+afterwards: **the previous headline was substantially an artefact of a denominator that
+moved with the treatment.**
+
+### The pallium is not in the causal path — replicated
+
+**L vs Lx: +0.006 ± 0.013, t=0.47, noise.** Lesioning `W_out` entirely — every route
+from 512 simulated neurons to a muscle — changes nothing. If anything the lesioned flock
+is marginally *better* (0.080 vs 0.086), consistent with E002's ceiling and with E027's
+finding that removing an untrained random projection helps.
+
+E027 measured this on the old genome with 8 seeds and no repaired metric. It replicates
+on fresh seeds, a re-baselined brain and an unmovable denominator.
+
+### T1's registered metric is null for the third time
+
+**fed % +0.053 ± 0.087, t=0.61.** `docs/backlog.md` §3 predicted L forages *more* than C?
+at equal risk. E026: 3.06 vs 3.07, then 2.54 vs 2.41. Now 2.67 vs 2.62. Three blocks,
+no effect.
+
+### The rest of the ladder
+
+| contrast | caught/dive | verdict |
+|---|---|---|
+| L vs C− (capacity) | −0.032 ± 0.015 | t=2.18, just under 2.20 |
+| L vs C0 (severed) | −0.032 ± 0.015 | t=2.18, just under 2.20 |
+| L vs Cs (self-only) | −0.027 ± 0.013 | t=2.00 |
+| L vs N (natural) | −0.051 ± 0.012 | **SIGNIFICANT** |
+| **L vs Lx (lesioned)** | **+0.006 ± 0.013** | **noise** |
+
+The pattern is coherent: L beats every condition lacking present-tense information by
+roughly the same 0.03, and C? sits with C0 and C− rather than with L — which is what a
+working yoked control should do. **L vs N is the only significant contrast, and it is
+also the least clean**: N differs from L in capacity *and* scaffold, so it varies two
+things at once and cannot carry a claim.
 
 ## 7. Consequence
 
-- H4 remains `UNDER TEST` until §6 lands. The re-run is on a re-baselined genome, so it
-  is not comparable to E026 and does not inherit its status.
+- **H4 stays `UNDER TEST`, and now for a second, independent reason.** E027 withdrew the
+  claim that it was a result about the *brain*. E028 finds that on a denominator the
+  treatment cannot move, the registered contrast does not reach significance at 12
+  seeds either. The direction is consistent (L lowest of every informed condition,
+  −0.029) and the effect may well be real and small — but "supported" was not what the
+  data said once the instrument was fixed.
+- **The honest summary of E026 is now: a real but small channel effect, reported at
+  roughly 5× its size** by a metric whose denominator moved with the treatment and an
+  estimator that weighted sparse seeds equally. −0.198 became −0.029.
+- **A positive control is now unavoidable**, and it is the same argument as `CLAUDE.md`
+  check 6 in reverse: before reporting that a 12-seed contrast on the ITT metric is
+  null, show the metric detecting an effect of known size. Without that, this null is as
+  uninformative as the ones it replaced. **This is the top of the queue.**
 - **Recorded, not fixed:** `C−` and `C0` come out byte-identical again despite the
   `call_vigour_drain=0` patch meant to separate them, so the energetic cost of calling is
   inert. Needs its own measurement.

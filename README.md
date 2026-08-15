@@ -147,11 +147,31 @@ denominator we chose specifically because the treatment could not move it turns 
 move by up to **63%** between conditions — a hen who crouches stops walking, so she is
 still standing there when the next hawk arrives.
 
+**So we rebuilt the measurement and ran it again.** The new denominator is every hen and
+every hawk, full stop — fixed by the schedule, untouchable by anything a bird does. On
+twelve fresh worlds:
+
+| | the effect of hearing your flock |
+|---|---|
+| old measurement, same data | **−0.142** — "significant" |
+| **new measurement, same data** | **−0.029** — not significant |
+
+Two numbers, one dataset, opposite verdicts. The difference is entirely the denominator.
+**The effect went from twenty percentage points to about three**, and at twelve worlds
+that no longer stands apart from luck. It still points the same way in every single
+comparison, so there is probably something real here — it is just much smaller than we
+said, and we cannot yet prove it is there at all.
+
 **What survives, and it is worth keeping:** a channel carrying information about *now*
-beats one that does not. The yoked control did its job. But the honest claim is much
-narrower than "a neural model of a chicken benefits from language" — it is that **a
-well-timed one-bit interrupt restores the receiver's own vision, in an agent that is
-currently pure reflex.**
+beats one that does not, in the same direction every time we look. The yoked control did
+its job. But the honest claim is much narrower than "a neural model of a chicken benefits
+from language" — it is that **a well-timed one-bit interrupt probably helps a little, in
+an agent that is currently pure reflex, and we have not yet measured it precisely enough
+to be sure.**
+
+The lesson we keep re-learning, now with a number attached: **the instrument decides the
+answer.** The same twelve worlds say "significant" or "not significant" depending only on
+what you divide by.
 
 Full detail in [`docs/experiments/E027`](docs/experiments/E027-third-review-verified.md),
 including the two things the reviewer got wrong.
@@ -457,12 +477,12 @@ result is a clean null. An earlier version of this file called phase 1 complete,
 strength of a finding that turned out to be an artefact of three defects in the
 environment and the learning rule.
 
-**The channel does real work — but not the work we claimed.** A flock that can hear each
-other is caught measurably less often when blind, and a flock whose calls carry no
-information about the present gets no benefit. That much holds. What does not hold is
-that this says anything about the *brain*: delete the pallium's route to the muscles and
-the effect survives. H4 has been downgraded from `SUPPORTED` back to `UNDER TEST`
-accordingly.
+**The channel may do real work, but less than we claimed and not through the brain.**
+Rebuilt on a measurement no behaviour can distort, the effect is about a fifth of the
+reported size and no longer clears the bar at twelve worlds. And deleting the pallium's
+entire route to the muscles changes nothing at all — so whatever is happening is the
+reflex arc, not the neural model. H4 has gone from `SUPPORTED` back to `UNDER TEST` on
+both counts.
 
 **The immediate blocker is the reward signal, and it is the same mistake again.** The
 plan was to switch learning on in the world where the channel works. Measured at that
