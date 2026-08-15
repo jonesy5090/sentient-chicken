@@ -125,16 +125,36 @@ chosen before they were run, gave −0.208. The project has been burned by this 
 thing before — a result that looked decisive on one batch of random seeds and evaporated
 on the next — so no finding moves the record until it survives a second batch.
 
-**Three honest limits, stated here rather than in a footnote:**
+**And then a third outside review took it apart.** The paragraphs above are what we
+believed for about a day. What follows is what survived.
 
-- **Nothing is learned.** There is no plasticity anywhere in this experiment. The hens
-  understand each other because we wired them to, the way a real chick is born already
-  finding fear calls alarming. This proves a **working channel helps**. It does not
-  prove language can be *acquired*, which is a different and harder claim.
-- **The signal only means "danger."** It does not yet mean *which* danger, or *where*.
-  That is the next rung and it is not built.
-- **It is one task, at one brain size.** Sixteen hens, a pallium half again its default
-  size, one kind of threat.
+**The effect does not need the brain.** Set the connection from the pallium to the
+muscles to exactly zero — delete every route by which 512 simulated neurons can influence
+behaviour — and the benefit is still there. What is actually doing the work is two
+hand-written reflex weights and a threshold, and you could compute the result on paper.
+
+**Most of it is not the hens understanding each other.** The innate response to a call
+has two halves: crouch, and stop pecking. Split them, and the half that carries the
+effect is *stop pecking* — she lifts her head, sees the hawk herself, and her own visual
+reflex fires at five times the strength of anything the call supplies. That is a real
+mechanism and it is how it works in nature. It is not comprehension. It is an alarm
+clock.
+
+**And the measurement flatters itself.** The headline number averages each world's
+survival rate equally, though some worlds contain three times more danger than others.
+Counting the actual events gives **15.0 percentage points, not 19.8**. Worse, the
+denominator we chose specifically because the treatment could not move it turns out to
+move by up to **63%** between conditions — a hen who crouches stops walking, so she is
+still standing there when the next hawk arrives.
+
+**What survives, and it is worth keeping:** a channel carrying information about *now*
+beats one that does not. The yoked control did its job. But the honest claim is much
+narrower than "a neural model of a chicken benefits from language" — it is that **a
+well-timed one-bit interrupt restores the receiver's own vision, in an agent that is
+currently pure reflex.**
+
+Full detail in [`docs/experiments/E027`](docs/experiments/E027-third-review-verified.md),
+including the two things the reviewer got wrong.
 
 ---
 
@@ -206,6 +226,8 @@ turned out to be a broken measuring instrument, not a fact about the brain.**
 | learning does not improve foraging | hens start at exactly the hunger level the metric measures *around*, so it was scoring a coin flip |
 | a scrambled channel is as good as a real one | the scramble **kept 98%** of what it was meant to destroy |
 | hearing an alarm does not save a hen | the world gave her **no interval** in which a warning could possibly arrive — the hawk appeared already on top of her |
+| a channel helps *the neural model* | the effect **survives deleting the brain's route to the muscles** — it was two reflex weights all along |
+| the denominator cannot move, by construction | it moves by up to **63%** between conditions |
 
 Twenty-five experiments reasoning carefully about a bird whose instruments were broken.
 Each time, the project generated a plausible *mechanism* to explain the null instead of
@@ -435,15 +457,24 @@ result is a clean null. An earlier version of this file called phase 1 complete,
 strength of a finding that turned out to be an artefact of three defects in the
 environment and the learning rule.
 
-**The channel works, and that is the first real result past the hatchling stage.** A
-flock that can hear each other is caught 20 percentage points less often when blind, and
-a flock whose calls carry no information about the present gets no benefit at all. But
-the hens were *born* understanding each other rather than learning to — so what is proven
-is that communication pays, not that it can be acquired.
+**The channel does real work — but not the work we claimed.** A flock that can hear each
+other is caught measurably less often when blind, and a flock whose calls carry no
+information about the present gets no benefit. That much holds. What does not hold is
+that this says anything about the *brain*: delete the pallium's route to the muscles and
+the effect survives. H4 has been downgraded from `SUPPORTED` back to `UNDER TEST`
+accordingly.
 
-**The two halves of the thesis have now come apart cleanly.** The bird does not yet
-learn. The channel does real work. Joining those up — a flock that *learns* what a call
-means, and then invents one nature never gave it — is the rest of the project.
+**The immediate blocker is the reward signal, and it is the same mistake again.** The
+plan was to switch learning on in the world where the channel works. Measured at that
+world's predator rate, **87% of the teaching signal is "was I just caught"** — and the
+test written to forbid exactly that runs at a setting where a hawk never arrives during
+the measurement window. That is the third time a guard has been checked in the one place
+the defect cannot appear. It gets fixed before anything else runs.
+
+**The two halves of the thesis have come apart, and neither is finished.** The bird does
+not yet learn. The channel helps a reflex agent. Joining them up — a flock that *learns*
+what a call means, and then invents one nature never gave it — is the rest of the
+project, and it is further away than it looked yesterday.
 
 Full detail in [`docs/hypothesis.md`](docs/hypothesis.md), which is the authority when
 this file and it disagree.

@@ -14,11 +14,16 @@ remainder on a pallium.
 
 Current state: phase 0 proven; phase 1 **built but not proven** — the learning rule is
 a clean null (E020/E021), and saying "phase 1 complete" is exactly the
-built-versus-proven conflation this file warns about. **H4, the headline, is SUPPORTED**
-(E026): an intact channel beats a time-shifted one by −0.198 ± 0.059 on P(caught while
-blind), 24 seeds, two blocks — with no plasticity anywhere, so it shows a channel helps,
-not that language is learned. `docs/hypothesis.md` is authoritative; `/status` will read
-it for you.
+built-versus-proven conflation this file warns about. **H4 was `SUPPORTED` for one day
+and is back to `UNDER TEST`** (E026 → E027): an intact channel does beat a time-shifted
+one, but the effect **survives lesioning `W_out` entirely**, so it is a result about two
+hand-set reflex weights and not about the neural model. `docs/hypothesis.md` is
+authoritative; `/status` will read it for you.
+
+**Before anything else runs: the reward is 87% `n_struck` at the H4 configuration**
+(hawk every 20 s), and the guard forbidding exactly that runs at `hawk_period_s=900`
+where no hawk arrives. Switching plasticity on in that world teaches strike avoidance
+and nothing else. See E027 §4.
 
 ## Why this is worth doing, and therefore what not to break
 

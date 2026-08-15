@@ -1,0 +1,76 @@
+  ran deaf                       seed 24
+  ran deaf                       seed 25
+  ran deaf                       seed 26
+  ran deaf                       seed 27
+  ran deaf                       seed 28
+  ran deaf                       seed 29
+  ran deaf                       seed 30
+  ran deaf                       seed 31
+  ran intact                     seed 24
+  ran intact                     seed 25
+  ran intact                     seed 26
+  ran intact                     seed 27
+  ran intact                     seed 28
+  ran intact                     seed 29
+  ran intact                     seed 30
+  ran intact                     seed 31
+  ran intact, head-raise only    seed 24
+  ran intact, head-raise only    seed 25
+  ran intact, head-raise only    seed 26
+  ran intact, head-raise only    seed 27
+  ran intact, head-raise only    seed 28
+  ran intact, head-raise only    seed 29
+  ran intact, head-raise only    seed 30
+  ran intact, head-raise only    seed 31
+  ran intact, crouch only        seed 24
+  ran intact, crouch only        seed 25
+  ran intact, crouch only        seed 26
+  ran intact, crouch only        seed 27
+  ran intact, crouch only        seed 28
+  ran intact, crouch only        seed 29
+  ran intact, crouch only        seed 30
+  ran intact, crouch only        seed 31
+  ran deaf,   W_out=0            seed 24
+  ran deaf,   W_out=0            seed 25
+  ran deaf,   W_out=0            seed 26
+  ran deaf,   W_out=0            seed 27
+  ran deaf,   W_out=0            seed 28
+  ran deaf,   W_out=0            seed 29
+  ran deaf,   W_out=0            seed 30
+  ran deaf,   W_out=0            seed 31
+  ran intact, W_out=0            seed 24
+  ran intact, W_out=0            seed 25
+  ran intact, W_out=0            seed 26
+  ran intact, W_out=0            seed 27
+  ran intact, W_out=0            seed 28
+  ran intact, W_out=0            seed 29
+  ran intact, W_out=0            seed 30
+  ran intact, W_out=0            seed 31
+
+E027 -- seeds 24-31 x 5 min, 16 hens, 1.5x pallium, hawk every 20 s, no plasticity
+
+condition                   blind risks   caught  pooled rate
+-------------------------------------------------------------
+deaf                                 57       40        0.702
+intact                               60       22        0.367
+intact, head-raise only              72       42        0.583
+intact, crouch only                  93       63        0.677
+deaf,   W_out=0                      79       37        0.468
+intact, W_out=0                      77       25        0.325
+
+--- claim 1: does the effect need the pallium? ---
+  intact - deaf (pallium intact)    -0.240 +/- 0.110 t=2.19 not significant  pooled -0.335
+  intact - deaf (W_out lesioned)    -0.208 +/- 0.148 t=1.41 not significant  pooled -0.144
+
+--- claim 2: which half of the scaffold does the work? ---
+  full scaffold - deaf              -0.240 +/- 0.110 t=2.19 not significant  pooled -0.335
+  head-raise only - deaf            -0.124 +/- 0.121 t=1.03 not significant  pooled -0.118
+  crouch response only - deaf       -0.067 +/- 0.134 t=0.50 not significant  pooled -0.024
+
+--- denominator movement vs deaf ---
+  deaf                           57    +0.0%
+  intact                         60    +5.3%
+  intact, head-raise only        72   +26.3%
+  intact, crouch only            93   +63.2%
+  deaf,   W_out=0                79   +38.6%
+  intact, W_out=0                77   +35.1%

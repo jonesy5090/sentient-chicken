@@ -589,12 +589,43 @@ a change to the core architecture and has not been made.
 
 ## H4 — an intact channel beats a shuffled one on a task requiring private information
 
-**Status: SUPPORTED** at this capacity and this task —
+**Status: UNDER TEST — the effect is real and does not require the pallium** —
+[E027](experiments/E027-third-review-verified.md).
+
+~~**Status: SUPPORTED** at this capacity and this task —
 [E026](experiments/E026-h4-supported.md). **The first status past H1a to be supported,
-and the headline.**
+and the headline.**~~
+
+**Downgraded by [E027](experiments/E027-third-review-verified.md), a third outside
+review, verified.** With `W_out` set to exactly zero — a complete lesion of the only
+route by which 512 simulated neurons can reach a muscle — **the benefit survives**:
+−0.208 ± 0.148 paired, against −0.240 ± 0.110 with the pallium intact (8 fresh seeds,
+neither significant). H0 asserts that *a neural model of a chicken* can be given a
+channel that changes what the flock can do; what E026 measured survives deleting the
+neural model. The causal chain is two hand-set weights in `hen/innate.py` and a threshold
+in `coop/world.py`.
+
+**What stands:** a contingent channel beats a non-contingent one, and the yoked control
+is sound. **What is withdrawn:** that this is a result about the *brain*. The honest
+claim is that a well-timed one-bit interrupt restores the receiver's own vision, in what
+is currently a reflex agent.
+
+**Three further corrections from E027**, each measured:
+
+- **The metric's premise is false.** "The denominator is fixed the instant the hawk
+  commits, so the treatment cannot move it" appears in four files. The *within-dive*
+  denominator is fixed; the number of dives that find a hen blind and at risk is a
+  behavioural outcome, and it moves **up to +63%** across conditions.
+- **The headline is a mean-of-ratios.** Pooled over the same events it is **−0.150**,
+  not −0.198. Both estimators are legitimate; the prose quotes the larger one.
+- **The scaffold's work is done by the head-raise**, not the crouch response
+  (−0.124 vs −0.067). E018 §8 pre-registered this ablation, `hen/innate.py:146-163`
+  predicted it, and `scratchpad/verify_yoked.py`'s docstring claims to have run it. None
+  of the three did.
 
 A hen who can hear her flockmates is caught **~20 percentage points less often** in
-exactly the moments she could not see the hawk herself.
+exactly the moments she could not see the hawk herself — **on the mean-of-ratios
+estimator; 15.0 points pooled.**
 
 Metric: P(caught | at risk **and blind** at dive onset) — a denominator fixed the
 instant the hawk commits, restricted to hens who could not see it, so the treatment
@@ -689,4 +720,5 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | Food depletion added; it does **not** disperse the flock, and dispersal was never the problem. No file. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E027 | **Third review, verified. H4 downgraded: the effect survives lesioning `W_out`**, so it is not a result about the neural model. The metric's denominator moves **up to 63%**; the headline is 15.0 pp pooled, not 19.8. **The reward is 87% `n_struck` at the H4 configuration** and the guard that forbids this runs where no hawk arrives. Dale's law violated on `W_out` (0/48). |
 | E023 | E/I fixed, gain re-baselined 0.70 → 0.95. **The knife-edge gain is gone** — usable band 4× wider. **Separability unchanged** (7.4% vs 7.5%), so H2d is untouched and the review's predicted 1.4× did not appear. Invalidates every prior number as *comparable*. |
