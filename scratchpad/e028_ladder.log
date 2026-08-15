@@ -6,3 +6,5 @@ is safe and starving. Read the two columns together.
 
 condition        fed %  caught/dive   dives  at risk  blind risk  caught/event  head down  alarm heard
 ------------------------------------------------------------------------------------------------------
+N  natural        2.69        0.137     305     50.0        27.8         0.482      0.602       0.3008
+C- capacity       2.91        0.118     305     39.2        23.2         0.452      0.600       0.0000
