@@ -74,6 +74,34 @@ def test_dale_law_survives_learning(flock):
             assert bool(jnp.all(jnp.sign(nz) == p1.dale[j])), f"neuron {j}"
 
 
+def test_dale_law_holds_on_the_readout(flock):
+    """...including on `W_out`, which is the pathway that reaches a muscle.
+
+    This test checked `p.W` only, and `W_out` was drawn from a zero-mean normal and
+    clipped symmetrically -- so every motor-stub neuron sent excitation to some muscles
+    and inhibition to others. Measured before the fix: **0 of 48 columns compliant, all
+    48 mixed**, with 10 of the source neurons inhibitory.
+
+    E022 found this, filed it under "verified -- adopt", and it fell off the action list
+    for four experiments until E027 re-measured it. Checked at hatch *and* after
+    learning, because it was broken in both places and fixing one would have looked
+    like fixing both.
+    """
+    _, _, p0 = flock
+    _w, _x, p1, *_ = _run(flock, LEARN)
+    n_motor = p0.W_out.shape[-1]
+    src = p0.dale[-n_motor:]
+    assert float(jnp.sum(src < 0)) > 0, "no inhibitory motor-stub neurons; test is vacuous"
+
+    for name, W in (("at hatch", p0.W_out), ("after learning", p1.W_out)):
+        for j in range(n_motor):
+            nz = W[:, :, j][W[:, :, j] != 0.0]
+            if nz.size:
+                assert bool(jnp.all(jnp.sign(nz) == src[j])), (
+                    f"{name}: motor-stub neuron {j} has outgoing weights of both signs; "
+                    "an inhibitory cell is excitatory on the pathway to the muscles")
+
+
 def test_weights_stay_bounded(flock):
     _w, _x, p1, *_ = _run(flock, LEARN)
     assert bool(jnp.all(jnp.isfinite(p1.W)))
@@ -147,9 +175,21 @@ def test_reward_is_drive_reduction(flock):
 
 
 def test_being_caught_is_aversive(flock):
+    """One strike *event* must cost her something.
+
+    Reads `n_strike_events`, not `n_struck`: E028 moved the reward onto the event
+    counter, and this test failed on the old field -- which is the rule working. A
+    contact-step counter is still incremented for diagnostics, and bumping it now
+    changes the reward by exactly zero, so asserting on it would pass forever without
+    testing anything.
+    """
     w, _, _ = flock
-    struck = w._replace(n_struck=w.n_struck + 1.0)
+    struck = w._replace(n_strike_events=w.n_strike_events + 1.0)
     assert float(jnp.mean(plasticity.reward(w, struck, CFG, LEARN))) < 0.0
+
+    contact_only = w._replace(n_struck=w.n_struck + 1.0)
+    assert float(jnp.mean(plasticity.reward(w, contact_only, CFG, LEARN))) == 0.0, (
+        "the per-step contact counter still reaches the reward; it is diagnostics only")
 
 
 # --- Guards against the E010 confound ---------------------------------------
@@ -296,7 +336,7 @@ def test_what_the_pallium_sends_to_the_muscles_depends_on_the_situation(flock):
         "applying a constant offset to the muscles rather than a state-dependent one")
 
 
-def test_reward_is_not_dominated_by_one_component(flock):
+def test_reward_is_not_dominated_by_one_component(hawk_period_s=900.0):
     """No component may carry the reward signal on its own.
 
     E019: the vigour (call-cost) term was 98.1% of reward *variance* -- a hen was taught
@@ -326,12 +366,14 @@ def test_reward_is_not_dominated_by_one_component(flock):
     """
     from coop import sensing
     pc = PlasticConfig()
-    w = world.reset(jax.random.key(0), E019_CFG)
+    CFG = E019_CFG._replace(hawk_period_s=hawk_period_s)
+    w = world.reset(jax.random.key(0), CFG)
     p = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS,
-                         n_hens=E019_CFG.n_hens)
-    x = brain.initial_state(p, E019_CFG.n_hens)
-    CFG = E019_CFG
-    fields = ("hunger", "thirst", "cold", "vigour", "n_struck")
+                         n_hens=CFG.n_hens)
+    x = brain.initial_state(p, CFG.n_hens)
+    # `n_strike_events` rather than `n_struck`: the reward reads the event counter, and
+    # freezing the field the reward does not read would score 0% and prove nothing.
+    fields = ("hunger", "thirst", "cold", "vigour", "n_strike_events")
     rewards, contrib = [], {k: [] for k in fields}
     for t in range(3_000):
         obs = sensing.observe(w, CFG)
@@ -353,6 +395,56 @@ def test_reward_is_not_dominated_by_one_component(flock):
             f"{name} carries {100 * v / max(total, 1e-12):.0f}% of the variance the "
             f"reward actually responds to; a modulator dominated by one component "
             f"teaches only that component ({shares})")
+
+
+def test_being_caught_does_not_dominate_the_reward_where_hawks_are_common():
+    """The strike penalty is a *cost*, not the lesson. Guarded where hawks exist.
+
+    E027. `n_struck` incremented every step of contact, so one catch during a 12 s dive
+    was worth up to ~1000 against per-step drive terms of 0.1-0.5. At `hawk_period_s=20`
+    -- the rate every H4 experiment runs at -- it carried **87.3%** of the reward
+    variance. E014 had removed the `/dt` and left the per-step accumulation; E022 filed
+    the remainder as owed and nobody verified it.
+
+    The test above cannot catch this and never could: at the 900 s default no hawk
+    arrives in its window, so the strike share is 0.0% by absence.
+
+    **Two things have to hold for this test to mean anything**, and the second is the
+    one the project keeps getting wrong: the strike term must be small, *and* strikes
+    must actually have happened. A 30 s window at this predator rate still contains no
+    strike, so it would pass for exactly the vacuous reason the 900 s config does. 100 s
+    is the shortest window measured to contain one.
+    """
+    from coop import sensing
+    pc = PlasticConfig()
+    CFG = E019_CFG._replace(hawk_period_s=20.0)
+    w = world.reset(jax.random.key(0), CFG)
+    p = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS, n_hens=CFG.n_hens)
+    x = brain.initial_state(p, CFG.n_hens)
+
+    strike_contrib, other, events = [], [], 0.0
+    for t in range(10_000):
+        obs = sensing.observe(w, CFG)
+        x, motor, _ = brain.step(x, obs, p, CFG.dt)
+        wn = world.step(w, motor, jax.random.fold_in(jax.random.key(4), t), CFG)
+        r = plasticity.reward(w, wn, CFG, pc)
+        frozen = wn._replace(n_strike_events=w.n_strike_events)
+        strike_contrib.append(jnp.mean(r - plasticity.reward(w, frozen, CFG, pc)))
+        other.append(jnp.mean(r))
+        events += float(jnp.sum(wn.n_strike_events - w.n_strike_events))
+        w = wn
+
+    assert events > 0, (
+        "no hen was struck in the whole window, so this guard proves nothing -- the "
+        "same vacuous pass that let the defect survive at hawk_period_s=900")
+
+    v_strike = float(jnp.var(jnp.array(strike_contrib)))
+    v_total = float(jnp.var(jnp.array(other)))
+    share = v_strike / max(v_total, 1e-12)
+    assert share < 0.2, (
+        f"being caught carries {100 * share:.0f}% of the reward variance over {events:.0f} "
+        "strike events; a hen learning in this world is taught strike avoidance and "
+        "almost nothing else")
 
 
 def test_vigour_is_a_cost_in_the_world_but_not_in_the_reward(flock):

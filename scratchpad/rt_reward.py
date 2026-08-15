@@ -14,7 +14,11 @@ from coop import sensing, spec, world
 from hen import brain, connectome, plasticity, regions
 from hen.plasticity import PlasticConfig
 
-FIELDS = ("hunger", "thirst", "cold", "vigour", "n_struck")
+# `n_strike_events`, not `n_struck`. E028 pointed the reward at the event counter, and
+# freezing the field the reward no longer reads would score it at 0% and report a pass
+# that means nothing -- the exact "verified in the place it was moved from" failure this
+# guard exists to catch. Both are listed so the split between them stays visible.
+FIELDS = ("hunger", "thirst", "cold", "vigour", "n_strike_events", "n_struck")
 
 
 def shares(cfg, steps=3_000, label=""):
@@ -49,5 +53,10 @@ def shares(cfg, steps=3_000, label=""):
 
 print("Reward variance decomposition, freeze-one-field method (same as the guard).\n")
 shares(spec.DEFAULT_COOP, label="guard config -- what the test suite runs")
-shares(spec.DEFAULT_COOP._replace(n_hens=16, hawk_period_s=20.0),
-       label="H4 config  -- what E024/E026 actually ran")
+# 3000 steps is 30 s, and at hawk_period_s=20 that window contained no strike at all --
+# so the strike share came back 0.0% and the guard would have passed for the same
+# vacuous reason it passed at 900 s. The window has to be long enough to contain the
+# event being guarded, or parametrising the config buys nothing.
+for steps in (3_000, 10_000, 30_000):
+    shares(spec.DEFAULT_COOP._replace(n_hens=16, hawk_period_s=20.0), steps=steps,
+           label=f"H4 config, {steps} steps ({steps * 0.01:.0f} s)")

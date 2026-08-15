@@ -218,7 +218,14 @@ def reward(w_prev, w_next, cfg: CoopConfig, pc: PlasticConfig) -> jax.Array:
     # that happened to take zero strikes lost 17% and was fine. Ablating this term
     # restored every seed to ~83%. The units error was the whole of the erosion that
     # E013 attributed to a random walk.
-    struck = w_next.n_struck - w_prev.n_struck
+    #
+    # **E014 fixed half of it.** Removing the `/dt` left `n_struck` still incrementing
+    # every *step* of contact, so one catch during a 12 s dive was still worth up to
+    # ~1000. E027 measured the result at the H4 configuration (hawk every 20 s): this
+    # term carried **87.3%** of the reward variance, against 0.0% at the 900 s default
+    # the guard test runs at -- where no hawk arrives at all. Reading the event counter
+    # is the other half of E014's fix, six experiments late.
+    struck = w_next.n_strike_events - w_prev.n_strike_events
     own = d_drive * pc.reward_scale - struck * pc.strike_penalty
 
     if pc.kin_weight == 0.0:
@@ -332,7 +339,12 @@ def consolidate(p: BrainParams, ps: PlasticState, m: jax.Array,
     n_motor = p.W_out.shape[-1]
     dw_out = (eta_out * m[:, None, None]
               * dz_motor[:, :, None] * dz_slow[:, None, -n_motor:])
-    w_out = jnp.clip(p.W_out + dw_out, -pc.w_max, pc.w_max)
+    # Dale's law holds here too. This was a symmetric clip until E027, so learning could
+    # walk a motor-stub neuron's outgoing weight across zero and turn an inhibitory cell
+    # excitatory -- the precise thing the invariant forbids, on the one pathway that
+    # reaches a muscle. `_enforce_dale` expects the presynaptic sign per source column,
+    # which for the readout is the motor stub's slice of `dale`.
+    w_out = _enforce_dale(p.W_out + dw_out, p.dale[-n_motor:], pc.w_max)
 
     w_pred = p.W_pred
     if pc.pred_enabled:

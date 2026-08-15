@@ -49,7 +49,24 @@ class World(NamedTuple):
 
     # Bookkeeping (not sensed; used by probes and assays)
     t: jax.Array            # step counter
-    n_struck: jax.Array     # (H,) cumulative predator contacts
+    n_struck: jax.Array     # (H,) cumulative predator contact *steps* -- see below
+    # (H,) cumulative predator contacts counted as EVENTS, not steps. This is the one
+    # the teaching signal reads, and the distinction is not cosmetic.
+    #
+    # `n_struck` increments every step a hen is inside the radius and not hiding, so a
+    # single catch during a 12 s dive contributes up to ~1000 against per-step drive
+    # terms of 0.1-0.5. E014 found the original form of this bug -- a strike divided by
+    # dt, worth -100 in reward -- removed the `/dt`, and left the per-step accumulation
+    # in place. E022 flagged the remainder as owed and it was never verified. E027
+    # measured the consequence at the configuration H4 actually runs: `n_struck` carried
+    # **87.3%** of the reward variance, i.e. a hen learning in that world is taught
+    # almost nothing except "was I just caught".
+    #
+    # Being caught is an event. It is counted on the rising edge, which works for both
+    # predators -- `hit_this_dive` is hawk-specific and exists for the metric, not the
+    # reward.
+    n_strike_events: jax.Array  # (H,)
+    struck_prev: jax.Array      # (H,) was she in contact on the previous step?
     # (H,) cumulative steps spent inside a live predator's strike radius, whether or
     # not she was hiding. This is the *opportunity* to be struck, and without it
     # `n_struck` is uninterpretable: it counts contacts, which depend overwhelmingly on
@@ -117,6 +134,8 @@ def reset(key: jax.Array, cfg: CoopConfig = spec.DEFAULT_COOP) -> World:
         fox_t=jnp.array(0.0),
         t=jnp.array(0, dtype=jnp.int32),
         n_struck=jnp.zeros((h,)),
+        n_strike_events=jnp.zeros((h,)),
+        struck_prev=jnp.zeros((h,)),
         n_exposed=jnp.zeros((h,)),
         at_risk=jnp.zeros((h,)),
         blind_at_onset=jnp.zeros((h,)),
@@ -270,6 +289,10 @@ def step(w: World, motor: jax.Array, key: jax.Array,
     fox_hit = (d_fox < cfg.hawk_strike_radius) & (fox_on > 0.5) & ~fleeing
 
     struck = (hawk_hit | fox_hit).astype(jnp.float32)
+    # The rising edge: contact that was not already happening last step. `n_struck`
+    # keeps counting steps for diagnostics and for every log written before E027;
+    # `n_strike_events` is what the reward reads. See the field comments.
+    strike_event = struck * (1.0 - w.struck_prev)
     # In range of a live predator, hiding or not: the denominator that makes `struck`
     # mean something.
     exposed = (((d_hawk < cfg.hawk_strike_radius) & (hawk_on > 0.5) & committed)
@@ -314,6 +337,8 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         fox_pos=fox_pos, fox_on=fox_on, fox_t=fox_t,
         t=w.t + 1,
         n_struck=w.n_struck + struck,
+        n_strike_events=w.n_strike_events + strike_event,
+        struck_prev=struck,
         n_exposed=w.n_exposed + exposed,
         at_risk=at_risk,
         blind_at_onset=blind_at_onset,

@@ -1,0 +1,42 @@
+Reward variance decomposition, freeze-one-field method (same as the guard).
+
+guard config -- what the test suite runs  (hawk every 900 s, 16 hens)
+  steps in which some hen was struck: 0 / 3000
+    hunger      38.5%  ###############
+    thirst       0.0%  
+    cold        61.5%  ########################
+    vigour       0.0%  
+    n_strike_events   0.0%  
+    n_struck     0.0%  
+  -> guard asserts every share < 80%; worst is cold at 61.5% (PASSES)
+
+H4 config, 3000 steps (30 s)  (hawk every 20 s, 16 hens)
+  steps in which some hen was struck: 0 / 3000
+    hunger      43.0%  #################
+    thirst       0.0%  
+    cold        57.0%  ######################
+    vigour       0.0%  
+    n_strike_events   0.0%  
+    n_struck     0.0%  
+  -> guard asserts every share < 80%; worst is cold at 57.0% (PASSES)
+
+H4 config, 10000 steps (100 s)  (hawk every 20 s, 16 hens)
+  steps in which some hen was struck: 1000 / 10000
+    hunger      95.9%  ######################################
+    thirst       0.0%  
+    cold         3.9%  #
+    vigour       0.0%  
+    n_strike_events   0.2%  
+    n_struck     0.0%  
+  -> guard asserts every share < 80%; worst is hunger at 95.9% (WOULD FAIL)
+
+H4 config, 30000 steps (300 s)  (hawk every 20 s, 16 hens)
+  steps in which some hen was struck: 1144 / 30000
+    hunger      98.3%  #######################################
+    thirst       0.0%  
+    cold         1.7%  
+    vigour       0.0%  
+    n_strike_events   0.0%  
+    n_struck     0.0%  
+  -> guard asserts every share < 80%; worst is hunger at 98.3% (WOULD FAIL)
+

@@ -1,0 +1,11 @@
+Neonatal ethogram -- a hen that has never learned anything
+
+  PASS  peck at food                   peck=0.99 (want >0.5)
+  PASS  crouch at hawk                 crouch=1.00 (want >0.5)
+  PASS  head-down blindness            aerial seen 0.01 pecking vs 0.65 head-up; crouch 0.08 vs 0.94 (111/288 steps)
+  PASS  flee from fox                  flee=0.96 crouch=0.08
+  PASS  referential alarm calls        hawk->(aerial 0.99, ground 0.08)  fox->(aerial 0.08, ground 0.91)
+  PASS  contact call when isolated     alone=0.97 vs in-flock=0.25
+  PASS  approach flockmates when cold  left-bias=+0.12 closed=+0.193 m
+
+7/7 assays passed
