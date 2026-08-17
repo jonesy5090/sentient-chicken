@@ -21,6 +21,7 @@ from run.experiment import _t_critical
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--seeds", type=int, default=12)
+ap.add_argument("--seed-offset", type=int, default=0, help="first seed index (for a second block)")
 ap.add_argument("--rear", type=float, default=20.0, help="rearing minutes")
 ap.add_argument("--test", type=float, default=5.0, help="test minutes")
 ap.add_argument("--cache", default="scratchpad/e032_cache.json")
@@ -64,7 +65,7 @@ rows = {}
 for plastic in (True, False):
     name = "trained" if plastic else "fixed"
     acc = []
-    for s in range(a.seeds):
+    for s in range(a.seed_offset, a.seed_offset + a.seeds):
         ck = f"{name}|{s}|{a.rear}|{a.test}"
         if ck not in cache:
             if time.perf_counter() - t0 > a.budget:
