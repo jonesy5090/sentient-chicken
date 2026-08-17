@@ -43,11 +43,46 @@ def _region_of(reg: Regions) -> np.ndarray:
     return np.concatenate([np.full(n, r) for r, n in enumerate(reg.sizes)])
 
 
+def _modality_bounds(reg: Regions, aud_fraction: float):
+    """Split points carving an auditory-only slice out of the sensory stub and a
+    matching "Field L" slice out of the pallium. First `aud_fraction` of each region,
+    by neuron index -- see `regions.AUD_FRACTION`.
+    """
+    s_lo, s_hi = reg.bounds(regions.SENSORY)
+    p_lo, p_hi = reg.bounds(regions.PALLIUM)
+    n_aud_s = max(1, int(round((s_hi - s_lo) * aud_fraction)))
+    n_aud_p = max(1, int(round((p_hi - p_lo) * aud_fraction)))
+    return s_lo, s_lo + n_aud_s, s_hi, p_lo, p_lo + n_aud_p, p_hi
+
+
+def _segregate_modality(mat: jax.Array, reg: Regions, aud_fraction: float) -> jax.Array:
+    """Cut the two cross-modal corners of the sensory->pallium block.
+
+    The auditory stub slice keeps its connections into the Field L pallial slice; the
+    visual (rest-of-stub) slice keeps its connections into the rest of the pallium.
+    Neither talks to the other's target. Everything else -- afferents into the stub,
+    recurrence within the pallium (including between the two slices), and every other
+    region pair -- is untouched; this mirrors the ablation E017/E034 measured
+    (`scratchpad/why_pallium_collapses.py`'s "targeted (Field L)" condition) exactly,
+    now built into the connectome instead of a post-hoc surgery on one already built.
+
+    Applied to both `mask` and `growable` so structural growth cannot regrow the
+    cross-modal connections that start absent -- the segregation is meant to be an
+    anatomical fact, not just an initial condition.
+    """
+    s_lo, s_split, s_hi, p_lo, p_split, p_hi = _modality_bounds(reg, aud_fraction)
+    mat = mat.at[p_split:p_hi, s_lo:s_split].set(False)   # rest-of-pallium <- aud stub
+    mat = mat.at[p_lo:p_split, s_split:s_hi].set(False)   # Field L <- visual stub
+    return mat
+
+
 def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           n_hens: int = spec.DEFAULT_COOP.n_hens,
           gain: float = 0.95, readout_scale: float = 0.05,
           auditory_scaffold: bool = False,
-          scaffold_gain: float = 1.0) -> BrainParams:
+          scaffold_gain: float = 1.0,
+          modality_segregated: bool = False,
+          aud_fraction: float = regions.AUD_FRACTION) -> BrainParams:
     """Sample a newly hatched flock.
 
     `readout_scale` is small on purpose: at hatch the cortical pathway is near-silent
@@ -57,6 +92,16 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     `auditory_scaffold` gives her an innate response to hearing an alarm call (E018).
     Off by default, because switching it on changes the innate repertoire and so the
     comparison basis for E001-E017.
+
+    `modality_segregated` gives audition its own slice of the sensory stub and its own
+    pallial target ("Field L"), instead of the default fully-mixed sensory->pallium
+    projection -- the anatomical separation a real bird has (nucleus ovoidalis -> Field
+    L kept apart from nucleus rotundus -> entopallium, two separate thalamic relays).
+    `aud_fraction` sets how much of each region that slice gets (default 1/6, matching
+    the hand-cut probe this replaces). Off by default, same reason as
+    `auditory_scaffold`. Measured in E017/E034/E035: recovers 1.45x pallial
+    separability of "saw hawk" vs "heard alarm" at the default fraction -- real, and
+    well short of closing a ~14-17x loss on its own.
 
     `gain` has been re-baselined twice. It was 0.9 through E009, dropped to 0.70 in
     E010 when the pallium was found saturated, and set to **0.95** in E023 after E022
@@ -113,6 +158,10 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     # sprout onto the sensory stub however well correlated the two happen to be.
     growable = jnp.asarray(p_ij > 0.0) & ~jnp.eye(n, dtype=bool)
 
+    if modality_segregated:
+        mask = _segregate_modality(mask, reg, aud_fraction)
+        growable = _segregate_modality(growable, reg, aud_fraction)
+
     # --- Dale's law: a neuron's outgoing weights all share its sign ---
     #
     # Stratified *within each region*, not by flat index across the whole array. The
@@ -148,8 +197,23 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     rng = np.random.default_rng(int(jax.random.randint(k_in, (), 0, 2**30)))
     extero = [i for i in range(spec.OBS_DIM)
               if not (spec.INTERO_LO <= i < spec.INTERO_HI)]
-    w_in[s_lo:s_hi, extero] = rng.gamma(2.0, 0.5, (s_hi - s_lo, len(extero))) \
-        * (rng.random((s_hi - s_lo, len(extero))) < 0.3)
+
+    def _random_afferents(lo, hi, channels):
+        return rng.gamma(2.0, 0.5, (hi - lo, len(channels))) \
+            * (rng.random((hi - lo, len(channels))) < 0.3)
+
+    if modality_segregated:
+        # Same afferent statistics (gamma magnitude, 30% density) as the mixed case,
+        # just partitioned: audio channels reach only the auditory stub slice, every
+        # other exteroceptive channel reaches only the rest of the stub.
+        s_split = _modality_bounds(reg, aud_fraction)[1]
+        audio_ch = list(range(spec.AUDIO_LO, spec.AUDIO_HI))
+        vis_ch = [i for i in extero if i not in audio_ch]
+        w_in[s_lo:s_split, audio_ch] = _random_afferents(s_lo, s_split, audio_ch)
+        w_in[s_split:s_hi, vis_ch] = _random_afferents(s_split, s_hi, vis_ch)
+    else:
+        w_in[s_lo:s_hi, extero] = _random_afferents(s_lo, s_hi, extero)
+
     w_in[h_lo:h_hi, spec.INTERO_LO:spec.INTERO_HI] = rng.gamma(
         2.0, 1.0, (h_hi - h_lo, spec.INTERO_HI - spec.INTERO_LO))
 

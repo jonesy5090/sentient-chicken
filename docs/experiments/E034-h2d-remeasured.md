@@ -106,8 +106,19 @@ input stage (modality_mixing.py):
 ablation (why_pallium_collapses.py), pallial separability:
   intact                 0.0735 +- 0.0279   1.00x
   no recurrence           0.0641 +- 0.0150   0.87x
-  targeted (Field L)      0.1069 +- 0.0292   1.45x
+  targeted (Field L)      0.1069 +- 0.0292   1.45x   <- does not replicate, see below
 ```
+
+**Correction, added after [E035](E035-modality-segregation-in-the-prior.md):** the
+1.45× "targeted (Field L)" figure above does not survive a properly paired, re-normalised
+re-measurement. `why_pallium_collapses.py` zeroes connections on an already
+fan-in-normalised connectome without re-normalising afterward, confounding "segregated"
+with "less total input drive." A structural implementation that re-normalises correctly,
+tested on a *paired* 12-genome sample, found segregation indistinguishable from intact
+(t=0.04 against threshold 2.201). **Do not cite 1.45× (or E017's 2.06×) going forward.**
+The localisation finding two paragraphs up (sensory→pallium fan-in dilution, recurrence
+not the cause) is unaffected — it is a within-genome comparison and was never exposed to
+this confound.
 
 **(b) Occurrence**, 5 min at H4's standard config (16 hens, hawk every 20 s), fixed hen,
 480,000 hen-steps:
@@ -135,15 +146,13 @@ at the sensory→pallium projection (~14.5×, against E017's 17×), further mild
 downstream, recurrence removed making things slightly *worse* not better (0.87×, against
 E017's 0.79× — same direction, same conclusion: **recurrence is not the cause**).
 
-**Field-L segregation is where the prediction misses.** §3 predicted "roughly 2×,"
+~~**Field-L segregation is where the prediction misses.** §3 predicted "roughly 2×,"
 extrapolating E017's 2.06×. The corrected connectome gives **1.45×** — real, same
-direction, but nearly a third smaller. Since the intact separability itself sits at
-0.0735 against E017's 0.062 (already 19% higher before any ablation), the smaller
-*relative* gain from segregation is not obviously the same effect at a different
-baseline — it could mean the E/I-balanced pallium is somewhat less sensitive to *this
-particular* structural intervention even though the absolute mechanism (fan-in dilution)
-is unchanged. This falls into falsifier condition (a)'s "recovers much... less than ~2×"
-territory, though not by enough to overturn the mechanism, only its exact size.
+direction, but nearly a third smaller.~~ **Superseded by E035, run immediately after
+this section was written**: neither 2.06× nor 1.45× replicates on a paired sample: see
+the correction above the result table. What looked like "a real quantitative miss" was
+this project repeating E017/E023's own mistake — an unpaired 6-genome ratio-of-means on
+a quantity with 6× genome-to-genome spread — one measurement short of catching it.
 
 **(b) Occurrence is a clear, strong confirmation.** The auditory aerial channel is
 nowhere near constant (std 0.37, spans its full 0–1 range) — E019's fix reaches live
@@ -164,22 +173,23 @@ confirmed outright.
   of the tree already treats as standard (H4's config). H2d is no longer resting on an
   artificial contrast; it is resting on something that happens roughly 12% of the time
   whenever the world has a predator in it.
-- **The Field-L segregation number needs updating wherever it is cited**: 1.45×, not
+- ~~**The Field-L segregation number needs updating wherever it is cited**: 1.45×, not
   2.06×. It is still a real, biologically-motivated partial fix and still not sufficient
-  on its own against a ~14–17× loss.
+  on its own against a ~14–17× loss.~~ **Superseded by E035**: neither number is safe
+  to cite. Modality segregation has no measurement supporting it as a partial fix.
 - **This raises H2d's priority, not lowers it.** The concern that demoted H2d from the
   critical path — that its contrast never occurs — is now answered the other way: it
   occurs often. Combined with H2b (the pathway can modulate but not initiate) and H2c's
   correct architecture (associate into the sensory representation, not the motor output)
   being blocked specifically by insufficient separability at that representation, H2d is
   the most direct remaining lever on H2c, H3 and everything below them.
-- **Backlog items this strengthens rather than opens fresh**: modality-segregated
-  afferents (measured here again, smaller than thought but real) and an innate auditory
-  reflex scaffold (E018, already built, off by default) — the latter doesn't fix
-  separability but sidesteps needing it for the specific crouch-on-call behaviour, since
-  the reflex arc would supply the association instead of the pallium discovering it.
-- **Not run here, and worth flagging as the natural next step**: whether the auditory
-  scaffold (`auditory_scaffold=True` in `connectome.build`) changes any of this, and
-  whether raising modality segregation's crude 1/6 partition to something connectivity-
-  prior-driven closes more of the gap now that its ceiling is known to be lower (1.45×)
-  than previously thought.
+- ~~**Backlog items this strengthens rather than opens fresh**: modality-segregated
+  afferents (measured here again, smaller than thought but real)~~ — **downgraded by
+  E035**, not strengthened: the one paired test this has had found nothing. The
+  innate auditory reflex scaffold (E018, already built, off by default) is unaffected
+  by this correction and remains the live candidate — it doesn't fix separability but
+  sidesteps needing it for the specific crouch-on-call behaviour, since the reflex arc
+  would supply the association instead of the pallium discovering it.
+- **Done in E035**: modality segregation was moved into the connectivity prior
+  (`connectome.build(modality_segregated=True, aud_fraction=...)`) as originally
+  intended here, and that implementation is what caught this section's own error.

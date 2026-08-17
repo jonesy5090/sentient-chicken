@@ -540,6 +540,66 @@ def test_scaffold_leaves_the_arc_fixed_under_learning(flock):
     assert jnp.array_equal(p_scaf.reflex, p1.reflex)
 
 
+def _aud_bounds():
+    s_lo, s_hi = regions.DEFAULT_REGIONS.bounds(regions.SENSORY)
+    p_lo, p_hi = regions.DEFAULT_REGIONS.bounds(regions.PALLIUM)
+    n_aud_s = max(1, round((s_hi - s_lo) * regions.AUD_FRACTION))
+    n_aud_p = max(1, round((p_hi - p_lo) * regions.AUD_FRACTION))
+    return s_lo, s_lo + n_aud_s, s_hi, p_lo, p_lo + n_aud_p, p_hi
+
+
+def test_modality_segregation_is_off_by_default():
+    """The default connectome is the one E001-E034 were run on: fully mixed."""
+    p0 = connectome.build(jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=2)
+    p1 = connectome.build(jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=2,
+                          modality_segregated=False)
+    assert jnp.array_equal(p0.mask, p1.mask)
+    assert jnp.array_equal(p0.W_in, p1.W_in)
+
+
+def test_modality_segregation_cuts_exactly_the_cross_terms():
+    """Field L must not hear from the visual stub, and vice versa -- nothing else
+    about the sensory<->pallium block, or any other region pair, should move."""
+    s_lo, s_split, s_hi, p_lo, p_split, p_hi = _aud_bounds()
+    key = jax.random.key(0)
+    p0 = connectome.build(key, regions.DEFAULT_REGIONS, n_hens=2)
+    p1 = connectome.build(key, regions.DEFAULT_REGIONS, n_hens=2,
+                          modality_segregated=True)
+
+    assert not bool(p1.mask[p_split:p_hi, s_lo:s_split].any()), \
+        "rest-of-pallium must not hear from the auditory stub slice"
+    assert not bool(p1.mask[p_lo:p_split, s_split:s_hi].any()), \
+        "Field L must not hear from the visual stub slice"
+    assert bool(p0.mask[p_split:p_hi, s_lo:s_split].any()), \
+        "sanity: the mixed connectome must have had those connections to cut"
+
+    # growth cannot regrow what was cut
+    assert not bool(p1.growable[p_split:p_hi, s_lo:s_split].any())
+    assert not bool(p1.growable[p_lo:p_split, s_split:s_hi].any())
+
+    # nothing outside the sensory<->pallium block moved
+    for r_id in range(regions.N_REGIONS):
+        if r_id in (regions.SENSORY, regions.PALLIUM):
+            continue
+        lo, hi = regions.DEFAULT_REGIONS.bounds(r_id)
+        assert jnp.array_equal(p0.mask[lo:hi], p1.mask[lo:hi]), regions.REGION_NAMES[r_id]
+
+
+def test_modality_segregation_afferents_do_not_cross():
+    """Audio channels must not reach the visual stub slice, and no other exteroceptive
+    channel may reach the auditory stub slice."""
+    s_lo, s_split, s_hi, _, _, _ = _aud_bounds()
+    p = connectome.build(jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=2,
+                         modality_segregated=True)
+    audio = slice(spec.AUDIO_LO, spec.AUDIO_HI)
+    assert float(jnp.max(jnp.abs(p.W_in[s_split:s_hi, audio]))) == 0.0
+    non_audio_vis = spec.VIS_LO
+    assert float(jnp.max(jnp.abs(p.W_in[s_lo:s_split, non_audio_vis]))) == 0.0
+    # and each slice still gets *something*
+    assert float(jnp.max(jnp.abs(p.W_in[s_lo:s_split, audio]))) > 0.0
+    assert float(jnp.max(jnp.abs(p.W_in[s_split:s_hi, non_audio_vis]))) > 0.0
+
+
 def test_reward_components_are_commensurate(flock):
     """No single reward component may dwarf the others.
 

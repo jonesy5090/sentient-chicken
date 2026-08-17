@@ -109,13 +109,24 @@ second one wrong. What remains is dilution by fan-in: each pallial unit sums ~19
 inputs, of which one or two carry the distinction and the rest sit at baseline,
 so a clean difference becomes a small perturbation on a large common-mode drive.
 
-**Structured wiring helps, and does not close the gap.** Giving audition its own stub
+~~**Structured wiring helps, and does not close the gap.** Giving audition its own stub
 partition and its own pallial target — which is the arrangement a real bird has, with
 auditory input arriving in Field L via nucleus ovoidalis while vision arrives in the
 entopallium via nucleus rotundus, two anatomically separate thalamic relays — doubles
 separability. That is a real effect and it is in the right direction, but 2.06× applied
 to a 17× loss reaches 0.128, still an order of magnitude below what the stub already
-had. Anatomical segregation is worth doing and is not on its own the fix.
+had. Anatomical segregation is worth doing and is not on its own the fix.~~
+
+**Correction ([E035](E035-modality-segregation-in-the-prior.md)): this 2.06× does not
+replicate on a properly paired genome sample, and the measurement here has a confound.**
+Zeroing connections on an already fan-in-normalised connectome leaves the survivors
+under-driven relative to their true reduced fan-in — segregation and "less total input
+drive to Field L" were never separated. A re-normalised implementation
+(`connectome.build(modality_segregated=True)`) on a *paired* 12-genome sample found
+structural vs. intact indistinguishable (t=0.04 against a threshold of 2.201). The
+localisation finding above (loss concentrated at the sensory→pallium projection,
+recurrence not the cause) is unaffected — it is a within-genome, paired comparison by
+construction. The segregation *ablation* specifically is not.
 
 **The finding that matters most was not what this set out to measure.** There is no
 innate auditory reflex at all. `hen/innate.py` wires production of all four calls and
@@ -144,7 +155,9 @@ crude probe, not an anatomy: it segregates by fiat rather than by a connectivity
   problem E006 and E007 hit — she cannot learn to crouch at a call she has never once
   crouched at.
 - **New backlog item: modality-segregated afferents**, with the connectivity prior
-  doing the work rather than a hand-cut slice. Measured 2.06× and cheap.
+  doing the work rather than a hand-cut slice. ~~Measured 2.06× and cheap.~~ Built
+  properly and re-measured in [E035](E035-modality-segregation-in-the-prior.md): no
+  effect on a paired sample. Downgraded from "partial fix" to "untested again."
 - **Open question, not yet an item:** the plasticity rule is instrumental
   (reward-modulated three-factor), and the mechanism the biology points at is Pavlovian
   (association off an innately arousing stimulus). `W_pred` is closer to the right

@@ -616,8 +616,18 @@ of which bug-fixed connectome the number is taken on.
 **Localisation replicates.** The loss is still ~14.5× at the sensory→pallium projection
 (E017: 17×), recurrence removed still makes separability slightly *worse*, not better
 (0.87×, E017: 0.79×) — **recurrence is not the cause, confirmed on the corrected
-connectome.** One real miss: Field-L-style auditory segregation now recovers **1.45×**,
-not E017's 2.06× — real, same direction, smaller. Cite 1.45× going forward, not 2.06×.
+connectome.** This part is a within-genome comparison and is on solid footing.
+
+~~One real miss: Field-L-style auditory segregation now recovers **1.45×**, not E017's
+2.06× — real, same direction, smaller. Cite 1.45× going forward, not 2.06×.~~
+**Neither number survives [E035](experiments/E035-modality-segregation-in-the-prior.md),
+run immediately after.** Both were unpaired ratio-of-means across 6 genomes on a quantity
+with ~6× genome-to-genome spread (0.039–0.221 in E035's own sample); a properly
+re-normalised, *paired* 12-genome test found modality segregation indistinguishable from
+no segregation at all (t=0.04 against threshold 2.201). **Do not cite either figure.**
+Modality segregation is not an established partial fix for H2d — it is untested again,
+this time by a test that actually controls for the confound (segregation was never
+separated from "less total input drive to the segregated slice" in either prior number).
 
 **Occurrence is no longer hypothetical, and this is the important part.** A 5-minute live
 rollout at H4's standard config (16 hens, hawk every 20 s, fixed hen, 480,000 hen-steps)
@@ -936,7 +946,8 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | Food depletion added; it does **not** disperse the flock, and dispersal was never the problem. No file. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
-| E034 | **H2d re-measured on the corrected (E023) connectome, and reprioritised upward.** Localisation replicates: loss still ~14.5× at sensory→pallium (E017: 17×), recurrence removed still 0.87× (not the cause). Field-L segregation now **1.45×**, not E017's 2.06× — real miss on magnitude. **Occurrence check reverses H2d's demotion**: a 5-min live rollout at H4's config found a hen blind to the hawk while a flockmate audibly alarm-calls on **11.9% of all hen-steps** — the contrast this node depends on is routine, not hypothetical, contra the E019-era reasoning that demoted it. |
+| E035 | **E017/E034's Field-L segregation numbers (2.06×, 1.45×) do not replicate — corrected in both files rather than quietly edited.** Moved modality segregation into `connectome.build(modality_segregated=...)`, properly fan-in-renormalised, instead of the ad hoc probe's post-hoc zeroing. On a **paired** 12-genome sample: structural vs. intact **t=0.04** against threshold 2.201 — no effect. The prior numbers were unpaired ratio-of-means on a quantity with ~6× genome-to-genome spread (0.039–0.221 in this sample) — the same statistical trap E021 caught for seed blocks, uncaught here for genomes across two experiments. Localisation (loss at sensory→pallium, recurrence not the cause) is unaffected — a within-genome comparison, never exposed to the confound. |
+| E034 | **H2d re-measured on the corrected (E023) connectome, and reprioritised upward.** Localisation replicates: loss still ~14.5× at sensory→pallium (E017: 17×), recurrence removed still 0.87× (not the cause). ~~Field-L segregation now 1.45×, not E017's 2.06×~~ — **neither number survives E035, run immediately after.** **Occurrence check reverses H2d's demotion**: a 5-min live rollout at H4's config found a hen blind to the hawk while a flockmate audibly alarm-calls on **11.9% of all hen-steps** — the contrast this node depends on is routine, not hypothetical, contra the E019-era reasoning that demoted it. |
 | E033 | **H2e → `REFUTED`, on the second pre-registered block E032 §9 asked for.** Block two (seeds 12–23): interaction **+0.240 ± 0.172, t=1.39** — same sign as block one, below its own 12-seed threshold as predicted. Pooled 24 seeds, per method declared in advance: **+0.390 ± 0.153, t=2.55** against threshold 2.069. Falsifier condition 1 fires: a trained readout costs something measurable to remove; the pathway is not inert once structured. H2's own question stays null pooled (fed % +0.153 ± 0.388, t=0.39). Required a fresh venv build and a `--seed-offset` argument added to `scratchpad/e032.py`, which hardcoded `range(args.seeds)` and would have silently re-run block one. |
 | E032 | **Causal efficacy, the backlog's unrun test, run at last.** Lesioning a *trained* readout hurts (+0.227) where lesioning an *untrained* one helps (−0.314) — interaction **+0.541 ± 0.254, t=2.13 against 2.201**. Misses. Manipulation check clean (`W_out` moves 9.6%). H2e neither confirmed nor falsified; a second block is owed. A sign error in the pre-registered falsifier is recorded in E032 §6 rather than edited away. |
 | E031 | **The credit window is refuted, not deferred.** A hen feeds every **0.3 s** and two thirds of the peck-reward correlation sits at lag 0 — inside the rule's window. But `W_out` at 0x and 10x are both indistinguishable on `fed %` (t=0.68, t=0.54) where a halved peck reflex scores t=4.32, so **H2's null is uninformative**: the pathway may be inert. H2e opened. |
