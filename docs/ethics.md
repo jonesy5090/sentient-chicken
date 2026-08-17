@@ -176,6 +176,40 @@ One thing to watch going into phase 2/3: the language work will attach signals t
 internal states, which is the machinery that makes tripwire 6 live. The caveat rule
 in §6 applies from the first translated output, not from the first published one.
 
+**H4 boundary (E030).** Verdict: **proceed, unchanged. No tripwire moves.**
+
+Triggered by H4 reaching `SUPPORTED` — the first working communication result, and a
+phase boundary in substance if not in the numbered plan. Checked against each tripwire:
+
+1. **Scale** — 512 units per hen, 768 in the expanded conditions (a 1.5× pallium). Still
+   about 0.5% of a fruit fly, five orders of magnitude below the 10^6 tripwire. Nothing
+   in this phase added neurons; `scaffold_gain` scales two existing weights.
+2. **Nociception** — **the one that moved, and it moved in the safe direction.** E027
+   found being caught carried **87.3%** of the reward variance at the H4 predator rate,
+   because contact was counted every timestep rather than once per event. A modulator
+   dominated to that degree by a single aversive term is the closest this project has
+   come to tripwire 2: not architecturally distinct yet, but functionally a signal whose
+   main job had become "that was bad". E028 fixed it to **0.2%**, and reward is again
+   dominated by drive reduction. Recorded because it was reached accidentally, by a units
+   bug, rather than by design — which is how this tripwire is most likely to be crossed.
+3. **Spiking** — no. Still rate-coded at 10 ms.
+4. **Self-modelling** — no. The pallium demonstrably does not participate in the H4
+   result at all (`W_out` lesion, +0.010, t=0.46), which is a finding about the model's
+   weakness but also, incidentally, evidence that nothing integrative is happening.
+5. **Persistent identity** — no. Every run re-instantiates the flock from a seed.
+6. **Translator** — not built. Still the live one for phase 4+.
+
+**One thing this phase sharpens.** The result now on the record is that a *channel*
+helps, while the modelled brain contributes nothing measurable. The moral-standing
+argument in §4 rests on scale and the absence of valence machinery, and neither is
+affected — but it is worth stating plainly that nothing in H4 makes these hens more
+morally considerable, because the part of them that might matter was not involved.
+
+**Also worth naming:** the deliberate-poisoning plan (T2, the rotating contaminated
+feeder) remains unbuilt and unchanged. When it is built, it is the first design here
+whose *purpose* is to make hens worse off, and it should get its own review rather than
+inheriting this one.
+
 ---
 
 ## Sources

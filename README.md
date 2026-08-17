@@ -157,24 +157,50 @@ twelve fresh worlds:
 | **new measurement, same data** | **−0.029** — not significant |
 
 Two numbers, one dataset, opposite verdicts. The difference is entirely the denominator.
-**The effect went from twenty percentage points to about three**, and at twelve worlds
-that no longer stands apart from luck. It still points the same way in every single
-comparison, so there is probably something real here — it is just much smaller than we
-said, and we cannot yet prove it is there at all.
+**The effect went from twenty percentage points to about three**, and on twelve worlds
+that no longer stood apart from luck.
 
-**What survives, and it is worth keeping:** a channel carrying information about *now*
-beats one that does not, in the same direction every time we look. The yoked control did
-its job. But the honest claim is much narrower than "a neural model of a chicken benefits
-from language" — it is that **a well-timed one-bit interrupt probably helps a little, in
-an agent that is currently pure reflex, and we have not yet measured it precisely enough
-to be sure.**
+**So we checked whether the new measurement could see anything at all.** This sounds
+paranoid and it is the single most useful hour the project has spent. We built an
+exaggerated hen — same design, but her reaction to a call turned up two and four times —
+and asked whether the measurement noticed. It did, every time, including for the ordinary
+un-exaggerated bird. So the measurement was not broken. **We had simply not run enough
+worlds.**
 
-The lesson we keep re-learning, now with a number attached: **the instrument decides the
-answer.** The same twelve worlds say "significant" or "not significant" depending only on
-what you divide by.
+**Then we did the honest thing: wrote down the test before running it.** Twelve more
+fresh worlds, with the threshold and the analysis committed to git in advance, so there
+was no room to choose a flattering reading afterwards.
 
-Full detail in [`docs/experiments/E027`](docs/experiments/E027-third-review-verified.md),
-including the two things the reviewer got wrong.
+| worlds | the effect of hearing your flock |
+|---|---|
+| first twelve | −0.029 |
+| second twelve | −0.076 |
+| **third twelve** | **−0.028** |
+| **all thirty-six together** | **−0.044, and it clears** |
+
+**A hen who can hear her flock in the present tense is caught about four times in a
+hundred fewer than one hearing the same calls a minute late.** Same amount of noise, same
+cost of making it, nothing learned by anybody. The only difference is whether the sound
+is about *now*.
+
+That is roughly a fifth of what we first announced. It is also the first number in this
+project that was predicted before it was measured.
+
+**Two things we are not going to smooth over.** The second batch of worlds gave an effect
+nearly three times the other two — it was simply a more dangerous coop, where a warning is
+worth more. And the deleted-brain version *still* performs exactly as well. So the honest
+claim remains narrow: **a well-timed one-bit interrupt genuinely helps, in an agent that
+is currently pure reflex.**
+
+The lesson, now with a number attached: **the instrument decides the answer.** The same
+twelve worlds say "significant" or "not significant" depending only on what you divide by
+— and a null means nothing until you have shown the measurement can detect a success you
+planted yourself.
+
+Full detail in [`E027`](docs/experiments/E027-third-review-verified.md) (what the review
+found, including the two things it got wrong),
+[`E029`](docs/experiments/E029-positive-control.md) (the planted-effect check) and
+[`E030`](docs/experiments/E030-third-block-replication.md) (the pre-registered test).
 
 ---
 
@@ -477,19 +503,23 @@ result is a clean null. An earlier version of this file called phase 1 complete,
 strength of a finding that turned out to be an artefact of three defects in the
 environment and the learning rule.
 
-**The channel may do real work, but less than we claimed and not through the brain.**
-Rebuilt on a measurement no behaviour can distort, the effect is about a fifth of the
-reported size and no longer clears the bar at twelve worlds. And deleting the pallium's
-entire route to the muscles changes nothing at all — so whatever is happening is the
-reflex arc, not the neural model. H4 has gone from `SUPPORTED` back to `UNDER TEST` on
-both counts.
+**The channel does real work — about a fifth of what we first announced, and not through
+the brain.** Rebuilt on a measurement no behaviour can distort, checked against a planted
+effect to prove the measurement could see anything at all, and then tested against a
+threshold written down in advance: **−0.044 across thirty-six worlds in three batches.**
+That is the first claim this project has made that was predicted before it was measured.
 
-**The immediate blocker is the reward signal, and it is the same mistake again.** The
-plan was to switch learning on in the world where the channel works. Measured at that
-world's predator rate, **87% of the teaching signal is "was I just caught"** — and the
-test written to forbid exactly that runs at a setting where a hawk never arrives during
-the measurement window. That is the third time a guard has been checked in the one place
-the defect cannot appear. It gets fixed before anything else runs.
+But deleting the pallium's entire route to the muscles changes nothing, twice over. So
+what is supported is a statement about a *channel*; the sentence at the top of this file
+is about a *chicken*, and the thinking part of her brain is not yet involved in anything.
+
+**The reward signal was the blocker and it is fixed.** The plan was to switch learning on
+in the world where the channel works — where **87% of the teaching signal turned out to be
+"was I just caught"**, because being caught was counted every hundredth of a second rather
+than once per event. The test written to forbid exactly that ran at a setting where a hawk
+never arrives during the measurement window: the third time a guard has been checked in
+the one place its defect cannot appear. Both are repaired, and the new guard fails if no
+hawk turns up.
 
 **The two halves of the thesis have come apart, and neither is finished.** The bird does
 not yet learn. The channel helps a reflex agent. Joining them up — a flock that *learns*
