@@ -647,7 +647,15 @@ top of the queue.
 
 ## H3 — learned usage reproduces the audience effect without being programmed
 
-**Status: UNDER TEST** (phase 2/3) — two nulls recorded, and **blocked by H2b**.
+~~**Status: UNDER TEST** (phase 2/3) — two nulls recorded, and **blocked by H2b**.~~
+
+**Status: UNDER TEST** — three nulls now, and the blocking condition has changed.
+[E036](experiments/E036-e018-rerun.md) supplied the precondition H2b said was missing (an
+innate response to *hearing* a call, so the comprehension chain can close) and the
+audience effect still did not emerge from learning: `S+L − S = −0.005, t=2.25`, wrong
+sign, short of a 2.37 threshold at 8 matched seeds. **H3 is no longer blocked by "the
+chain can't close" — it can, mechanically. It is blocked by whatever H2f turns out to
+be.**
 
 Real cockerels alarm- and food-call far more readily with a hen present, graded by
 audience type (conspecific > other species > empty cage). Call *production* is innate
@@ -686,16 +694,30 @@ responds to calls, so a call cannot help anyone, so it cannot repay its cost —
 the private energy cost as the only thing correlated with her own calling, which
 predicts suppression, which is the sign seen on the alarm channel in both experiments.
 
-**H3 is blocked by H2b, not by its own design.** See below.
+~~**H3 is blocked by H2b, not by its own design.**~~ **Was blocked by H2b's missing
+precondition; that precondition now exists ([E018](experiments/E018-innate-auditory-reflex.md)/
+[E036](experiments/E036-e018-rerun.md)) and H3 still does not emerge.** See H2b and H2f
+below.
 
 ---
 
 ## H2b — the learning rule cannot acquire behaviours outside the innate repertoire
 
-**Status: SUPPORTED as a limitation** — established by
+**Status: SUPPORTED as a limitation, and narrowed** — established by
 [E006](experiments/E006-audibility-weighted-kin-reward.md), refined by
-[E007](experiments/E007-exploration-does-not-rescue-comprehension.md). **This blocks
-H3, H4 and H5.**
+[E007](experiments/E007-exploration-does-not-rescue-comprehension.md), narrowed by
+[E036](experiments/E036-e018-rerun.md). **This blocks H3, H4 and H5.**
+
+**The narrowing, from E036.** H2b's original claim was that H3 fails because nothing
+responds to a heard call — no foothold for the rule to retime. E018/E036 supplied that
+foothold by construction (a fixed, innate crouch-on-hearing response) and re-ran the
+full 2×2: with comprehension no longer missing, the learned, audience-contingent *extra*
+calling H3 predicts still did not appear (`S+L − S = −0.005 ± 0.002, t=2.25`, wrong
+sign). **"Missing a foothold" is no longer sufficient as the whole explanation.** The
+rule can be shown to retime what it already has (the scaffold gives it exactly one
+stimulus-response pairing to retime); it does not, from that, build the *specific new
+contingency* — call more with an audience present — that H3 needs, even with every
+ingredient for that contingency present in the world. See H2f.
 
 The three-factor rule strengthens synapses that were active when the modulator moved.
 It has no way to reinforce an action that never happened — and the model is
@@ -742,6 +764,56 @@ its own drive, a learned signal could recruit an innate behaviour without genera
 it from nothing, and could not run away because it only scales existing responses.
 That is closer to how learned modulation of tectal circuits is thought to work. It is
 a change to the core architecture and has not been made.
+
+---
+
+## H2f — the learning rule is the wrong *kind*, not merely wrongly routed or blocked
+
+**Status: UNDER TEST** — opened by [E017](experiments/E017-where-separability-is-lost.md)
+as an unnamed possibility, promoted to a node by
+[E036](experiments/E036-e018-rerun.md)'s pre-committed falsifier firing.
+
+**Claim:** `hen/plasticity.py` implements reward-modulated three-factor plasticity —
+instrumental conditioning: act, get rewarded, strengthen whatever was active. The
+biology this project keeps trying to reproduce with it (Curio's mobbing-chain work: naive
+birds acquiring predator recognition and alarm responses purely by *observing* a
+conspecific respond, no reward, no action of their own, transmitted along a chain of six
+birds) is closer to Pavlovian / observational association. If the rule is the wrong kind,
+every experiment that assumed the right rule in the wrong place — E002 (routing to the
+motor output), E007 (adding exploration), E008/E009 (top-down association, blocked
+separately by H2d), and now E018/E036 (supplying the missing innate foothold) — was
+addressing symptoms of the same underlying mismatch rather than fixing it.
+
+**Evidence so far — one clean, pre-committed falsifier firing.**
+[E036](experiments/E036-e018-rerun.md) built the one precondition H2b's story required
+(an innate crouch response to *hearing* an alarm call) directly into the reflex arc by
+construction, removing "nothing to retime" as a possible explanation, and re-ran H3's
+audience-effect test. Learning still did not add a contingent, audience-sensitive extra
+call on top of the wired-in response: `S+L − S = −0.005 ± 0.002, t=2.25`, wrong-signed
+relative to the registered prediction and short of a 2.37 threshold at 8 seeds. E018 §4
+committed in advance that this exact outcome would promote this explanation from
+speculation to leading, and it does.
+
+**What this does not yet show.** It is one experiment on one behaviour (contingent
+calling), not a demonstration that an alternative rule would succeed — no Pavlovian /
+observational rule has been implemented or tested here. It also does not rule out that
+H2d's representational bottleneck is doing some of the work: a rule needs something to
+condition *on*, and H2d says the pallium barely represents the relevant distinctions
+regardless of which rule reads them. E036's scaffold bypasses H2d for this one
+stimulus-response pairing (it is wired into the reflex arc, not learned from a pallial
+representation), so this result is not confounded by H2d — but a future Pavlovian rule
+sourced from the pallium would still need H2d fixed to have anything to associate.
+
+**Falsifier:** a rule closer to Pavlovian association (e.g. sourced from `W_pred`,
+already architecturally positioned for this per H2c) succeeds where the instrumental
+rule failed, on the same task and the same scaffold. Absence of any attempt is not
+evidence either way; this node opens the work rather than closing it.
+
+**Why this belongs in the tree rather than staying a footnote.** It is a genuine fork in
+what "fix the learning" means for every hypothesis below H2: not a parameter, not a
+routing change, not a missing precondition, but potentially the entire *class* of rule.
+That is a larger claim than anything else currently `UNDER TEST` and needs its own
+falsifiable test before anything downstream assumes it.
 
 ---
 
@@ -946,6 +1018,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | Food depletion added; it does **not** disperse the flock, and dispersal was never the problem. No file. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E036 | **E018's aborted 2×2 re-run: the falsifier fires, H2f opened.** An innate crouch-on-hearing scaffold (wired, not learned) supplies the precondition H2b said H3 was missing. Learning still does not add a contingent audience effect on top of it: **S+L − S = −0.005 ± 0.002, t=2.25**, wrong-signed, short of threshold 2.37 at 8 seeds. Manipulation check clean (0.19, matching E018's addendum). Innate floor (`S` vs `N`, zero learning) replicates a third time at +0.066. **New node H2f**: the rule may be the wrong *kind* — instrumental where the biology is closer to Pavlovian. Secondary "strikes/hen" flagged uninterpretable: it reads the pre-E027 `n_struck` exposure-step count, not the event-anchored metric H4's lineage moved to. |
 | E035 | **E017/E034's Field-L segregation numbers (2.06×, 1.45×) do not replicate — corrected in both files rather than quietly edited.** Moved modality segregation into `connectome.build(modality_segregated=...)`, properly fan-in-renormalised, instead of the ad hoc probe's post-hoc zeroing. On a **paired** 12-genome sample: structural vs. intact **t=0.04** against threshold 2.201 — no effect. The prior numbers were unpaired ratio-of-means on a quantity with ~6× genome-to-genome spread (0.039–0.221 in this sample) — the same statistical trap E021 caught for seed blocks, uncaught here for genomes across two experiments. Localisation (loss at sensory→pallium, recurrence not the cause) is unaffected — a within-genome comparison, never exposed to the confound. |
 | E034 | **H2d re-measured on the corrected (E023) connectome, and reprioritised upward.** Localisation replicates: loss still ~14.5× at sensory→pallium (E017: 17×), recurrence removed still 0.87× (not the cause). ~~Field-L segregation now 1.45×, not E017's 2.06×~~ — **neither number survives E035, run immediately after.** **Occurrence check reverses H2d's demotion**: a 5-min live rollout at H4's config found a hen blind to the hawk while a flockmate audibly alarm-calls on **11.9% of all hen-steps** — the contrast this node depends on is routine, not hypothetical, contra the E019-era reasoning that demoted it. |
 | E033 | **H2e → `REFUTED`, on the second pre-registered block E032 §9 asked for.** Block two (seeds 12–23): interaction **+0.240 ± 0.172, t=1.39** — same sign as block one, below its own 12-seed threshold as predicted. Pooled 24 seeds, per method declared in advance: **+0.390 ± 0.153, t=2.55** against threshold 2.069. Falsifier condition 1 fires: a trained readout costs something measurable to remove; the pathway is not inert once structured. H2's own question stays null pooled (fed % +0.153 ± 0.388, t=0.39). Required a fresh venv build and a `--seed-offset` argument added to `scratchpad/e032.py`, which hardcoded `range(args.seeds)` and would have silently re-run block one. |

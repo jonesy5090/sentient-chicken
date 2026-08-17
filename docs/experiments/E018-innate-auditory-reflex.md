@@ -297,3 +297,8 @@ unlearned.
 - **One design note survives intact and is worth carrying forward.** The `S` condition
   caught an innate pathway its author did not predict, and would have caught it again
   here. Build the control in; do not reason about why one is unnecessary.
+
+**Re-run completed: [E036](E036-e018-rerun.md).** Design unchanged as promised. The
+falsifier fired: `S+L − S = −0.005, t=2.25`, wrong-signed and short of threshold. `S`'s
+innate floor reproduced almost exactly (+0.066, both times). New node **H2f** opened —
+the learning rule may be the wrong *kind*, not merely wrongly routed.

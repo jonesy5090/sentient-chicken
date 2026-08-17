@@ -323,8 +323,9 @@ new home.
 - **Attribution ladder.** Four things changed between E013 and E020. Now that the status
   has actually moved, which one did it is worth the runs.
 
-- **Re-run E018**, unchanged in design — only its instrument was broken.
-- **Re-measure H2d** against a call channel that now varies.
+- ~~**Re-run E018**, unchanged in design — only its instrument was broken.~~ **Done
+  (E036).** Falsifier fired: `S+L − S = -0.005, t=2.25`, wrong-signed. New node H2f.
+- ~~**Re-measure H2d** against a call channel that now varies.~~ **Done (E034).**
 - **The innate food call fires on sight, out to 10 m.** Twelve of sixteen hens
   food-call continuously, so that channel is saturated by *genuine* calling and carries
   no information. Real cockerels food-call on *finding* food, and are audience-sensitive
@@ -376,17 +377,14 @@ new home.
   — H2, H2b, H2c and H3 all trace back to it — but the fix is a projection problem,
   not a decorrelation problem.
 
-- **Wire an innate auditory reflex arc.** (E017) `hen/innate.py` has *no* response to
-  hearing any call: every auditory entry in `reflex_matrix()` is zero, against 8.0 for
-  crouch on seeing a hawk. That was a deliberate reading of "comprehension is learned",
-  and it over-read the biology — parentally naive chicks already respond differentially
-  to conspecific fear calls, and the learned part is association off a stimulus that is
-  already arousing, not discovery from scratch. Propose: weak crouch on hearing an
-  aerial alarm, weak flee/vigilance on a ground alarm, both well below the visual
-  weights so they scaffold rather than solve. **This is also the cleanest available fix
-  for the E006/E007 exploration null** — she cannot learn to crouch at a call she has
-  never once crouched at. Needs its own hypothesis node and a falsifier that
-  distinguishes "the scaffold works" from "we wired in the answer".
+- ~~**Wire an innate auditory reflex arc.** (E017) `hen/innate.py` has *no* response to
+  hearing any call... Needs its own hypothesis node and a falsifier that distinguishes
+  "the scaffold works" from "we wired in the answer".~~ **Done — built (E018,
+  `auditory_scaffold=True`) and tested to a falsifiable conclusion (E036).** The scaffold
+  works as specified (comprehension manipulation check 0.19, matching prediction) and
+  the falsifier fired: supplying it did not let learning add a contingent audience
+  effect. See H2f — the open question moved from "does she have a foothold" to "is the
+  rule the right kind."
 
 - ~~**Modality-segregated afferents.** (E017) Audition currently shares the sensory stub
   and its pallial targets with vision. Real birds keep them apart — Field L via nucleus
