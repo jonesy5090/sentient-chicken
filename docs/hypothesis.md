@@ -585,16 +585,53 @@ the operating point is fixed, and may well get stronger.
 happened; `hen/connectome.py:48` has `gain = 0.70`. Flagged by external review as a doc
 that describes a state the code left behind.
 
-**H2d is demoted from the critical path by
+**H2d was demoted from the critical path by
 [E019](experiments/E019-three-verified-defects.md), pending re-measurement.** Its whole
-diagnosis rests on contrasting "saw a hawk" against "heard an alarm call". In the actual
-coop at the default flock size, the call channel is **constant at 1.0** and the aerial
-channel averages 0.00 — the contrast this node is built on never occurs. Separability was
-measured on hand-injected observations describing a situation the hen never experiences.
+diagnosis rests on contrasting "saw a hawk" against "heard an alarm call". At the time,
+in the actual coop at the default flock size, the call channel was **constant at 1.0** and
+the aerial channel averaged 0.00 — the contrast this node is built on never occurred.
+Separability had been measured on hand-injected observations describing a situation the
+hen never experienced. E019 fixed call audibility, which was the precondition for this
+contrast to occur at all.
 
-Whether the pallium can represent distinctions is still an open and important question.
-It is not established that it cannot, and it is no longer the thing blocking everything
-else.
+**Partially re-measured since, and never propagated here until now.**
+[E023](experiments/E023-ei-fix-and-rebaseline.md) re-ran the same hand-injected
+settle-and-separate probe (E009/E017's method — still not a live-coop measurement) on the
+corrected, E/I-fixed connectome, across a gain sweep:
+
+| gain | mean pallial rate | separability |
+|---|---|---|
+| 0.70 | 0.189 | 4.5% |
+| **0.95 (default)** | **0.276** | **7.4%** |
+| 1.00 | 0.320 | 9.4% (peak) |
+
+Against the old, purely-excitatory network's 7.5% at its own usable default: **identical
+to within noise.** A structural review had predicted a 1.4× improvement from fixing
+inhibition; it did not appear. **H2d is untouched by the E/I fix** — a hen still barely
+distinguishes a heard alarm from a seen hawk, at ~7% of mean rate either way, regardless
+of which bug-fixed connectome the number is taken on.
+
+**Both now checked — [E034](experiments/E034-h2d-remeasured.md).**
+
+**Localisation replicates.** The loss is still ~14.5× at the sensory→pallium projection
+(E017: 17×), recurrence removed still makes separability slightly *worse*, not better
+(0.87×, E017: 0.79×) — **recurrence is not the cause, confirmed on the corrected
+connectome.** One real miss: Field-L-style auditory segregation now recovers **1.45×**,
+not E017's 2.06× — real, same direction, smaller. Cite 1.45× going forward, not 2.06×.
+
+**Occurrence is no longer hypothetical, and this is the important part.** A 5-minute live
+rollout at H4's standard config (16 hens, hawk every 20 s, fixed hen, 480,000 hen-steps)
+found the auditory aerial channel spans its full range (std 0.37, not remotely constant —
+E019's fix reaches live operation) and **a hen is blind to the hawk while a flockmate
+audibly alarm-calls on 11.9% of all hen-steps** — 40% of every hen-step where an alarm is
+audible at all. The scenario H2d's whole diagnosis depends on is not an edge case; it is
+routine whenever a predator is present.
+
+**This reverses the reasoning that demoted H2d.** It was moved off the critical path
+because its contrast seemed not to occur. It occurs constantly. Combined with the
+mechanism replicating unchanged, **H2d is not a stale concern — it is the most direct
+remaining lever on H2c, H3 and everything downstream of them**, and belongs back near the
+top of the queue.
 
 ---
 
@@ -899,6 +936,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | Food depletion added; it does **not** disperse the flock, and dispersal was never the problem. No file. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E034 | **H2d re-measured on the corrected (E023) connectome, and reprioritised upward.** Localisation replicates: loss still ~14.5× at sensory→pallium (E017: 17×), recurrence removed still 0.87× (not the cause). Field-L segregation now **1.45×**, not E017's 2.06× — real miss on magnitude. **Occurrence check reverses H2d's demotion**: a 5-min live rollout at H4's config found a hen blind to the hawk while a flockmate audibly alarm-calls on **11.9% of all hen-steps** — the contrast this node depends on is routine, not hypothetical, contra the E019-era reasoning that demoted it. |
 | E033 | **H2e → `REFUTED`, on the second pre-registered block E032 §9 asked for.** Block two (seeds 12–23): interaction **+0.240 ± 0.172, t=1.39** — same sign as block one, below its own 12-seed threshold as predicted. Pooled 24 seeds, per method declared in advance: **+0.390 ± 0.153, t=2.55** against threshold 2.069. Falsifier condition 1 fires: a trained readout costs something measurable to remove; the pathway is not inert once structured. H2's own question stays null pooled (fed % +0.153 ± 0.388, t=0.39). Required a fresh venv build and a `--seed-offset` argument added to `scratchpad/e032.py`, which hardcoded `range(args.seeds)` and would have silently re-run block one. |
 | E032 | **Causal efficacy, the backlog's unrun test, run at last.** Lesioning a *trained* readout hurts (+0.227) where lesioning an *untrained* one helps (−0.314) — interaction **+0.541 ± 0.254, t=2.13 against 2.201**. Misses. Manipulation check clean (`W_out` moves 9.6%). H2e neither confirmed nor falsified; a second block is owed. A sign error in the pre-registered falsifier is recorded in E032 §6 rather than edited away. |
 | E031 | **The credit window is refuted, not deferred.** A hen feeds every **0.3 s** and two thirds of the peck-reward correlation sits at lag 0 — inside the rule's window. But `W_out` at 0x and 10x are both indistinguishable on `fed %` (t=0.68, t=0.54) where a halved peck reflex scores t=4.32, so **H2's null is uninformative**: the pathway may be inert. H2e opened. |
