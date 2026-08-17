@@ -64,12 +64,55 @@ H2e's status on its own, only to flag if something is badly wrong.
 
 ## 6. Result
 
-*Pending — filled in after the run, not before.*
+**8 seeds (0–7), `food_deplete_rate=0`, otherwise identical to E032/E033:**
+
+```
+MANIPULATION CHECK: mean |dW_out| / |W_out| = 0.0960   PASSES (fixed drift 0.000000)
+
+rearing         intact  lesioned      drop
+trained         31.364    30.703     0.661
+fixed           29.946    28.332     1.615
+
+PRIMARY interaction  -0.9539 +/- 0.7011   t=1.36   threshold 2.365   NOT SIGNIFICANT
+  (E033's pooled 24-seed result: +0.390 +/- 0.153, t=2.55, SIGNIFICANT)
+
+secondary, both intact: fed % +1.4172 +/- 1.0767  t=1.32
+```
+
+**The falsifier fires.** §4 registered: sign reversal at `food_deplete_rate=0` means
+E033's `REFUTED` verdict needs withdrawing pending a full clean re-measurement. The sign
+reversed (+0.390 → −0.954). Not significant at n=8 (this check was explicitly not
+powered to establish anything on its own), but a reversal is a stronger signal than a
+shrinking-toward-zero would have been, and this is not the outcome the prediction in §3
+leaned toward.
+
+**Absolute levels moved as expected, confirming this is the same mechanism E037 found.**
+fed % here is 28–31, roughly double E032/E033's 11–14 — consistent with E037's ~2–2.6×
+depletion effect on this exact duration and flock size.
+
+**This result does not settle anything, and treating it as if it did would repeat this
+project's own most expensive lesson.** E021 spent an entire experiment establishing that
+one seed block cannot move a status. An 8-seed sign flip against a 24-seed significant
+result is exactly that situation. Extending to a full, properly powered 24-seed
+clean re-measurement, below, rather than leaving H2e's status decided by 8 seeds in
+either direction.
+
+**Extension: full 24-seed clean re-measurement, `food_deplete_rate=0`, matching E033's
+exact block structure (0–11, 12–23), reusing this file's cache:**
+
+```bash
+python -m scratchpad.e032 --seeds 24 --rear 20 --test 5 --food-deplete-rate 0.0 \
+  --cache scratchpad/e038_audit_cache.json --budget 100000
+```
+
+*Pending — filled in after this run, not before.*
 
 ## 7. Interpretation
 
-*Pending §6.*
+*Pending the full run above.*
 
 ## 8. Consequence
 
-*Pending §6.*
+*Pending the full run above.* **Interim consequence, in force until it lands:** H2e's
+status in `docs/hypothesis.md` is marked provisional / under re-examination, not left
+standing as settled `REFUTED`.

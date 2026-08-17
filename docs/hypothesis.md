@@ -79,9 +79,13 @@ of the time.
 ~~**Status: UNDER TEST — and the null is now UNINFORMATIVE** —
 [E031](experiments/E031-the-credit-window-is-not-the-blocker.md).~~
 
-**Status: UNDER TEST — the null is informative again** —
+**Status: UNDER TEST — whether the null is informative is itself under re-examination** —
 [E033](experiments/E033-e032-second-block-pooled.md) refuted H2e, the claim that the
-cortical pathway cannot reach behaviour at all. See H2e below.
+cortical pathway cannot reach behaviour at all, but
+[E038](experiments/E038-h2e-depletion-audit.md) found that result exposed to the same
+`food_deplete_rate` confound E037 found for H2 itself, and an 8-seed check with it
+removed reversed the interaction's sign. See H2e below — do not treat this line as
+settled until E038's full re-measurement lands.
 
 **The pathway learning acts through cannot move the metric H2 is measured on.** Deleting
 `W_out` entirely and multiplying it tenfold both leave feeding unchanged, while the same
@@ -362,9 +366,17 @@ that outlived it.
 ~~**Status: UNDER TEST** — opened by
 [E031](experiments/E031-the-credit-window-is-not-the-blocker.md).~~
 
-**Status: REFUTED** —
+~~**Status: REFUTED** —
 [E033](experiments/E033-e032-second-block-pooled.md), a pre-registered pooled test
-across two independent 12-seed blocks.
+across two independent 12-seed blocks.~~
+
+**Status: PROVISIONAL, under re-examination** —
+[E038](experiments/E038-h2e-depletion-audit.md) found E032/E033 ran with the same
+undocumented `food_deplete_rate` confound E037 found for H2, and an 8-seed check with it
+controlled for **reversed the interaction's sign** (+0.390 → −0.954, not significant at
+n=8). Not powered to settle anything on its own — the E021 lesson applies exactly here —
+so a full 24-seed clean re-measurement is running before this status is decided either
+way. Do not cite `REFUTED` until E038's full result lands.
 
 **Claim, now refuted:** the route from pallium to muscle contributes so little to
 behaviour that no change in `W_out`, learned or otherwise, can register on H2's metric.
@@ -429,8 +441,10 @@ costs something to remove, but not in a way that improves feeding.
 
 **E007's multiplicative-gating question is not promoted by this result.** It was
 motivated by H2e being *true* — the two pathways summing into one motor drive with no
-room for a trained signal to matter. H2e is refuted, so that architectural explanation
-loses its motivation rather than gaining it.
+room for a trained signal to matter. ~~H2e is refuted, so that architectural explanation
+loses its motivation rather than gaining it.~~ **H2e's status is provisional
+([E038](experiments/E038-h2e-depletion-audit.md)) — this reasoning is on hold along with
+it, not confirmed either way.**
 
 ---
 
@@ -1026,6 +1040,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E038 | **H2e's `REFUTED` status challenged — interim, full re-measurement in progress.** E032/E033 shared the same undocumented `food_deplete_rate` confound E037 found for H2. An 8-seed check with it removed **reversed the interaction's sign** (+0.390 → −0.954, t=1.36, not significant at n=8 — not powered to settle anything, the E021 lesson applies directly). H2e moved to `PROVISIONAL` pending a full 24-seed clean re-measurement. |
 | E037 | **H2's null re-confirmed on the corrected connectome — and a second, undocumented confound found and controlled for.** First pass (today's defaults) gave `fed %` 2.6 against E020's 6.6, hunger change 40× larger — traced to `food_deplete_rate` (added by E025 for H4's dispersal question, never checked against H2's 20-minute/16-hen harness; one feeder ends at 0.97% remaining). Gain/readout ruled out directly (lesioning `W_out` at both gains changes nothing). Re-run with `food_deplete_rate=0`, matching E020's world: **+0.0003 ± 0.0156, t=0.02**, 24 seeds — an even cleaner null. The two 12-seed blocks alone were **individually significant in opposite directions** (t=2.96, t=2.19) — only pooling reveals the null, the E021 lesson recurring inside the experiment meant to move past it. |
 | E036 | **E018's aborted 2×2 re-run: the falsifier fires, H2f opened.** An innate crouch-on-hearing scaffold (wired, not learned) supplies the precondition H2b said H3 was missing. Learning still does not add a contingent audience effect on top of it: **S+L − S = −0.005 ± 0.002, t=2.25**, wrong-signed, short of threshold 2.37 at 8 seeds. Manipulation check clean (0.19, matching E018's addendum). Innate floor (`S` vs `N`, zero learning) replicates a third time at +0.066. **New node H2f**: the rule may be the wrong *kind* — instrumental where the biology is closer to Pavlovian. Secondary "strikes/hen" flagged uninterpretable: it reads the pre-E027 `n_struck` exposure-step count, not the event-anchored metric H4's lineage moved to. |
 | E035 | **E017/E034's Field-L segregation numbers (2.06×, 1.45×) do not replicate — corrected in both files rather than quietly edited.** Moved modality segregation into `connectome.build(modality_segregated=...)`, properly fan-in-renormalised, instead of the ad hoc probe's post-hoc zeroing. On a **paired** 12-genome sample: structural vs. intact **t=0.04** against threshold 2.201 — no effect. The prior numbers were unpaired ratio-of-means on a quantity with ~6× genome-to-genome spread (0.039–0.221 in this sample) — the same statistical trap E021 caught for seed blocks, uncaught here for genomes across two experiments. Localisation (loss at sensory→pallium, recurrence not the cause) is unaffected — a within-genome comparison, never exposed to the confound. |
