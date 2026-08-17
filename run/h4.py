@@ -118,7 +118,8 @@ def run_condition(cond: Condition, seed: int, cfg: CoopConfig,
     key = jax.random.key(seed)
     w = world.reset(key, cfg)
     p = connectome.build(jax.random.fold_in(key, 1), cond.regions(),
-                         n_hens=cfg.n_hens, auditory_scaffold=cond.scaffold)
+                         n_hens=cfg.n_hens, auditory_scaffold=cond.scaffold,
+                         scaffold_gain=cond.scaffold_gain)
     if cond.lesion_readout:
         p = p._replace(W_out=jnp.zeros_like(p.W_out))
     x = brain.initial_state(p, cfg.n_hens)

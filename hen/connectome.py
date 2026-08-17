@@ -46,7 +46,8 @@ def _region_of(reg: Regions) -> np.ndarray:
 def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           n_hens: int = spec.DEFAULT_COOP.n_hens,
           gain: float = 0.95, readout_scale: float = 0.05,
-          auditory_scaffold: bool = False) -> BrainParams:
+          auditory_scaffold: bool = False,
+          scaffold_gain: float = 1.0) -> BrainParams:
     """Sample a newly hatched flock.
 
     `readout_scale` is small on purpose: at hatch the cortical pathway is near-silent
@@ -211,7 +212,8 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         pred_src=pred_src,
         b=jnp.full((n,), -2.0),
         tau=tau,
-        reflex=jnp.asarray(innate.reflex_matrix(auditory_scaffold)),
+        reflex=jnp.asarray(
+            innate.reflex_matrix(auditory_scaffold, scaffold_gain)),
         b_motor=jnp.asarray(innate.reflex_bias()),
         dale=dale,
     )

@@ -53,6 +53,11 @@ class Condition(NamedTuple):
     # model. A ladder that carries this rung reports that on every run instead of
     # waiting for an outside reviewer to try it.
     lesion_readout: bool = False
+    # Scale on the innate auditory response, for positive controls only. Gain 1.0 is
+    # the hen; higher values are a deliberately exaggerated bird used to check that a
+    # metric can detect an effect at all. A null is only informative if the instrument
+    # could have shown a positive, and E028 produced a null nobody could yet interpret.
+    scaffold_gain: float = 1.0
 
     def coop(self, cfg: CoopConfig) -> CoopConfig:
         return cfg._replace(**dict(self.cfg_patch)) if self.cfg_patch else cfg
