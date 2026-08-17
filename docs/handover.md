@@ -140,9 +140,10 @@ initialisation, re-check that.
 
 ## 5. What to do next, in order
 
-1. **Finish E032.** 13 cells, ~80 minutes. It is pre-registered; do not change the design
-   or the seed count to make it cheaper. If compute forces a change, record it as a
-   declared deviation.
+1. **Run E032 block two** — 12 fresh seeds, same design, pooling declared in advance.
+   Add `--seed-offset` to `scratchpad/e032.py` first (see §2). ~80 minutes. Do not change
+   the design or the seed count to make it cheaper; if compute forces a change, record it
+   as a declared deviation.
 2. **If H2e survives** (interaction ~0): the pathway is inert whether trained or not, H2
    is a fact about the *architecture*, and the answer is **E007's unresolved question** —
    multiplicative gating of the reflex arc instead of additive competition into one motor
