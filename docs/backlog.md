@@ -331,10 +331,33 @@ new home.
   no information. Real cockerels food-call on *finding* food, and are audience-sensitive
   about it. This is a reflex-arc change and needs its own hypothesis node — it is not a
   bug fix and should not be done as one.
-- **The flock clumps** — nearest-neighbour 0.23 m in a 20 × 20 m run. Flagged by the
+- ~~**The flock clumps** — nearest-neighbour 0.23 m in a 20 × 20 m run. Flagged by the
   same review. T1 (divided vigilance) and T2 (which feeder is poisoned) both assume
   hens are somewhere different from each other. Nothing disperses them: food never
-  depletes, so there is no foraging competition.
+  depletes, so there is no foraging competition.~~ **Stale — food depletion was added
+  and tested (E025, file written retrospectively).** It does not disperse the flock
+  either; gregariousness's attraction-only wiring is the actual cause, still unfixed,
+  still needs a crowding/individual-distance channel. Depletion stayed on regardless and
+  turned out to have a large, previously unmeasured side effect on foraging baselines at
+  20+ minutes (E037) — see the new item below.
+- **Audit `food_deplete_rate`'s effect on other tree results.** E037 found "fixed
+  (innate only)" hens' `fed %` collapse from 6.6% (E020/E021, pre-depletion) to ~2.5%
+  over a 20-minute run at 16 hens — individual patches driven to ~1% remaining, well past
+  what E025's own 6-minute diagnostics saw. Not yet checked: whether H4's 10-minute
+  windows (E026–E030) are short enough for this to be negligible, or whether other
+  results relying on `spec.DEFAULT_COOP`'s default since commit `f659745` are quietly
+  running in a hungrier world than intended.
+
+  **Includes this session's own merged work.** E032/E033 (H2e) and E036 (H2f) both used
+  20-minute rearing at `n_hens=16` with no `food_deplete_rate` override — the same
+  duration and flock size E037 found depletion collapses foraging in. Their *contrasts*
+  are plausibly more robust than E037's own absolute levels, since depletion is shared
+  across every branch compared within a matched seed (trained vs fixed, scaffold vs not)
+  — but this has not been checked, only argued, and the absolute `fed %` numbers those
+  experiments report (e.g. E032/E033's ~11–14, a different scale from `run/experiment.py`'s
+  percentage because it's computed over the 5-minute test window only) have not been
+  re-examined against this finding at all. Worth a dedicated check before leaning further
+  on either result, not a re-litigation performed here.
 
 ## 8. Open items from experiments
 
