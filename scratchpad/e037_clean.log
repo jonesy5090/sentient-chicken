@@ -1,0 +1,18 @@
+E037 -- H2 rebaseline on the corrected connectome, 24 seeds, 20 min, 16 hens
+
+condition                   hunger change (mean, all seeds run so far)
+fixed (innate only)                                            +0.0120
+noise only (no learning)                                       +0.0252
+learning, no growth                                            +0.0122
+learning + growth                                              +0.0171
+
+PRIMARY -- learning, no growth vs fixed, hunger change (E020's contrast):
+  block A (0-11)     n=12  -0.0445 +/- 0.0150  t=2.96
+  block B (12-23)    n=12  +0.0451 +/- 0.0206  t=2.19
+  POOLED (24 seeds)  n=24  +0.0003 +/- 0.0156  t=0.02  threshold(df=23)=2.069  -> not significant
+
+SECONDARY (reported for comparability with E020/E021, not the primary test):
+  noise only (no learning) vs fixed (innate only): +0.0132 +/- 0.0157  t=0.84
+  learning + growth vs fixed (innate only): +0.0052 +/- 0.0133  t=0.39
+
+wall clock so far: 2151 s
