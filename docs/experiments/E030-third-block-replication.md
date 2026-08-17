@@ -77,12 +77,59 @@ restricted to the three conditions above.
 
 ## 6. Result
 
-_Pending._
+```
+block                  mean      SE      t   n   control's own risk
+A (36-47) E028      -0.0286  0.0201   1.42  12      0.115
+B (48-59) E029      -0.0763  0.0160   4.75  12      0.156
+C (60-71) E030      -0.0275  0.0251   1.10  12      0.129
+POOLED (36 seeds)   -0.0441  0.0123   3.60  36
+```
+
+**The registered primary test clears**: pooled t=3.60 against a threshold of 2.030.
+
+**No falsifier fires.**
+
+1. Pooled |t| < 2.030 — no, t=3.60.
+2. Block C positive — no, −0.0275, negative as predicted.
+3. L vs Lx significant in L's favour — no: **+0.0097 ± 0.0209, t=0.46**, against a
+   threshold of 2.201.
 
 ## 7. Interpretation
 
-_Pending._
+**The channel effect is real.** A flock that hears its own present tense is caught about
+**4.4 percentage points less often per hen per hawk** than one hearing the same calls
+shifted in time — identical bandwidth, identical rate, identical energetic cost, no
+plasticity anywhere. Thirty-six seeds, three independent blocks, analysis fixed before
+the third ran.
+
+**Block B is the outlier and this should temper the point estimate.** A and C agree
+closely (−0.029 and −0.028); B is 2.7× larger at −0.076 and is the only block
+individually significant. The pooled −0.044 is pulled upward by it. A conservative
+reading of the typical effect is **nearer −0.03**, with one unusually dangerous world —
+B's control catch rate was 0.156 against A's 0.115 and C's 0.129 — where the channel was
+worth more. That the effect scales with baseline danger is coherent, not suspicious, but
+it means the pooled figure is an average over worlds rather than a constant.
+
+**It is still not a result about the brain.** `Lx` — the intact channel with `W_out`
+zeroed, severing every route from 512 simulated neurons to a muscle — is
+indistinguishable from `L` for the second time on fresh seeds. The causal chain is two
+hand-set weights in `hen/innate.py` and a threshold in `coop/world.py`.
 
 ## 8. Consequence
 
-_Pending._
+- **H4 moves to `SUPPORTED` as written** — "an intact channel beats an uninformative one
+  on a task requiring private information" — on a pre-registered pooled test across three
+  blocks, on a metric whose denominator no behaviour can move, with a control measured
+  rather than argued.
+- **H0 is NOT satisfied by this, and the distinction is the whole point.** H0's subject
+  is *a neural model of a chicken*. What is supported here is a claim about a channel
+  attached to a reflex arc. The pallium is present, is 1.5× its default size, and
+  contributes nothing measurable. Until a learning rule works, the ladder cannot ask H0's
+  question — `C−`, the capacity control the whole design turns on, is vacuous without
+  plasticity.
+- **The honest headline is smaller than E026's and better earned:** −0.198 (confounded
+  denominator, mean-of-ratios, one block) became **−0.044 ± 0.012** (intent-to-treat,
+  pooled, three blocks, pre-registered).
+- **Next is the credit window**, the oldest owed item: `hen/plasticity.py:34-37` states in
+  its own docstring that the rule cannot bridge gaps longer than 0.2 s, against a task
+  that pays off over minutes. Every H2 null is uninterpretable until that is tested.

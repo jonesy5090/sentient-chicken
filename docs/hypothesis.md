@@ -589,9 +589,38 @@ a change to the core architecture and has not been made.
 
 ## H4 — an intact channel beats a shuffled one on a task requiring private information
 
-**Status: UNDER TEST — smaller than reported, and it does not require the pallium** —
+**Status: SUPPORTED as written — but it is not a result about the brain** —
+[E030](experiments/E030-third-block-replication.md).
+
+**The channel effect is real.** A flock hearing its own present tense is caught
+**−0.044 ± 0.012 (t=3.60)** less often per hen per hawk than one hearing the same calls
+shifted in time. Thirty-six seeds, three independent blocks, on a denominator no
+behaviour can move, with the analysis **fixed and committed before the third block ran**.
+None of the three pre-registered falsifiers fires.
+
+| block | L vs C?, caught/dive | control's own risk |
+|---|---|---|
+| A (36–47) | −0.029 ± 0.020, t=1.42 | 0.115 |
+| B (48–59) | −0.076 ± 0.016, t=4.75 | 0.156 |
+| C (60–71) | −0.028 ± 0.025, t=1.10 | 0.129 |
+| **pooled, 36 seeds** | **−0.044 ± 0.012, t=3.60** | — |
+
+**Two things this does not license, and the second is the important one.**
+
+- **Block B is an outlier.** A and C agree at −0.029 and −0.028; B is 2.7× larger and the
+  only block significant on its own. A conservative reading of the typical effect is
+  nearer **−0.03**, in a world whose baseline danger varies.
+- **`Lx` — the intact channel with `W_out` zeroed — is indistinguishable from `L`**
+  (+0.010, t=0.46), for the second time on fresh seeds. **H0's subject is a neural model
+  of a chicken, and the pallium contributes nothing measurable here.** What is supported
+  is a claim about a channel bolted to a reflex arc: two hand-set weights in
+  `hen/innate.py` and a threshold in `coop/world.py`. H0 is *not* satisfied by this, and
+  cannot be until a learning rule works — `C−`, the capacity control the whole ladder was
+  designed around, is vacuous with plasticity off.
+
+~~**Status: UNDER TEST — smaller than reported, and it does not require the pallium** —
 [E027](experiments/E027-third-review-verified.md),
-[E028](experiments/E028-instrument-repair.md).
+[E028](experiments/E028-instrument-repair.md).~~
 
 **On a repaired instrument the headline does not clear.** E028 rebuilt the metric so its
 denominator is every (hen, dive) pair — fixed by the predator schedule and flock size,
@@ -759,6 +788,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | Food depletion added; it does **not** disperse the flock, and dispersal was never the problem. No file. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E030 | **H4 → `SUPPORTED` as written, on a pre-registered pooled test.** Third block (60–71) at −0.028; pooled over 36 seeds across three blocks, **−0.044 ± 0.012, t=3.60** against a threshold of 2.030 declared in advance. No falsifier fires. **But `L vs Lx` is +0.010, t=0.46 for the second time** — the effect survives deleting the pallium's route to the muscles, so H0 is *not* satisfied: this is a result about the reflex arc. |
 | E029 | **First positive control in the project's history, and the instrument passes** — every planted effect detected, including the unmodified hen, so E028's null was not a measurement failure. But the same contrast on fresh seeds gives **−0.076, t=4.75** against block A's −0.029, t=1.42; pooled over 24 seeds **−0.052 ± 0.014, t=3.87**. Not promoted: pooling was decided post-hoc, block A alone does not clear, and the `W_out` lesion is still noise. |
 | E028b | **The ladder re-run on the repaired instrument (seeds 36–47) does not clear.** L vs C? is **−0.029 ± 0.020, t=1.42** on the unmovable denominator, against **−0.142, SIGNIFICANT** on E026's confounded one — same 12 seeds, opposite verdicts. **L vs Lx = +0.006, noise**: the pallium is not in the causal path, replicated on fresh seeds. T1's registered fed % null for a third time. |
 | E028 | **Instrument repair, and a re-baselining.** Strikes become events: the strike share of reward variance goes **87.3% → 0.2%**. Dale's law reaches `W_out` (0/48 → 48/48) — and the naive fix broke the flock, which the measurement caught in one run. Metric moves to intent-to-treat `caught/dive`, whose denominator is flat to **0.0%** where E026's swung **−57.7% to +50.0%**. `Lx lesioned` becomes a permanent rung. Registered contrasts (L vs C?, T1's fed %) reported at last. |
