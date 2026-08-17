@@ -1,0 +1,37 @@
+E018 -- innate auditory reflex, 8 matched seeds, 16 hens, 30 min rearing
+
+audience effect = alarm calling with flockmates in earshot, minus alone.
+The scaffold wires a response to *hearing* a call and touches nothing on
+the production side, so it should not move this column on its own.
+
+condition                   audience  compreh.  strikes/hen   hunger  synapses
+------------------------------------------------------------------------------
+N   (bare, fixed)             +0.003   -0.0001       257.21    0.496     36319
+S   (scaffold, fixed)         +0.066    0.1921       341.70    0.510     36319
+N+L (bare, learning)          +0.001   -0.0001       545.48    0.490     35744
+S+L (scaffold, learning)      +0.061    0.1895       533.80    0.498     35708
+
+--- PRIMARY: what learning adds on top of the wiring -------------------
+audience effect, S+L - S        -0.005 +/- 0.002 SE   suggestive (t=2.25, need 2.37)
+  positive = she learned to call more when someone is listening, over and
+  above anything the scaffold gave her. This is the only learned number here.
+
+--- MANIPULATION CHECK (not a result) ----------------------------------
+comprehension, bare      fixed   -0.0001   <- expected ~0
+comprehension, scaffold  fixed    0.1921   <- expected ~0.25
+  This says whether the scaffold was wired as specified. It is the wiring
+  read back to us, and it is not evidence of anything the hen learned.
+
+--- SECONDARY, exploratory ---------------------------------------------
+strikes/hen, S - N              +84.48 +/- 80.96 SE   suggestive (t=1.04, need 2.37)
+  INNATE if negative. The scaffold suppresses pecking on hearing a call, so
+  she raises her head and may see the hawk herself -- reflex, not learning.
+  Pre-registered as innate. Must not be reported as evidence for H4.
+hunger, S - N                   +0.014 +/- 0.008 SE   suggestive (t=1.71, need 2.37)
+  positive = the scaffold costs her foraging time. It is context-blind: she
+  stops pecking at every call she hears, warranted or not.
+audience effect, S+L - N+L      +0.060 +/- 0.001 SE   SIGNIFICANT
+  Confounded on purpose -- mixes wiring and learning. Reported so the
+  difference from the primary is visible, not as a claim.
+
+wall clock: 1095 s

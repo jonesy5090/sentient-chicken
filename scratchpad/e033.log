@@ -1,0 +1,18 @@
+E032 causal efficacy -- 12 matched seeds, 20 min rearing + 5 min test, 16 hens
+
+MANIPULATION CHECK: mean |dW_out| / |W_out| during rearing = 0.0957
+  gate is > 0.05 -> PASSES
+  (fixed flocks drift 0.000000, must be 0)
+
+rearing         intact  lesioned      drop
+------------------------------------------
+trained         11.397    11.209     0.188
+fixed           11.283    11.335    -0.052
+
+PRIMARY -- interaction (trained drop) - (fixed drop):
+  +0.2396 +/- 0.1720  t=1.39  threshold 2.201  -> not significant
+  H2e predicts ~0: lesioning a trained readout costs no more than a random one.
+  a significant NEGATIVE value falsifies H2e and hands H2 back to the rule.
+
+secondary -- trained vs fixed, both intact (H2's own question):
+  fed % +0.1144 +/- 0.6544  t=0.17

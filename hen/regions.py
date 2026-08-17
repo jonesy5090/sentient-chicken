@@ -87,6 +87,18 @@ REGION_CONNECTIVITY = (
     (0.00, 0.05, 0.00, 0.02, 0.02, 0.15),   # motor
 )
 
+# Size of the modality-segregated auditory pathway (the Field L / nucleus ovoidalis
+# analogue), as a fraction of the sensory stub and of the pallium respectively. Off by
+# default (`connectome.build(modality_segregated=True)` turns it on) -- a minority slice
+# of each region is carved out to receive auditory input and project to its own pallial
+# target exclusively, instead of the default fully-mixed sensory->pallium projection.
+#
+# 1/6 matches the crude hand-cut probe this replaces (E017's `why_pallium_collapses.py`,
+# re-run on the corrected connectome in E034), kept as the default so results are
+# directly comparable: that probe measured 1.45x separability of "saw hawk" vs "heard
+# alarm" at this same partition size, real but well short of closing a ~14-17x loss.
+AUD_FRACTION = 1 / 6
+
 # Fraction of neurons that are excitatory, **within every region**. Dale's law is
 # enforced in connectome.py: a neuron's outgoing weights all share its sign.
 #

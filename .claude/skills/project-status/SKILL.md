@@ -1,6 +1,6 @@
 ---
-name: status
-description: Answer the three standing project questions — what we are trying to achieve, what has been built and what has actually been proven, and what is next. Use whenever someone asks for a project status, briefing, recap, catch-up, "where are we", "what have we done", "what's left", or invokes /status. Also use before starting significant new work, to check it ladders up to the hypothesis tree.
+name: project-status
+description: Answer the three standing project questions — what we are trying to achieve, what has been built and what has actually been proven, and what is next. Use whenever someone asks for a project status, briefing, recap, catch-up, "where are we", "what have we done", "what's left", or invokes /project-status. Also use before starting significant new work, to check it ladders up to the hypothesis tree. (Named project-status, not status: /status is a reserved built-in command and a same-named skill cannot be invoked.)
 ---
 
 # Project status

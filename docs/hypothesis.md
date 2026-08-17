@@ -76,8 +76,12 @@ of the time.
 
 ## H2 — three-factor plasticity produces measurable behavioural improvement
 
-**Status: UNDER TEST — and the null is now UNINFORMATIVE** —
-[E031](experiments/E031-the-credit-window-is-not-the-blocker.md).
+~~**Status: UNDER TEST — and the null is now UNINFORMATIVE** —
+[E031](experiments/E031-the-credit-window-is-not-the-blocker.md).~~
+
+**Status: UNDER TEST — the null is informative again** —
+[E033](experiments/E033-e032-second-block-pooled.md) refuted H2e, the claim that the
+cortical pathway cannot reach behaviour at all. See H2e below.
 
 **The pathway learning acts through cannot move the metric H2 is measured on.** Deleting
 `W_out` entirely and multiplying it tenfold both leave feeding unchanged, while the same
@@ -348,58 +352,77 @@ that outlived it.
 
 ## H2e — the cortical pathway is behaviourally inert, so H2 is not testable through it
 
-**Status: UNDER TEST** — opened by
-[E031](experiments/E031-the-credit-window-is-not-the-blocker.md).
+~~**Status: UNDER TEST** — opened by
+[E031](experiments/E031-the-credit-window-is-not-the-blocker.md).~~
 
-**Claim:** the route from pallium to muscle contributes so little to behaviour that no
-change in `W_out`, learned or otherwise, can register on H2's metric. If true, H2 as
-constructed cannot be falsified and every null it has produced is a fact about the
-architecture rather than the learning rule.
+**Status: REFUTED** —
+[E033](experiments/E033-e032-second-block-pooled.md), a pre-registered pooled test
+across two independent 12-seed blocks.
 
-**Evidence so far:** an untrained `W_out` at 0×, 1× and 10× gain is indistinguishable on
-`fed %` (t=0.68, t=0.54) on a metric that detects a halved reflex at t=4.32. Independently,
-E027 and E030 found lesioning `W_out` leaves *predation* outcomes unchanged
-(+0.010, t=0.46), and E019 measured a learned `ΔW_out` moving cortical drive by 0.7% of
-its own magnitude.
+**Claim, now refuted:** the route from pallium to muscle contributes so little to
+behaviour that no change in `W_out`, learned or otherwise, can register on H2's metric.
+If true, H2 as constructed could not be falsified and every null it produced would be a
+fact about the architecture rather than the learning rule. **A trained readout does
+register** — see below.
 
-**[E032](experiments/E032-causal-efficacy.md) tested it directly and missed by 0.07 in t.**
-Rear, then fork both test branches from the identical end-of-rearing state so the lesion
-is the only difference:
+**Evidence that motivated the claim:** an untrained `W_out` at 0×, 1× and 10× gain is
+indistinguishable on `fed %` (t=0.68, t=0.54) on a metric that detects a halved reflex at
+t=4.32. Independently, E027 and E030 found lesioning `W_out` leaves *predation* outcomes
+unchanged (+0.010, t=0.46), and E019 measured a learned `ΔW_out` moving cortical drive by
+0.7% of its own magnitude. All of this is evidence about an *untrained* or barely-trained
+readout; it never separated "the rule learns nothing" from "nothing learned there could
+reach behaviour," which is exactly the ambiguity E032/E033 were built to resolve.
+
+**[E032](experiments/E032-causal-efficacy.md) tested a trained readout directly and
+missed by 0.07 in t, on one block:**
 
 | rearing | intact | lesioned | drop on lesion |
 |---|---|---|---|
 | trained | 13.782 | 13.555 | **+0.227** |
 | fixed | 13.591 | 13.905 | **−0.314** |
-| **interaction** | | | **+0.541 ± 0.254, t=2.13** (threshold 2.201) |
+| **interaction (block one)** | | | **+0.541 ± 0.254, t=2.13** (threshold 2.201) |
 
-Manipulation check clean: rearing moves `W_out` by 9.6%, fixed flocks by exactly 0.
+**[E033](experiments/E033-e032-second-block-pooled.md) ran a second, pre-registered
+12-seed block (seeds 12–23) and pooled, per the E029/E030 template declared in advance:**
 
-**The direction is the interesting part and it is not claimable.** Lesioning an *untrained*
-readout **helps** (−0.314) — E002's ceiling finding from the other side, a random
-projection overriding good reflexes. Lesioning a *trained* one **hurts** (+0.227). So
-training may convert a mildly harmful readout into a mildly useful one, and the evidence
-misses threshold on one seed block, which could not move a status anyway (the E021 rule).
+| block | interaction | t |
+|---|---|---|
+| one (0–11), E032 | +0.541 ± 0.254 | 2.13 |
+| two (12–23), E033 | +0.240 ± 0.172 | 1.39 |
+| **pooled (24 seeds)** | **+0.390 ± 0.153** | **2.55** (threshold 2.069) |
 
-**H2's own question stays null**: trained vs fixed, both intact, +0.191 ± 0.447, t=0.43.
+Both blocks positive, same sign, smaller magnitude in block two as expected from
+block-to-block variance seen elsewhere in this project (E029/E030). Manipulation check
+clean in both blocks: rearing moves `W_out` by 9.6% and 9.6%, fixed flocks by exactly 0
+in both.
 
-**Next:** a second 12-seed block with pooling declared in advance (the E029/E030 template).
-~80 minutes of uninterrupted compute.
+**Lesioning a *trained* readout costs something a random one does not, and this time it
+clears its pre-registered threshold.** Training converts a mildly harmful readout
+(untrained lesion helps: −0.314) into one that costs something to remove
+(trained lesion hurts: +0.227, +0.188 across the two blocks) — the interaction between
+them is real, not noise.
 
-**Prediction:** lesioning `W_out` in a flock that has been *trained* costs nothing
-measurable, on either metric.
+**H2's own question stays null, pooled**: trained vs fixed, both intact,
++0.153 ± 0.388, t=0.39 (block one +0.191, t=0.43; block two +0.114, t=0.17). A trained
+readout costs something to remove without making its flock forage measurably better —
+the two findings describe different comparisons (within-subject lesion vs. between-flock
+outcome) and are not in tension.
 
-**Falsifier — and it is the interesting outcome:** a trained flock loses measurable
-performance when its readout is cut. That would mean the pathway *is* efficacious once
-structured, the inertness is a property of random weights only, and H2's null returns to
-being a fact about the rule.
+**What this changes for H2.** E031 had withdrawn H2's null to "uninformative" because an
+untrained pathway couldn't be shown to reach behaviour at all. E033 shows the route is
+not closed for a *trained* readout, so H2's clean null
+([E020](experiments/E020-h2-after-the-e019-fixes.md)/
+[E021](experiments/E021-the-cost-of-exploration.md), +0.011 ± 0.012, t=0.95) regains
+standing as a fact about **what the rule learns**, not about whether learning can reach
+behaviour at all. The credit window remains ruled out
+([E031](experiments/E031-the-credit-window-is-not-the-blocker.md) §3). What is open is
+the rule's *magnitude* or what it actually optimizes: it changes `W_out` in a way that
+costs something to remove, but not in a way that improves feeding.
 
-**Why this matters more than it sounds.** E002 found too much cortical influence makes
-behaviour *worse*, and E007 found too little means nothing new can be learned; the two
-pathways sum into one motor drive and compete on a single axis. H2e is that tension
-measured from the third side: at the setting chosen to be safe, the pathway may be doing
-nothing at all. If so the answer is E007's unresolved architectural question —
-multiplicative gating of the reflex arc instead of additive competition — not a better
-rule.
+**E007's multiplicative-gating question is not promoted by this result.** It was
+motivated by H2e being *true* — the two pathways summing into one motor drive with no
+room for a trained signal to matter. H2e is refuted, so that architectural explanation
+loses its motivation rather than gaining it.
 
 ---
 
@@ -562,22 +585,77 @@ the operating point is fixed, and may well get stronger.
 happened; `hen/connectome.py:48` has `gain = 0.70`. Flagged by external review as a doc
 that describes a state the code left behind.
 
-**H2d is demoted from the critical path by
+**H2d was demoted from the critical path by
 [E019](experiments/E019-three-verified-defects.md), pending re-measurement.** Its whole
-diagnosis rests on contrasting "saw a hawk" against "heard an alarm call". In the actual
-coop at the default flock size, the call channel is **constant at 1.0** and the aerial
-channel averages 0.00 — the contrast this node is built on never occurs. Separability was
-measured on hand-injected observations describing a situation the hen never experiences.
+diagnosis rests on contrasting "saw a hawk" against "heard an alarm call". At the time,
+in the actual coop at the default flock size, the call channel was **constant at 1.0** and
+the aerial channel averaged 0.00 — the contrast this node is built on never occurred.
+Separability had been measured on hand-injected observations describing a situation the
+hen never experienced. E019 fixed call audibility, which was the precondition for this
+contrast to occur at all.
 
-Whether the pallium can represent distinctions is still an open and important question.
-It is not established that it cannot, and it is no longer the thing blocking everything
-else.
+**Partially re-measured since, and never propagated here until now.**
+[E023](experiments/E023-ei-fix-and-rebaseline.md) re-ran the same hand-injected
+settle-and-separate probe (E009/E017's method — still not a live-coop measurement) on the
+corrected, E/I-fixed connectome, across a gain sweep:
+
+| gain | mean pallial rate | separability |
+|---|---|---|
+| 0.70 | 0.189 | 4.5% |
+| **0.95 (default)** | **0.276** | **7.4%** |
+| 1.00 | 0.320 | 9.4% (peak) |
+
+Against the old, purely-excitatory network's 7.5% at its own usable default: **identical
+to within noise.** A structural review had predicted a 1.4× improvement from fixing
+inhibition; it did not appear. **H2d is untouched by the E/I fix** — a hen still barely
+distinguishes a heard alarm from a seen hawk, at ~7% of mean rate either way, regardless
+of which bug-fixed connectome the number is taken on.
+
+**Both now checked — [E034](experiments/E034-h2d-remeasured.md).**
+
+**Localisation replicates.** The loss is still ~14.5× at the sensory→pallium projection
+(E017: 17×), recurrence removed still makes separability slightly *worse*, not better
+(0.87×, E017: 0.79×) — **recurrence is not the cause, confirmed on the corrected
+connectome.** This part is a within-genome comparison and is on solid footing.
+
+~~One real miss: Field-L-style auditory segregation now recovers **1.45×**, not E017's
+2.06× — real, same direction, smaller. Cite 1.45× going forward, not 2.06×.~~
+**Neither number survives [E035](experiments/E035-modality-segregation-in-the-prior.md),
+run immediately after.** Both were unpaired ratio-of-means across 6 genomes on a quantity
+with ~6× genome-to-genome spread (0.039–0.221 in E035's own sample); a properly
+re-normalised, *paired* 12-genome test found modality segregation indistinguishable from
+no segregation at all (t=0.04 against threshold 2.201). **Do not cite either figure.**
+Modality segregation is not an established partial fix for H2d — it is untested again,
+this time by a test that actually controls for the confound (segregation was never
+separated from "less total input drive to the segregated slice" in either prior number).
+
+**Occurrence is no longer hypothetical, and this is the important part.** A 5-minute live
+rollout at H4's standard config (16 hens, hawk every 20 s, fixed hen, 480,000 hen-steps)
+found the auditory aerial channel spans its full range (std 0.37, not remotely constant —
+E019's fix reaches live operation) and **a hen is blind to the hawk while a flockmate
+audibly alarm-calls on 11.9% of all hen-steps** — 40% of every hen-step where an alarm is
+audible at all. The scenario H2d's whole diagnosis depends on is not an edge case; it is
+routine whenever a predator is present.
+
+**This reverses the reasoning that demoted H2d.** It was moved off the critical path
+because its contrast seemed not to occur. It occurs constantly. Combined with the
+mechanism replicating unchanged, **H2d is not a stale concern — it is the most direct
+remaining lever on H2c, H3 and everything downstream of them**, and belongs back near the
+top of the queue.
 
 ---
 
 ## H3 — learned usage reproduces the audience effect without being programmed
 
-**Status: UNDER TEST** (phase 2/3) — two nulls recorded, and **blocked by H2b**.
+~~**Status: UNDER TEST** (phase 2/3) — two nulls recorded, and **blocked by H2b**.~~
+
+**Status: UNDER TEST** — three nulls now, and the blocking condition has changed.
+[E036](experiments/E036-e018-rerun.md) supplied the precondition H2b said was missing (an
+innate response to *hearing* a call, so the comprehension chain can close) and the
+audience effect still did not emerge from learning: `S+L − S = −0.005, t=2.25`, wrong
+sign, short of a 2.37 threshold at 8 matched seeds. **H3 is no longer blocked by "the
+chain can't close" — it can, mechanically. It is blocked by whatever H2f turns out to
+be.**
 
 Real cockerels alarm- and food-call far more readily with a hen present, graded by
 audience type (conspecific > other species > empty cage). Call *production* is innate
@@ -616,16 +694,30 @@ responds to calls, so a call cannot help anyone, so it cannot repay its cost —
 the private energy cost as the only thing correlated with her own calling, which
 predicts suppression, which is the sign seen on the alarm channel in both experiments.
 
-**H3 is blocked by H2b, not by its own design.** See below.
+~~**H3 is blocked by H2b, not by its own design.**~~ **Was blocked by H2b's missing
+precondition; that precondition now exists ([E018](experiments/E018-innate-auditory-reflex.md)/
+[E036](experiments/E036-e018-rerun.md)) and H3 still does not emerge.** See H2b and H2f
+below.
 
 ---
 
 ## H2b — the learning rule cannot acquire behaviours outside the innate repertoire
 
-**Status: SUPPORTED as a limitation** — established by
+**Status: SUPPORTED as a limitation, and narrowed** — established by
 [E006](experiments/E006-audibility-weighted-kin-reward.md), refined by
-[E007](experiments/E007-exploration-does-not-rescue-comprehension.md). **This blocks
-H3, H4 and H5.**
+[E007](experiments/E007-exploration-does-not-rescue-comprehension.md), narrowed by
+[E036](experiments/E036-e018-rerun.md). **This blocks H3, H4 and H5.**
+
+**The narrowing, from E036.** H2b's original claim was that H3 fails because nothing
+responds to a heard call — no foothold for the rule to retime. E018/E036 supplied that
+foothold by construction (a fixed, innate crouch-on-hearing response) and re-ran the
+full 2×2: with comprehension no longer missing, the learned, audience-contingent *extra*
+calling H3 predicts still did not appear (`S+L − S = −0.005 ± 0.002, t=2.25`, wrong
+sign). **"Missing a foothold" is no longer sufficient as the whole explanation.** The
+rule can be shown to retime what it already has (the scaffold gives it exactly one
+stimulus-response pairing to retime); it does not, from that, build the *specific new
+contingency* — call more with an audience present — that H3 needs, even with every
+ingredient for that contingency present in the world. See H2f.
 
 The three-factor rule strengthens synapses that were active when the modulator moved.
 It has no way to reinforce an action that never happened — and the model is
@@ -672,6 +764,56 @@ its own drive, a learned signal could recruit an innate behaviour without genera
 it from nothing, and could not run away because it only scales existing responses.
 That is closer to how learned modulation of tectal circuits is thought to work. It is
 a change to the core architecture and has not been made.
+
+---
+
+## H2f — the learning rule is the wrong *kind*, not merely wrongly routed or blocked
+
+**Status: UNDER TEST** — opened by [E017](experiments/E017-where-separability-is-lost.md)
+as an unnamed possibility, promoted to a node by
+[E036](experiments/E036-e018-rerun.md)'s pre-committed falsifier firing.
+
+**Claim:** `hen/plasticity.py` implements reward-modulated three-factor plasticity —
+instrumental conditioning: act, get rewarded, strengthen whatever was active. The
+biology this project keeps trying to reproduce with it (Curio's mobbing-chain work: naive
+birds acquiring predator recognition and alarm responses purely by *observing* a
+conspecific respond, no reward, no action of their own, transmitted along a chain of six
+birds) is closer to Pavlovian / observational association. If the rule is the wrong kind,
+every experiment that assumed the right rule in the wrong place — E002 (routing to the
+motor output), E007 (adding exploration), E008/E009 (top-down association, blocked
+separately by H2d), and now E018/E036 (supplying the missing innate foothold) — was
+addressing symptoms of the same underlying mismatch rather than fixing it.
+
+**Evidence so far — one clean, pre-committed falsifier firing.**
+[E036](experiments/E036-e018-rerun.md) built the one precondition H2b's story required
+(an innate crouch response to *hearing* an alarm call) directly into the reflex arc by
+construction, removing "nothing to retime" as a possible explanation, and re-ran H3's
+audience-effect test. Learning still did not add a contingent, audience-sensitive extra
+call on top of the wired-in response: `S+L − S = −0.005 ± 0.002, t=2.25`, wrong-signed
+relative to the registered prediction and short of a 2.37 threshold at 8 seeds. E018 §4
+committed in advance that this exact outcome would promote this explanation from
+speculation to leading, and it does.
+
+**What this does not yet show.** It is one experiment on one behaviour (contingent
+calling), not a demonstration that an alternative rule would succeed — no Pavlovian /
+observational rule has been implemented or tested here. It also does not rule out that
+H2d's representational bottleneck is doing some of the work: a rule needs something to
+condition *on*, and H2d says the pallium barely represents the relevant distinctions
+regardless of which rule reads them. E036's scaffold bypasses H2d for this one
+stimulus-response pairing (it is wired into the reflex arc, not learned from a pallial
+representation), so this result is not confounded by H2d — but a future Pavlovian rule
+sourced from the pallium would still need H2d fixed to have anything to associate.
+
+**Falsifier:** a rule closer to Pavlovian association (e.g. sourced from `W_pred`,
+already architecturally positioned for this per H2c) succeeds where the instrumental
+rule failed, on the same task and the same scaffold. Absence of any attempt is not
+evidence either way; this node opens the work rather than closing it.
+
+**Why this belongs in the tree rather than staying a footnote.** It is a genuine fork in
+what "fix the learning" means for every hypothesis below H2: not a parameter, not a
+routing change, not a missing precondition, but potentially the entire *class* of rule.
+That is a larger claim than anything else currently `UNDER TEST` and needs its own
+falsifiable test before anything downstream assumes it.
 
 ---
 
@@ -876,6 +1018,10 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | Food depletion added; it does **not** disperse the flock, and dispersal was never the problem. No file. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E036 | **E018's aborted 2×2 re-run: the falsifier fires, H2f opened.** An innate crouch-on-hearing scaffold (wired, not learned) supplies the precondition H2b said H3 was missing. Learning still does not add a contingent audience effect on top of it: **S+L − S = −0.005 ± 0.002, t=2.25**, wrong-signed, short of threshold 2.37 at 8 seeds. Manipulation check clean (0.19, matching E018's addendum). Innate floor (`S` vs `N`, zero learning) replicates a third time at +0.066. **New node H2f**: the rule may be the wrong *kind* — instrumental where the biology is closer to Pavlovian. Secondary "strikes/hen" flagged uninterpretable: it reads the pre-E027 `n_struck` exposure-step count, not the event-anchored metric H4's lineage moved to. |
+| E035 | **E017/E034's Field-L segregation numbers (2.06×, 1.45×) do not replicate — corrected in both files rather than quietly edited.** Moved modality segregation into `connectome.build(modality_segregated=...)`, properly fan-in-renormalised, instead of the ad hoc probe's post-hoc zeroing. On a **paired** 12-genome sample: structural vs. intact **t=0.04** against threshold 2.201 — no effect. The prior numbers were unpaired ratio-of-means on a quantity with ~6× genome-to-genome spread (0.039–0.221 in this sample) — the same statistical trap E021 caught for seed blocks, uncaught here for genomes across two experiments. Localisation (loss at sensory→pallium, recurrence not the cause) is unaffected — a within-genome comparison, never exposed to the confound. |
+| E034 | **H2d re-measured on the corrected (E023) connectome, and reprioritised upward.** Localisation replicates: loss still ~14.5× at sensory→pallium (E017: 17×), recurrence removed still 0.87× (not the cause). ~~Field-L segregation now 1.45×, not E017's 2.06×~~ — **neither number survives E035, run immediately after.** **Occurrence check reverses H2d's demotion**: a 5-min live rollout at H4's config found a hen blind to the hawk while a flockmate audibly alarm-calls on **11.9% of all hen-steps** — the contrast this node depends on is routine, not hypothetical, contra the E019-era reasoning that demoted it. |
+| E033 | **H2e → `REFUTED`, on the second pre-registered block E032 §9 asked for.** Block two (seeds 12–23): interaction **+0.240 ± 0.172, t=1.39** — same sign as block one, below its own 12-seed threshold as predicted. Pooled 24 seeds, per method declared in advance: **+0.390 ± 0.153, t=2.55** against threshold 2.069. Falsifier condition 1 fires: a trained readout costs something measurable to remove; the pathway is not inert once structured. H2's own question stays null pooled (fed % +0.153 ± 0.388, t=0.39). Required a fresh venv build and a `--seed-offset` argument added to `scratchpad/e032.py`, which hardcoded `range(args.seeds)` and would have silently re-run block one. |
 | E032 | **Causal efficacy, the backlog's unrun test, run at last.** Lesioning a *trained* readout hurts (+0.227) where lesioning an *untrained* one helps (−0.314) — interaction **+0.541 ± 0.254, t=2.13 against 2.201**. Misses. Manipulation check clean (`W_out` moves 9.6%). H2e neither confirmed nor falsified; a second block is owed. A sign error in the pre-registered falsifier is recorded in E032 §6 rather than edited away. |
 | E031 | **The credit window is refuted, not deferred.** A hen feeds every **0.3 s** and two thirds of the peck-reward correlation sits at lag 0 — inside the rule's window. But `W_out` at 0x and 10x are both indistinguishable on `fed %` (t=0.68, t=0.54) where a halved peck reflex scores t=4.32, so **H2's null is uninformative**: the pathway may be inert. H2e opened. |
 | E030 | **H4 → `SUPPORTED` as written, on a pre-registered pooled test.** Third block (60–71) at −0.028; pooled over 36 seeds across three blocks, **−0.044 ± 0.012, t=3.60** against a threshold of 2.030 declared in advance. No falsifier fires. **But `L vs Lx` is +0.010, t=0.46 for the second time** — the effect survives deleting the pallium's route to the muscles, so H0 is *not* satisfied: this is a result about the reflex arc. |
