@@ -76,8 +76,39 @@ of the time.
 
 ## H2 — three-factor plasticity produces measurable behavioural improvement
 
-**Status: UNDER TEST — a clean null** —
-[E020](experiments/E020-h2-after-the-e019-fixes.md), re-run after the E019 fixes.
+**Status: UNDER TEST — and the null is now UNINFORMATIVE** —
+[E031](experiments/E031-the-credit-window-is-not-the-blocker.md).
+
+**The pathway learning acts through cannot move the metric H2 is measured on.** Deleting
+`W_out` entirely and multiplying it tenfold both leave feeding unchanged, while the same
+metric detects a halved innate peck reflex at t=4.32:
+
+| condition | fed % | vs fixed |
+|---|---|---|
+| fixed | 3.671 | — |
+| lesioned (`W_out` = 0) | 3.531 | −0.139 ± 0.204, **t=0.68** |
+| amplified (`W_out` × 10) | 3.561 | −0.110 ± 0.203, **t=0.54** |
+| peck reflex × 0.5 *(positive control)* | 3.213 | −0.458 ± 0.106, **t=4.32** |
+
+So "the rule does not produce improvement" and "the route from the rule to the metric is
+inert" are indistinguishable on the evidence, and every null from E001 onward is
+compatible with the second. **This does not refute H2 — it withdraws the standing of the
+null.** See H2e.
+
+**Caveat that must travel with this:** `W_out` above is *untrained*, and random drive is
+roughly zero-mean, so it may simply average out. A learned `W_out` is structured and
+could in principle do what a random one cannot. The experiment cannot separate those, and
+the test that would — lesioning a **trained** flock — is `docs/backlog.md` §5's causal
+efficacy check, still never run.
+
+**The credit window is struck as the explanation.** Cited since E022, promoted to the top
+of the queue by E028, and refuted the first time it was measured
+([E031](experiments/E031-the-credit-window-is-not-the-blocker.md) §3): a hen feeds every
+**0.3 s**, reward moves every step, and two thirds of the peak peck–reward correlation
+sits at lag 0, inside the rule's 0.2 s window. Do not sweep `tau_slow`.
+
+~~**Status: UNDER TEST — a clean null** —
+[E020](experiments/E020-h2-after-the-e019-fixes.md), re-run after the E019 fixes.~~
 
 A hen who learns is **statistically indistinguishable** from one who cannot:
 **+0.011 ± 0.012, t=0.95**, pooled across **24 matched seeds** in two independent blocks
@@ -312,6 +343,40 @@ after that does a null mean anything about learning.
 **Standing lesson**: parameters tuned under a defect inherit the defect. E002's sweep
 was correct at the time and silently encoded an assumption about the operating point
 that outlived it.
+
+---
+
+## H2e — the cortical pathway is behaviourally inert, so H2 is not testable through it
+
+**Status: UNDER TEST** — opened by
+[E031](experiments/E031-the-credit-window-is-not-the-blocker.md).
+
+**Claim:** the route from pallium to muscle contributes so little to behaviour that no
+change in `W_out`, learned or otherwise, can register on H2's metric. If true, H2 as
+constructed cannot be falsified and every null it has produced is a fact about the
+architecture rather than the learning rule.
+
+**Evidence so far:** an untrained `W_out` at 0×, 1× and 10× gain is indistinguishable on
+`fed %` (t=0.68, t=0.54) on a metric that detects a halved reflex at t=4.32. Independently,
+E027 and E030 found lesioning `W_out` leaves *predation* outcomes unchanged
+(+0.010, t=0.46), and E019 measured a learned `ΔW_out` moving cortical drive by 0.7% of
+its own magnitude.
+
+**Prediction:** lesioning `W_out` in a flock that has been *trained* costs nothing
+measurable, on either metric.
+
+**Falsifier — and it is the interesting outcome:** a trained flock loses measurable
+performance when its readout is cut. That would mean the pathway *is* efficacious once
+structured, the inertness is a property of random weights only, and H2's null returns to
+being a fact about the rule.
+
+**Why this matters more than it sounds.** E002 found too much cortical influence makes
+behaviour *worse*, and E007 found too little means nothing new can be learned; the two
+pathways sum into one motor drive and compete on a single axis. H2e is that tension
+measured from the third side: at the setting chosen to be safe, the pathway may be doing
+nothing at all. If so the answer is E007's unresolved architectural question —
+multiplicative gating of the reflex arc instead of additive competition — not a better
+rule.
 
 ---
 
@@ -788,6 +853,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | Food depletion added; it does **not** disperse the flock, and dispersal was never the problem. No file. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E031 | **The credit window is refuted, not deferred.** A hen feeds every **0.3 s** and two thirds of the peck-reward correlation sits at lag 0 — inside the rule's window. But `W_out` at 0x and 10x are both indistinguishable on `fed %` (t=0.68, t=0.54) where a halved peck reflex scores t=4.32, so **H2's null is uninformative**: the pathway may be inert. H2e opened. |
 | E030 | **H4 → `SUPPORTED` as written, on a pre-registered pooled test.** Third block (60–71) at −0.028; pooled over 36 seeds across three blocks, **−0.044 ± 0.012, t=3.60** against a threshold of 2.030 declared in advance. No falsifier fires. **But `L vs Lx` is +0.010, t=0.46 for the second time** — the effect survives deleting the pallium's route to the muscles, so H0 is *not* satisfied: this is a result about the reflex arc. |
 | E029 | **First positive control in the project's history, and the instrument passes** — every planted effect detected, including the unmodified hen, so E028's null was not a measurement failure. But the same contrast on fresh seeds gives **−0.076, t=4.75** against block A's −0.029, t=1.42; pooled over 24 seeds **−0.052 ± 0.014, t=3.87**. Not promoted: pooling was decided post-hoc, block A alone does not clear, and the `W_out` lesion is still noise. |
 | E028b | **The ladder re-run on the repaired instrument (seeds 36–47) does not clear.** L vs C? is **−0.029 ± 0.020, t=1.42** on the unmovable denominator, against **−0.142, SIGNIFICANT** on E026's confounded one — same 12 seeds, opposite verdicts. **L vs Lx = +0.006, noise**: the pallium is not in the causal path, replicated on fresh seeds. T1's registered fed % null for a third time. |
