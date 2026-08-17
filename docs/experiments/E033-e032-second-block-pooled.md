@@ -80,13 +80,91 @@ the two blocks' summary statistics.
 
 ## 6. Result
 
-*Not yet run. Sections 6–8 are written after the block-two run completes and the pooled
-statistic is computed from the actual per-seed data — not before.*
+12 fresh seeds (12–23), 20 min rearing + 5 min test, 16 hens.
+
+```
+MANIPULATION CHECK: mean |dW_out| / |W_out| during rearing = 0.0957   PASSES (gate 0.05)
+                    fixed flocks drift 0.000000                        as required
+
+rearing (block two)   intact  lesioned      drop
+trained               11.397    11.209    +0.188
+fixed                 11.283    11.335    -0.052
+
+block two interaction (trained drop) - (fixed drop):  +0.2396 +/- 0.1720  t=1.39
+  (below its own 12-seed threshold of 2.201, as E021's rule says a single block may be)
+
+secondary, block two, both intact: fed % +0.1144 +/- 0.6544  t=0.17
+```
+
+Pooled over both blocks (per-seed paired differences concatenated, 24 seeds, per §5's
+declared method — not an average of the two blocks' summary statistics):
+
+```
+block one (seeds 0-11)    interaction  +0.5412 +/- 0.2537   t=2.13
+block two (seeds 12-23)   interaction  +0.2396 +/- 0.1720   t=1.39
+
+POOLED (24 seeds)         interaction  +0.3904 +/- 0.1531   t=2.55
+  threshold (df=23) = 2.069  ->  SIGNIFICANT
+
+secondary, pooled (both intact, H2's own question):
+  fed %  +0.1529 +/- 0.3877  t=0.39
+```
+
+The manipulation check passes cleanly in both blocks (drift 9.63% and 9.57%; fixed
+flocks drift exactly 0 in both), so this is not E001's frozen-`W_out` failure repeating.
 
 ## 7. Interpretation
 
-*Pending §6.*
+**The sign replicated and the pooled effect clears threshold.** Block two's interaction
+is +0.240 — same direction as block one's +0.541, smaller in magnitude — and on its own
+does not reach its individual 12-seed threshold (t=1.39 vs 2.201), which is unsurprising
+and was allowed for in §3: block-to-block magnitude was expected to vary, only the sign
+was predicted with confidence. Pooled across 24 seeds, the interaction is
+**+0.390 ± 0.153, t=2.55**, against the pre-registered threshold of 2.069 at 23 df.
+
+This is falsifier condition 1 in §4: **it fires.** Per the pre-registration, that is the
+outcome that falsifies H2e rather than supports it — the opposite of the E021 pattern
+(a single-block result evaporating on fresh seeds). Here a positive single-block result
+(t=2.13, one point below threshold) was followed by a second positive block, and pooling
+resolved the ambiguity in favour of the effect being real rather than against it.
+
+**What this licenses and what it does not.** A **trained** `W_out` costs something
+measurable when removed; the pathway is not simply inert to lesioning once it has
+learned. It does **not** license concluding the pathway is efficacious in the direction
+H2 needs — the interaction being positive means *removing a trained readout hurts more
+than removing an untrained one*, which is compatible with training doing something
+constructive, but is silent on whether that something is *foraging*.
+
+**H2's own question, pooled, stays null.** Trained vs fixed, both intact, over both
+blocks: **+0.153 ± 0.388, t=0.39** — indistinguishable from zero, same as block one alone
+(t=0.43) and block two alone (t=0.17). Whatever the trained readout is doing that makes
+it costly to remove, it does not show up as better feeding when left in place. The two
+results are not in tension: a readout can matter to the motor drive it feeds (visible
+under lesion, a within-subject before/after comparison with the world and reflexes held
+fixed) without moving a noisy population-level outcome like `fed %` (a between-subject
+comparison against a different flock's baseline).
 
 ## 8. Consequence
 
-*Pending §6.*
+- **H2e moves to `REFUTED`.** The claim was that the cortical pathway is behaviourally
+  inert regardless of training — that no change in `W_out` can register on H2's metric
+  family. A pre-registered, pooled, two-block test (24 seeds) found a trained pathway
+  *does* register: t=2.55 against a threshold of 2.069, sign consistent across both
+  blocks. The pathway is not inert once structured by learning.
+- **H2's null regains standing, with a caveat.** E031 had withdrawn H2's null to
+  "uninformative" because an untrained pathway couldn't be shown to reach behaviour at
+  all — so a null on `fed %` might just mean the measurement route was closed. E033 shows
+  the route is not closed for a trained readout: it can be moved (E023's rearing drift),
+  and moving it has a measurable behavioural cost when removed (this experiment). So H2's
+  clean null (E020/E021, +0.011 ± 0.012, t=0.95) is a fact about **what the rule learns**,
+  not about whether the architecture can express what it learns.
+- **Next real work is the rule itself, not the architecture.** E031 already ruled out the
+  credit window (lag 0 correlation, 0.3 s feeding interval inside the rule's 0.2 s window).
+  What remains open is the rule's *magnitude* or what it is actually optimizing — the
+  readout changes in a way that costs something to remove, but not in a way that improves
+  feeding, which is consistent with it learning something real but not the thing H2's
+  metric rewards. E007's multiplicative-gating question is not ruled back in by this
+  result — it was motivated by H2e being *true*, and H2e is now refuted — so it drops in
+  priority rather than becoming the next step.
+- `scratchpad/e032.py`'s `--seed-offset` argument stays; a third block (or a differently
+  designed follow-up on what the trained readout actually encodes) would need it again.

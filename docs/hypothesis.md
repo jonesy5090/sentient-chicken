@@ -76,8 +76,12 @@ of the time.
 
 ## H2 — three-factor plasticity produces measurable behavioural improvement
 
-**Status: UNDER TEST — and the null is now UNINFORMATIVE** —
-[E031](experiments/E031-the-credit-window-is-not-the-blocker.md).
+~~**Status: UNDER TEST — and the null is now UNINFORMATIVE** —
+[E031](experiments/E031-the-credit-window-is-not-the-blocker.md).~~
+
+**Status: UNDER TEST — the null is informative again** —
+[E033](experiments/E033-e032-second-block-pooled.md) refuted H2e, the claim that the
+cortical pathway cannot reach behaviour at all. See H2e below.
 
 **The pathway learning acts through cannot move the metric H2 is measured on.** Deleting
 `W_out` entirely and multiplying it tenfold both leave feeding unchanged, while the same
@@ -348,58 +352,77 @@ that outlived it.
 
 ## H2e — the cortical pathway is behaviourally inert, so H2 is not testable through it
 
-**Status: UNDER TEST** — opened by
-[E031](experiments/E031-the-credit-window-is-not-the-blocker.md).
+~~**Status: UNDER TEST** — opened by
+[E031](experiments/E031-the-credit-window-is-not-the-blocker.md).~~
 
-**Claim:** the route from pallium to muscle contributes so little to behaviour that no
-change in `W_out`, learned or otherwise, can register on H2's metric. If true, H2 as
-constructed cannot be falsified and every null it has produced is a fact about the
-architecture rather than the learning rule.
+**Status: REFUTED** —
+[E033](experiments/E033-e032-second-block-pooled.md), a pre-registered pooled test
+across two independent 12-seed blocks.
 
-**Evidence so far:** an untrained `W_out` at 0×, 1× and 10× gain is indistinguishable on
-`fed %` (t=0.68, t=0.54) on a metric that detects a halved reflex at t=4.32. Independently,
-E027 and E030 found lesioning `W_out` leaves *predation* outcomes unchanged
-(+0.010, t=0.46), and E019 measured a learned `ΔW_out` moving cortical drive by 0.7% of
-its own magnitude.
+**Claim, now refuted:** the route from pallium to muscle contributes so little to
+behaviour that no change in `W_out`, learned or otherwise, can register on H2's metric.
+If true, H2 as constructed could not be falsified and every null it produced would be a
+fact about the architecture rather than the learning rule. **A trained readout does
+register** — see below.
 
-**[E032](experiments/E032-causal-efficacy.md) tested it directly and missed by 0.07 in t.**
-Rear, then fork both test branches from the identical end-of-rearing state so the lesion
-is the only difference:
+**Evidence that motivated the claim:** an untrained `W_out` at 0×, 1× and 10× gain is
+indistinguishable on `fed %` (t=0.68, t=0.54) on a metric that detects a halved reflex at
+t=4.32. Independently, E027 and E030 found lesioning `W_out` leaves *predation* outcomes
+unchanged (+0.010, t=0.46), and E019 measured a learned `ΔW_out` moving cortical drive by
+0.7% of its own magnitude. All of this is evidence about an *untrained* or barely-trained
+readout; it never separated "the rule learns nothing" from "nothing learned there could
+reach behaviour," which is exactly the ambiguity E032/E033 were built to resolve.
+
+**[E032](experiments/E032-causal-efficacy.md) tested a trained readout directly and
+missed by 0.07 in t, on one block:**
 
 | rearing | intact | lesioned | drop on lesion |
 |---|---|---|---|
 | trained | 13.782 | 13.555 | **+0.227** |
 | fixed | 13.591 | 13.905 | **−0.314** |
-| **interaction** | | | **+0.541 ± 0.254, t=2.13** (threshold 2.201) |
+| **interaction (block one)** | | | **+0.541 ± 0.254, t=2.13** (threshold 2.201) |
 
-Manipulation check clean: rearing moves `W_out` by 9.6%, fixed flocks by exactly 0.
+**[E033](experiments/E033-e032-second-block-pooled.md) ran a second, pre-registered
+12-seed block (seeds 12–23) and pooled, per the E029/E030 template declared in advance:**
 
-**The direction is the interesting part and it is not claimable.** Lesioning an *untrained*
-readout **helps** (−0.314) — E002's ceiling finding from the other side, a random
-projection overriding good reflexes. Lesioning a *trained* one **hurts** (+0.227). So
-training may convert a mildly harmful readout into a mildly useful one, and the evidence
-misses threshold on one seed block, which could not move a status anyway (the E021 rule).
+| block | interaction | t |
+|---|---|---|
+| one (0–11), E032 | +0.541 ± 0.254 | 2.13 |
+| two (12–23), E033 | +0.240 ± 0.172 | 1.39 |
+| **pooled (24 seeds)** | **+0.390 ± 0.153** | **2.55** (threshold 2.069) |
 
-**H2's own question stays null**: trained vs fixed, both intact, +0.191 ± 0.447, t=0.43.
+Both blocks positive, same sign, smaller magnitude in block two as expected from
+block-to-block variance seen elsewhere in this project (E029/E030). Manipulation check
+clean in both blocks: rearing moves `W_out` by 9.6% and 9.6%, fixed flocks by exactly 0
+in both.
 
-**Next:** a second 12-seed block with pooling declared in advance (the E029/E030 template).
-~80 minutes of uninterrupted compute.
+**Lesioning a *trained* readout costs something a random one does not, and this time it
+clears its pre-registered threshold.** Training converts a mildly harmful readout
+(untrained lesion helps: −0.314) into one that costs something to remove
+(trained lesion hurts: +0.227, +0.188 across the two blocks) — the interaction between
+them is real, not noise.
 
-**Prediction:** lesioning `W_out` in a flock that has been *trained* costs nothing
-measurable, on either metric.
+**H2's own question stays null, pooled**: trained vs fixed, both intact,
++0.153 ± 0.388, t=0.39 (block one +0.191, t=0.43; block two +0.114, t=0.17). A trained
+readout costs something to remove without making its flock forage measurably better —
+the two findings describe different comparisons (within-subject lesion vs. between-flock
+outcome) and are not in tension.
 
-**Falsifier — and it is the interesting outcome:** a trained flock loses measurable
-performance when its readout is cut. That would mean the pathway *is* efficacious once
-structured, the inertness is a property of random weights only, and H2's null returns to
-being a fact about the rule.
+**What this changes for H2.** E031 had withdrawn H2's null to "uninformative" because an
+untrained pathway couldn't be shown to reach behaviour at all. E033 shows the route is
+not closed for a *trained* readout, so H2's clean null
+([E020](experiments/E020-h2-after-the-e019-fixes.md)/
+[E021](experiments/E021-the-cost-of-exploration.md), +0.011 ± 0.012, t=0.95) regains
+standing as a fact about **what the rule learns**, not about whether learning can reach
+behaviour at all. The credit window remains ruled out
+([E031](experiments/E031-the-credit-window-is-not-the-blocker.md) §3). What is open is
+the rule's *magnitude* or what it actually optimizes: it changes `W_out` in a way that
+costs something to remove, but not in a way that improves feeding.
 
-**Why this matters more than it sounds.** E002 found too much cortical influence makes
-behaviour *worse*, and E007 found too little means nothing new can be learned; the two
-pathways sum into one motor drive and compete on a single axis. H2e is that tension
-measured from the third side: at the setting chosen to be safe, the pathway may be doing
-nothing at all. If so the answer is E007's unresolved architectural question —
-multiplicative gating of the reflex arc instead of additive competition — not a better
-rule.
+**E007's multiplicative-gating question is not promoted by this result.** It was
+motivated by H2e being *true* — the two pathways summing into one motor drive with no
+room for a trained signal to matter. H2e is refuted, so that architectural explanation
+loses its motivation rather than gaining it.
 
 ---
 
@@ -876,6 +899,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | Food depletion added; it does **not** disperse the flock, and dispersal was never the problem. No file. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E033 | **H2e → `REFUTED`, on the second pre-registered block E032 §9 asked for.** Block two (seeds 12–23): interaction **+0.240 ± 0.172, t=1.39** — same sign as block one, below its own 12-seed threshold as predicted. Pooled 24 seeds, per method declared in advance: **+0.390 ± 0.153, t=2.55** against threshold 2.069. Falsifier condition 1 fires: a trained readout costs something measurable to remove; the pathway is not inert once structured. H2's own question stays null pooled (fed % +0.153 ± 0.388, t=0.39). Required a fresh venv build and a `--seed-offset` argument added to `scratchpad/e032.py`, which hardcoded `range(args.seeds)` and would have silently re-run block one. |
 | E032 | **Causal efficacy, the backlog's unrun test, run at last.** Lesioning a *trained* readout hurts (+0.227) where lesioning an *untrained* one helps (−0.314) — interaction **+0.541 ± 0.254, t=2.13 against 2.201**. Misses. Manipulation check clean (`W_out` moves 9.6%). H2e neither confirmed nor falsified; a second block is owed. A sign error in the pre-registered falsifier is recorded in E032 §6 rather than edited away. |
 | E031 | **The credit window is refuted, not deferred.** A hen feeds every **0.3 s** and two thirds of the peck-reward correlation sits at lag 0 — inside the rule's window. But `W_out` at 0x and 10x are both indistinguishable on `fed %` (t=0.68, t=0.54) where a halved peck reflex scores t=4.32, so **H2's null is uninformative**: the pathway may be inert. H2e opened. |
 | E030 | **H4 → `SUPPORTED` as written, on a pre-registered pooled test.** Third block (60–71) at −0.028; pooled over 36 seeds across three blocks, **−0.044 ± 0.012, t=3.60** against a threshold of 2.030 declared in advance. No falsifier fires. **But `L vs Lx` is +0.010, t=0.46 for the second time** — the effect survives deleting the pallium's route to the muscles, so H0 is *not* satisfied: this is a result about the reflex arc. |
