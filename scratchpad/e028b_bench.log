@@ -1,0 +1,19 @@
+device        : cpu:0
+dt            : 10 ms
+stability     : max(dt/tau) = 0.25 (forward Euler wants << 1)
+connectome    : 512 neurons, 36,000 synapses, fan-out 70, density 13.7%
+regions       : {'sensory': 64, 'pallium': 256, 'hippocampus': 80, 'arcopallium': 48, 'hypothalamus': 16, 'motor': 48}
+
+ neurons   hens      steps/s   real-time     W (MB)   GB/s read    hrs/day
+--------------------------------------------------------------------------
+     128     16        6,190       61.9x        1.0         6.5       0.39
+     256     16        4,461       44.6x        4.2        18.7       0.54
+     384     16        2,679       26.8x        9.4        25.3       0.90
+     512     16        1,870       18.7x       16.8        31.4       1.28
+     768     16        1,375       13.7x       37.7        51.9       1.75
+    1024     16          941        9.4x       67.1        63.1       2.55
+    1536     16          475        4.8x      151.0        71.8       5.05
+
+Largest brain sustaining 50x real time with 16 hens: 128 neurons per hen.
+  One chicken-day  : 0.39 hours wall clock
+  30-day rearing   : 0.5 days

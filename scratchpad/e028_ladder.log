@@ -1,0 +1,128 @@
+H4 -- intact channel vs shuffled, 10 min, 12 matched seeds (36-47), 16 hens
+NO PLASTICITY in any condition. Hawk every 20 s.
+
+intake and risk are a trade-off, not a score: a flock that never forages
+is safe and starving. Read the two columns together.
+
+condition        fed %  caught/dive   dives  at risk  blind risk  caught/event  head down  alarm heard
+------------------------------------------------------------------------------------------------------
+N  natural        2.69        0.137     305     50.0        27.8         0.482      0.602       0.3008
+C- capacity       2.91        0.118     305     39.2        23.2         0.452      0.600       0.0000
+C0 severed        2.91        0.118     305     39.2        23.2         0.452      0.600       0.0000
+C? yoked          2.62        0.115     305     39.6        18.9         0.404      0.543       0.2887
+Cs self-only      2.72        0.113     305     52.6        26.4         0.386      0.550       0.1416
+L  language       2.67        0.086     305     48.4        28.0         0.262      0.558       0.3030
+Lx lesioned       2.68        0.080     305     55.2        30.3         0.261      0.537       0.3000
+
+--- denominator check: can the treatment move what it is divided by? ---
+  condition        dives    vs C?  blind risk    vs C?
+  N  natural         305     0.0%        27.8    46.7%
+  C- capacity        305     0.0%        23.2    22.5%
+  C0 severed         305     0.0%        23.2    22.5%
+  C? yoked           305     0.0%        18.9     0.0%
+  Cs self-only       305     0.0%        26.4    39.6%
+  L  language        305     0.0%        28.0    48.0%
+  Lx lesioned        305     0.0%        30.3    60.4%
+  dives must be flat. blind risk drifting by tens of percent is E027's
+  finding, and it is why caught/dive is the headline and caught/event is not.
+
+--- HEADLINE: L  language vs C? yoked ---
+The registered contrast (backlog section 1), not L vs deaf. Identical brain,
+identical bandwidth, identical calling cost. The only difference is whether
+what she hears is about her own surroundings.
+
+  caught/dive     -0.029 +/- 0.020 SE   suggestive (t=1.42, need 2.20)   (lower is better for L)
+  fed %           +0.053 +/- 0.087 SE   noise (t=0.61)   (higher is better for L)
+  caught/event*   -0.142 +/- 0.061 SE   SIGNIFICANT   (lower is better for L)
+  caught rate*    -0.119 +/- 0.059 SE   suggestive (t=2.02, need 2.20)   (lower is better for L)
+  struck/hen    -209.432 +/- 202.968 SE   suggestive (t=1.03, need 2.20)   (lower is better for L)
+  hunger          -0.003 +/- 0.003 SE   suggestive (t=1.16, need 2.20)   (lower is better for L)
+  * confounded denominators, see the check above. Reported, not relied on.
+
+  pooled over events, for comparison with the paired means above:
+    caught/dive   L  language 0.084   C? yoked 0.112   diff -0.028
+    caught/event  L  language 0.299   C? yoked 0.371   diff -0.071
+    caught|blind  L  language 0.506   C? yoked 0.577   diff -0.071
+
+--- T1's registered metric: food intake at matched risk ---
+  fed % +0.053 +/- 0.087 SE   noise (t=0.61)
+  backlog section 3 predicted L forages MORE than C? at equal risk.
+  In E026 this was 3.06 vs 3.07 and then 2.54 vs 2.41 -- null, and worse in
+  the replication. Reported here whatever it says.
+
+--- The falsifiers H4 named in advance ---
+  L vs C- (capacity)     caught/dive  -0.032 +/- 0.015 SE  suggestive (t=2.18, need 2.20)
+                         if ~0, the extra neurons did the work, not the channel
+  L vs Cs (self-only)    caught/dive  -0.027 +/- 0.013 SE  suggestive (t=2.00, need 2.20)
+                         if ~0, the channel is private memory, not communication
+  L vs C0 (severed)      caught/dive  -0.032 +/- 0.015 SE  suggestive (t=2.18, need 2.20)
+                         if ~0, hearing nothing costs nothing -- no information was flowing
+  L vs N (natural)       caught/dive  -0.051 +/- 0.012 SE  SIGNIFICANT
+                         does the language flock beat a naturalistic bird, or a lobotomised one?
+  L vs Lx (lesioned)     caught/dive  +0.006 +/- 0.013 SE  noise (t=0.47)
+                         if ~0, the pallium is not in the causal path and this is a result about the reflex arc
+
+  NOTE on C-: with plasticity off in every condition, the capacity control
+  is vacuous by construction -- an untrained pallium is a random projection
+  that cannot use extra neurons. H0's 'at any capacity' clause is untested
+  until a learning rule works. Kept in the ladder so it is not re-dropped.
+
+manipulation check: 'alarm heard' must be ~0 for C- and C0, and non-zero elsewhere.
+wall clock: 3802 s
+Lx lesioned       2.68        0.080     305     55.2        30.3         0.261      0.537       0.3000
+
+--- denominator check: can the treatment move what it is divided by? ---
+  condition        dives    vs C?  blind risk    vs C?
+  N  natural         305     0.0%        27.8    46.7%
+  C- capacity        305     0.0%        23.2    22.5%
+  C0 severed         305     0.0%        23.2    22.5%
+  C? yoked           305     0.0%        18.9     0.0%
+  Cs self-only       305     0.0%        26.4    39.6%
+  L  language        305     0.0%        28.0    48.0%
+  Lx lesioned        305     0.0%        30.3    60.4%
+  dives must be flat. blind risk drifting by tens of percent is E027's
+  finding, and it is why caught/dive is the headline and caught/event is not.
+
+--- HEADLINE: L  language vs C? yoked ---
+The registered contrast (backlog section 1), not L vs deaf. Identical brain,
+identical bandwidth, identical calling cost. The only difference is whether
+what she hears is about her own surroundings.
+
+  caught/dive     -0.029 +/- 0.020 SE   suggestive (t=1.42, need 2.20)   (lower is better for L)
+  fed %           +0.053 +/- 0.087 SE   noise (t=0.61)   (higher is better for L)
+  caught/event*   -0.142 +/- 0.061 SE   SIGNIFICANT   (lower is better for L)
+  caught rate*    -0.119 +/- 0.059 SE   suggestive (t=2.02, need 2.20)   (lower is better for L)
+  struck/hen    -209.432 +/- 202.968 SE   suggestive (t=1.03, need 2.20)   (lower is better for L)
+  hunger          -0.003 +/- 0.003 SE   suggestive (t=1.16, need 2.20)   (lower is better for L)
+  * confounded denominators, see the check above. Reported, not relied on.
+
+  pooled over events, for comparison with the paired means above:
+    caught/dive   L  language 0.084   C? yoked 0.112   diff -0.028
+    caught/event  L  language 0.299   C? yoked 0.371   diff -0.071
+    caught|blind  L  language 0.506   C? yoked 0.577   diff -0.071
+
+--- T1's registered metric: food intake at matched risk ---
+  fed % +0.053 +/- 0.087 SE   noise (t=0.61)
+  backlog section 3 predicted L forages MORE than C? at equal risk.
+  In E026 this was 3.06 vs 3.07 and then 2.54 vs 2.41 -- null, and worse in
+  the replication. Reported here whatever it says.
+
+--- The falsifiers H4 named in advance ---
+  L vs C- (capacity)     caught/dive  -0.032 +/- 0.015 SE  suggestive (t=2.18, need 2.20)
+                         if ~0, the extra neurons did the work, not the channel
+  L vs Cs (self-only)    caught/dive  -0.027 +/- 0.013 SE  suggestive (t=2.00, need 2.20)
+                         if ~0, the channel is private memory, not communication
+  L vs C0 (severed)      caught/dive  -0.032 +/- 0.015 SE  suggestive (t=2.18, need 2.20)
+                         if ~0, hearing nothing costs nothing -- no information was flowing
+  L vs N (natural)       caught/dive  -0.051 +/- 0.012 SE  SIGNIFICANT
+                         does the language flock beat a naturalistic bird, or a lobotomised one?
+  L vs Lx (lesioned)     caught/dive  +0.006 +/- 0.013 SE  noise (t=0.47)
+                         if ~0, the pallium is not in the causal path and this is a result about the reflex arc
+
+  NOTE on C-: with plasticity off in every condition, the capacity control
+  is vacuous by construction -- an untrained pallium is a random projection
+  that cannot use extra neurons. H0's 'at any capacity' clause is untested
+  until a learning rule works. Kept in the ladder so it is not re-dropped.
+
+manipulation check: 'alarm heard' must be ~0 for C- and C0, and non-zero elsewhere.
+wall clock: 2852 s

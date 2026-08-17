@@ -1,0 +1,8 @@
+E027 verification -- seeds 24-31 x 5 min, 16 hens, 1.5x pallium, hawk every 20 s, no plasticity
+
+condition                   blind risks  caught|blind  pooled rate
+------------------------------------------------------------------
+deaf                                 57            40        0.702
+intact                               60            22        0.367
+deaf,   W_out=0                      79            37        0.468
+intact, W_out=0                      77            25        0.325

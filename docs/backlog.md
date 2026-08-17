@@ -227,13 +227,18 @@ top-ranked item is **not** here, because its headline number did not replicate.
    A shuffled sender still reports your hawk because 38.8% of the flock shares it. See
    item 0 below — **flock dispersal now blocks the headline experiment outright.**
 
-0. **Make the flock spread out.** Promoted above everything. Nearest-neighbour is
-   ~0.23 m in a 20 × 20 m run and nothing disperses them: food never depletes, so there
-   is no foraging competition, and the gregariousness reflex pulls them together with
-   nothing pushing back. This was filed as a T2 problem ("a signal naming a feeder is
-   useless when everyone stands at one"); E024 showed it is a T1 problem too, and it
-   defeats *any* sender-scrambling control. Depleting food patches is the obvious
-   candidate and is biologically right — real hens move on when a patch is worked out.
+0. ~~**Make the flock spread out.** Promoted above everything.~~ **Demoted — the
+   diagnosis was wrong.** I promoted this on the reasoning that clumping defeated the
+   sender-scrambling control. E025 tested it directly: food depletion did not disperse
+   the flock (23.0% → 21.9% strike-radius overlap), and even at gregariousness weight
+   **zero** the permutation retained 91% of the information. E026 found the surviving
+   component was **temporal, not spatial** — every hen hears every other, so scrambling
+   *who* you hear preserves "someone is calling right now", which is nearly the whole
+   signal. The control that works is yoked. Dispersal was never the problem, and this
+   item sat at the top of the list for two experiments on my mistake.
+
+   Still worth doing eventually for T2, where a signal naming a feeder is useless if
+   everyone stands at one. Not a blocker for anything now.
 
 ~~3. **Run H4 with no plasticity at all.**~~ *(superseded, see above)* §7 says phase 1 blocks everything below; it does
    not block H4, whose prediction mentions no learning. Production is innate and passes
@@ -242,10 +247,26 @@ top-ranked item is **not** here, because its headline number did not replicate.
    and a channel-shuffle path in `sensing.py`. **Neither exists, and this is the
    project's actual thesis.**
 
-**Owed checks, not yet verified** (from the same review): the 0.2 s credit window against
-a 10–30 s approach task; the audience assay's saturated aerial channel in its audience
-cell; E006's kin term moving the teaching signal by 0.5–3%; `W_pred` costing ~11% of
-throughput unconditionally; `strike_penalty` still charging per-step.
+**Owed checks** (from the same review). Two are now settled:
+
+- ~~`strike_penalty` still charging per-step~~ — **verified and fixed
+  ([E028](experiments/E028-instrument-repair.md)).** It was real, and worse than filed:
+  87.3% of the reward variance at the H4 configuration. Now 0.2%.
+- ~~Dale's law on `W_out`~~ — **verified and fixed (E028).** 0 of 48 columns complied.
+  E022 marked this "verified — adopt" and it then fell off the action list entirely.
+
+Still unverified: **the 0.2 s credit window against a 10–30 s approach task** — now the
+oldest and most consequential owed item, because `hen/plasticity.py:34-37` states in the
+source that anything bridging a longer gap "is not learnable by this rule as written",
+which would make every H2 null uninformative by `CLAUDE.md` check 6. Also outstanding:
+the audience assay's saturated aerial channel in its audience cell; E006's kin term
+moving the teaching signal by 0.5–3%; `W_pred` costing ~11% of throughput
+unconditionally.
+
+**And a positive control has still never been run**, though `CLAUDE.md` says one is not
+optional. No experiment has shown the harness detecting a deliberately planted
+improvement. Until one does, "the rule did not learn X" is not a statement about the
+rule.
 
 **Abandon:** H2a (six comparisons, never significant, sign flipped in E020) and the E016
 "last word" follow-up (a workaround for a harm that no longer exists).

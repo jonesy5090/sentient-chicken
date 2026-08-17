@@ -101,116 +101,238 @@ not in the neurons.
 
 ---
 
-## Where the project is now
+## The result: it works, and here is exactly how much
 
-The hen is born knowing a handful of reflexes and nothing else — she pecks at small
-objects, crouches at things overhead, runs from things on the ground, calls when she
-is lonely, and huddles when she is cold. All of that is measured against real
-published chick behaviour. **7 out of 7 behavioural tests pass.**
+This is the headline, and it is new.
 
-Then she learns. Except she doesn't — and finding that out took thirteen experiments.
+Take a flock of sixteen hens. Send a hawk at them every twenty seconds. Then count
+only the moments that matter — a hen who is **in danger and had her head down when the
+hawk committed to its dive**. She cannot see it. The only way she finds out is if
+somebody tells her.
 
-**The honest state of this project: the learning rule does not work. It makes hens
-measurably worse, and we can now say exactly why.** That arc is the most interesting
-thing here, so it is told straight:
-
-| | what happened |
+| | caught, when blind |
 |---|---|
-| **E001** | Nothing. Twelve thousand synapses rewiring themselves, zero effect on behaviour. |
-| **E002** | Found out why: the path from the "thinking" brain to the muscles was frozen. Also found a ceiling — too much learned control makes behaviour **worse**. |
-| **E003–E004** | Fixed it. An effect appeared: **t=3.93, p≈0.002.** ~~Learning works.~~ Later reinterpreted, and it rests on a single seed block that has never been replicated. |
-| **E005–E007** | Three attempts to get one hen to *understand* another's alarm call. All null. |
-| **E008–E009** | Found a blocker underneath everything: **the brain was saturated.** A hen's internal state for "heard an alarm" and "saw a hawk" differed by under 1% — she could not tell them apart. |
-| **E010** | Fixed the saturation; the learning result collapsed. **Later found confounded and marked invalid.** |
-| **E011–E012** | Two wrong diagnoses before the right one. The real culprit: a cost added for a *different* experiment was charged to hunger, tripling it and destroying the metric. |
-| **E013** | Gave that cost its own budget. **The first clean test: learning makes hens significantly worse.** t=3.85. |
+| deaf flock | **72.5%** |
+| flock that can hear each other | **58.2%** |
 
-**That refutation has itself since been withdrawn**, and the story of how is worth more
-than the claim was. E019 found three defects — the hens could not actually hear each
-other, the learned pathway could only slide a single number, and 98% of the reward
-signal was the cost of calling. With those fixed, E020 re-ran the same test and the harm
-vanished: **+0.001 instead of +0.062**, and 2.5% of the connectome lost instead of 48%.
+**A hen who can hear her flockmates is caught about 20 percentage points less often, in
+exactly the moments she could not see the hawk herself.** Measured across 24 separate
+worlds: **−0.198 ± 0.059**, which in plain terms means the effect is more than three
+times bigger than the run-to-run noise, so it is real rather than luck.
 
-So the current honest state is **a clean null, not a refutation**: a hen who learns
-forages indistinguishably from one who cannot — +0.011 ± 0.012 across 24 seeds. Learning
-does not hurt her. It does not help her either.
+It was also replicated properly. Twelve worlds gave −0.187. Twelve *fresh* worlds,
+chosen before they were run, gave −0.208. The project has been burned by this exact
+thing before — a result that looked decisive on one batch of random seeds and evaporated
+on the next — so no finding moves the record until it survives a second batch.
 
-~~The learning hen ends with 19,088 of her 36,373 innate synapses. She has destroyed 48%
-of the brain she was born with, and forages worse for it: feeding 4.7% of the time
-against the control's 6.2%.~~ *(E013, superseded by E020.)*
+**And then a third outside review took it apart.** The paragraphs above are what we
+believed for about a day. What follows is what survived.
 
-**E014 then found why the brain was being destroyed — and it was a units error.**
-Being caught by a predator is a one-off event, but the code treated it as a *rate* and
-divided it by the timestep. That turned a single strike into a reward signal 150 times
-larger than anything else the hen experiences, and every synapse got slammed at once.
-Hens in coops that happened to see no predators were fine; hens that were hunted lost
-three quarters of their brains.
+**The effect does not need the brain.** Set the connection from the pallium to the
+muscles to exactly zero — delete every route by which 512 simulated neurons can influence
+behaviour — and the benefit is still there. What is actually doing the work is two
+hand-written reflex weights and a threshold, and you could compute the result on paper.
 
-Fixing it restored the connectome. **It did not change the behaviour at all** — the
-hens still forage worse, by exactly the same margin. So the brain damage and the bad
-behaviour were two separate problems that merely happened together, and the second one
-is still open.
+**Most of it is not the hens understanding each other.** The innate response to a call
+has two halves: crouch, and stop pecking. Split them, and the half that carries the
+effect is *stop pecking* — she lifts her head, sees the hawk herself, and her own visual
+reflex fires at five times the strength of anything the call supplies. That is a real
+mechanism and it is how it works in nature. It is not comprehension. It is an alarm
+clock.
 
-**E015 then split the harm between the two things that learn**, and found something
-odd. Learning the wiring *inside* the brain costs a little. Learning the connection
-*out* to the muscles costs twice as much. But doing both at once costs far more than
-the two added together.
+**And the measurement flatters itself.** The headline number averages each world's
+survival rate equally, though some worlds contain three times more danger than others.
+Counting the actual events gives **15.0 percentage points, not 19.8**. Worse, the
+denominator we chose specifically because the treatment could not move it turns out to
+move by up to **63%** between conditions — a hen who crouches stops walking, so she is
+still standing there when the next hawk arrives.
 
-The likely reason is that they are chasing each other: the output connection is trying
-to learn what the brain's internal states *mean*, while those states are being rewritten
-underneath it. Neither ever settles. If that is right, teaching them one at a time
-should fix it — which is cheap to test and is the next thing to do.
+**So we rebuilt the measurement and ran it again.** The new denominator is every hen and
+every hawk, full stop — fixed by the schedule, untouchable by anything a bird does. On
+twelve fresh worlds:
 
-The same experiment killed the last piece of the original story. **Throwing away 22% of
-the connectome costs almost nothing.** The damage was never about losing brain tissue.
-It is that the pallium is broadcasting *confident nonsense* — and that traces straight
-back to the saturation finding, because a brain that cannot tell an alarm call from a
-hawk has nothing sensible to say.
+| | the effect of hearing your flock |
+|---|---|
+| old measurement, same data | **−0.142** — "significant" |
+| **new measurement, same data** | **−0.029** — not significant |
 
-That also reframes the earlier success. In the saturated brain, the learned pathway
-could only apply a *constant offset* to behaviour — so the same erosion was invisible,
-and what looked like learning was a tuned offset rather than an acquired policy.
+Two numbers, one dataset, opposite verdicts. The difference is entirely the denominator.
+**The effect went from twenty percentage points to about three**, and on twelve worlds
+that no longer stood apart from luck.
 
-**A great deal has since been withdrawn** — and every withdrawal stands in the record
-next to the claim it replaced, which is the point. E013's refutation, E015's
-decomposition of the harm, E016's staging result and E020's own finding that exploration
-had become costly have all been superseded or struck. Nothing is deleted; the route is
-the record.
+**So we checked whether the new measurement could see anything at all.** This sounds
+paranoid and it is the single most useful hour the project has spent. We built an
+exaggerated hen — same design, but her reaction to a call turned up two and four times —
+and asked whether the measurement noticed. It did, every time, including for the ordinary
+un-exaggerated bird. So the measurement was not broken. **We had simply not run enough
+worlds.**
 
-The honest summary is that the bird does not yet learn, the rule no longer damages her,
-and the next question is not which knob to turn. It is whether the *task* can show
-learning at all: the metric turns out to sit exactly on a knife edge (a hen starts at
-hunger 0.30, and 0.30 is precisely the equilibrium for the feeding rate she achieves),
-so it measures the sign of a coin flip. See E022.
+**Then we did the honest thing: wrote down the test before running it.** Twelve more
+fresh worlds, with the threshold and the analysis committed to git in advance, so there
+was no room to choose a flattering reading afterwards.
 
-An unplanned discovery along the way: the hens that **grow** new connections do
-*worse* than the ones that only prune. The best learner throws away 42% of the brain
-she was born with. That inverts the obvious expectation that more plasticity is
-better, and it now has its own open question.
+| worlds | the effect of hearing your flock |
+|---|---|
+| first twelve | −0.029 |
+| second twelve | −0.076 |
+| **third twelve** | **−0.028** |
+| **all thirty-six together** | **−0.044, and it clears** |
 
-Not yet built: memory of places, social hierarchy, and the language itself.
+**A hen who can hear her flock in the present tense is caught about four times in a
+hundred fewer than one hearing the same calls a minute late.** Same amount of noise, same
+cost of making it, nothing learned by anybody. The only difference is whether the sound
+is about *now*.
+
+That is roughly a fifth of what we first announced. It is also the first number in this
+project that was predicted before it was measured.
+
+**Two things we are not going to smooth over.** The second batch of worlds gave an effect
+nearly three times the other two — it was simply a more dangerous coop, where a warning is
+worth more. And the deleted-brain version *still* performs exactly as well. So the honest
+claim remains narrow: **a well-timed one-bit interrupt genuinely helps, in an agent that
+is currently pure reflex.**
+
+The lesson, now with a number attached: **the instrument decides the answer.** The same
+twelve worlds say "significant" or "not significant" depending only on what you divide by
+— and a null means nothing until you have shown the measurement can detect a success you
+planted yourself.
+
+Full detail in [`E027`](docs/experiments/E027-third-review-verified.md) (what the review
+found, including the two things it got wrong),
+[`E029`](docs/experiments/E029-positive-control.md) (the planted-effect check) and
+[`E030`](docs/experiments/E030-third-block-replication.md) (the pre-registered test).
 
 ---
 
 ## How we would know if we were fooling ourselves
 
-This is the part that decides whether the project is science or a demo.
+This is the part that decides whether the project is science or a demo, and it is where
+most of the twenty-six experiments actually went.
 
 The tempting experiment is: give one flock language, give another flock a smaller
 brain, see who wins. **That experiment is worthless.** If the small-brained flock
 loses, you cannot tell whether it lost for want of language or for want of neurons.
 
-So the real control is a flock with an **identical brain** and a **scrambled
-channel** — every hen hears a random flockmate instead of the right one. Same amount
-of chatter, same cost, zero information. If language-flock beats scrambled-flock,
-then *information* is doing the work and nothing else can explain it.
+So the control has to be a flock with an **identical brain** and a **channel carrying
+no information** — same amount of chatter, same energetic cost, nothing useful in it.
+If the talking flock beats that one, then *information* is doing the work and nothing
+else can explain it.
 
-And the decisive test is a lesion: take a flock that has already learned, **switch the
-channel off**, and see how much they lose. Birds that talk a lot are not evidence.
-Birds that fall apart when silenced are.
+**The first version of that control did not work, and finding out is the most useful
+thing in this repository.**
 
-Written down in advance, in [`docs/backlog.md`](docs/backlog.md), along with the
-results that would prove us wrong.
+The obvious design is to scramble *who you hear*: every hen gets a random flockmate's
+call instead of her own neighbour's. It sounds airtight. It is not, and the reason is
+almost funny — in a 20-metre run, **every hen can already hear every other hen.** So
+scrambling the sender changes almost nothing. What survives is "somebody is screaming
+right now", and that is nearly the whole message.
+
+We measured it rather than arguing about it. How well does the channel predict "a hawk
+is coming for *me*"?
+
+| channel | predicts the hawk |
+|---|---|
+| intact | **+0.56** |
+| scrambled sender | **+0.55** ← supposed to be zero |
+| **shifted in time** | **−0.13** |
+
+The scrambled control **kept 98% of the information it existed to destroy.** Eighteen
+experiments' worth of conclusions had been drawn against instruments in that condition.
+
+The control that works is **yoked**: play each hen the flock's *real* calls, with all
+their real timing and urgency, shifted by more than the length of a hawk dive. Every
+statistical property is preserved. The only thing removed is that the calls are no
+longer about *now*.
+
+**That control comes out flat — +0.035, indistinguishable from noise, in both batches of
+seeds.** So the benefit is not the noise, not the arousal, not the energy cost of
+calling. It is the information.
+
+And a second control, in the other direction: a flock with a perfectly good channel and
+**no ability to interpret it** gets no benefit either. The channel needs a sender *and*
+a receiver.
+
+**Every future control gets measured this way before the experiment runs, never after.**
+
+---
+
+## The lesson that cost twenty-six experiments
+
+Here is the arc, told straight, because it is the most interesting thing here and a
+version of this project that reported only its successes would be worth much less.
+
+Getting to that result took twenty-six experiments. **Every single thing that blocked it
+turned out to be a broken measuring instrument, not a fact about the brain.**
+
+| what we concluded | what was actually true |
+|---|---|
+| hens will never understand each other | a full-volume alarm from the next bird moved the listener's ear by **0.0000** — they were deaf |
+| learning destroys the brain | one predator strike was mis-scaled into a reward signal **150× too large** |
+| the pallium cannot tell two things apart | it had been built with **zero inhibitory neurons** — every neuron in it was excitatory |
+| learning does not improve foraging | hens start at exactly the hunger level the metric measures *around*, so it was scoring a coin flip |
+| a scrambled channel is as good as a real one | the scramble **kept 98%** of what it was meant to destroy |
+| hearing an alarm does not save a hen | the world gave her **no interval** in which a warning could possibly arrive — the hawk appeared already on top of her |
+| a channel helps *the neural model* | the effect **survives deleting the brain's route to the muscles** — it was two reflex weights all along |
+| the denominator cannot move, by construction | it moves by up to **63%** between conditions |
+
+Twenty-five experiments reasoning carefully about a bird whose instruments were broken.
+Each time, the project generated a plausible *mechanism* to explain the null instead of
+asking whether the null could have come out any other way.
+
+One of these deserves its own sentence. The hens were given an innate startle response
+to alarm calls — and it was arithmetically incapable of hiding anyone. Hearing a call
+pushed her crouch to `0.269`. Actually hiding required more than `0.5`. Both numbers
+were written by the same person, in the same repository, and never once multiplied
+together.
+
+**So the standing rule is now: before running an experiment, prove the instrument could
+detect a positive result.** Not "does the code run" — whether success is *physically
+reachable*. Does the thing you are manipulating actually move? Does your control destroy
+what it claims to? Is there a path from cause to effect, in the arithmetic? A null result
+means nothing at all until those are answered.
+
+---
+
+## Where the learning stands, which is less happy
+
+The hen is born knowing a handful of reflexes and nothing else — she pecks at small
+objects, crouches at things overhead, runs from things on the ground, calls when she is
+lonely, and huddles when she is cold. All of it is measured against real published chick
+behaviour. **7 out of 7 behavioural tests pass**, and that part has held up throughout.
+
+Then she learns. Except she doesn't.
+
+| | what happened |
+|---|---|
+| **E001** | Nothing. Twelve thousand synapses rewiring themselves, zero effect on behaviour. |
+| **E002** | Found out why: the path from the "thinking" brain to the muscles was frozen. Also found a ceiling — too much learned control makes behaviour **worse**. |
+| **E003–E004** | Fixed it, and an effect appeared. ~~Learning works.~~ Later reinterpreted, and it rests on a single batch of seeds that has never been replicated. |
+| **E005–E009** | Five attempts to get one hen to *understand* another's alarm call. All null. All of them run on a channel we later discovered was silent. |
+| **E010–E012** | Three wrong diagnoses before the right one: a cost added for a *different* experiment was being charged to hunger, tripling it and destroying the metric. |
+| **E013** | **The first clean test: learning makes hens significantly worse.** |
+| **E014–E016** | The brain damage was a units bug. Fixing it restored the connectome and **changed the behaviour not at all** — so the damage and the harm were two separate things that merely happened together. |
+| **E019** | Three defects found by an outside reviewer. The hens could not hear each other, the learned pathway could only slide a single number up and down, and **98% of the reward signal was the cost of calling**. |
+| **E020–E021** | Re-ran the clean test with those fixed. **The harm is gone.** So is the confidence: a result that looked decisive on one batch of seeds was worth nothing on the next. |
+| **E022–E023** | Second outside review. The pallium had **no inhibitory neurons at all**. Fixed, and everything measured before it became un-comparable. |
+| **E024–E026** | The control failed, the risk metric was confounded three ways, and the world had no warning interval. All three fixed → **H4 supported.** |
+
+**The honest state: a clean null.** A hen who learns forages indistinguishably from one
+who cannot — **+0.011 ± 0.012** across 24 seeds. Learning does not hurt her. It does not
+help her either. The earlier headline that it *harmed* her has been withdrawn, and the
+withdrawal sits in the record next to the claim it replaced.
+
+Nothing is deleted here. E013's refutation, E015's decomposition of the harm, E016's
+staging result and E020's finding that exploration had become costly have all been
+superseded or struck through. **The route is the record**, and given how much of it was
+wrong, the route is worth more than any single claim on it.
+
+An unplanned finding along the way that still stands: the hens that **grow** new
+connections do *worse* than the ones that only prune. That inverts the obvious
+expectation and has its own open question.
+
+**Not yet built:** memory of places, a dominance hierarchy, generational turnover, and
+the thing the whole project is named for — a channel on which a hen can invent a word
+that was never wired into her.
 
 ---
 
@@ -264,7 +386,8 @@ buy almost nothing. That one measurement set the size of the brain.
 At the default 512 neurons the flock runs ~30x faster than reality, so one chicken-day
 takes about 48 minutes and a month of rearing runs overnight. **Wall-clock time, not
 memory, is the binding constraint on the whole project** — a hen learns her
-surroundings over days and her rank over weeks.
+surroundings over days and her rank over weeks. A change that slows the simulation
+down is treated as a defect, not a trade-off.
 
 </details>
 
@@ -287,9 +410,10 @@ global reward signal. The reward is not a task score handed down from outside �
 strategy has to be discovered from that alone.
 
 Constraints enforced in the code and the tests: a neuron's outgoing connections all
-share its sign (learning cannot flip an inhibitory neuron to excitatory), new synapses
-can only appear where an axon could physically reach, and the reflex arc is never
-touched by learning.
+share its sign (learning cannot flip an inhibitory neuron to excitatory), excitatory and
+inhibitory cells are mixed *within* every region rather than segregated between them,
+new synapses can only appear where an axon could physically reach, and the reflex arc is
+never touched by learning.
 
 </details>
 
@@ -299,7 +423,7 @@ touched by learning.
 ```
 coop/    spec.py       the sensory/motor contract everything keys off
          world.py      state, dynamics, predators
-         sensing.py    world -> 59-dim observation (the eyes)
+         sensing.py    world -> 59-dim observation (the eyes), and the channel modes
          actuation.py  11 motor channels -> movement (the body)
 hen/     regions.py    region sizes, time constants, wiring priors
          connectome.py the innate brain, Dale's law, initialisation
@@ -311,10 +435,12 @@ run/     simulate.py   the closed loop
          probes.py     behavioural assays against published chick behaviour
          lifetime.py   developmental runs
          experiment.py matched-seed contrasts between conditions
+         h4.py         the channel ladder: deaf / yoked / intact / no-comprehension
+         audience.py   playback and comprehension assays
          diagnose.py   is the learned pathway reaching the muscles?
 bench/   envelope.py   measure the machine, size the brain
 docs/    hypothesis.md the tree of claims -- start here
-         backlog.md    the language experiment, designed but not built
+         backlog.md    what is proposed but not started, and why
          ethics.md     moral standing, tripwires, review log
          experiments/  one file per experiment, predictions written first
 ```
@@ -326,7 +452,8 @@ python -m bench.envelope --sweep                  # size the brain for your mach
 python -m run.probes                              # the newly-hatched behaviour tests
 python -m run.lifetime --minutes 60 --plastic     # rear a flock
 python -m run.experiment --minutes 20 --seeds 12  # matched-seed A/B
-python -m pytest tests/ -q
+python -m run.h4 --minutes 10 --seeds 12          # the channel ladder
+python -m pytest tests/ -q                        # 51 tests
 ```
 
 </details>
@@ -335,7 +462,7 @@ python -m pytest tests/ -q
 <summary><b>How the project keeps itself honest</b></summary>
 
 The failure mode for something like this is testing whatever is convenient and calling
-the pile a result. Three rules:
+the pile a result. Four rules:
 
 1. [`docs/hypothesis.md`](docs/hypothesis.md) is a tree of claims. **No experiment
    runs without naming the claim it feeds.**
@@ -343,10 +470,22 @@ the pile a result. Three rules:
    prediction and its falsifier **written before the run**. E004's prediction was
    committed to git while the run was still executing.
 3. Every result comes back and changes something. Nulls are recorded, not buried —
-   E001 is a null and it is the most useful file in the directory.
+   E001 is a null and it is one of the most useful files in the directory.
+4. **No claim moves the record on one batch of random seeds.** E021 measured the same
+   comparison on a fresh batch and watched a decisive-looking result become nothing at
+   all. A batch that happens to be homogeneous makes a small difference look certain.
 
-Ask `/status` at any point and get the same three answers: what we are trying to
-achieve, what has been built versus what has actually been *proven*, and what is next.
+Two tools sit alongside those rules. `/status` answers the same three questions at any
+point — what we are trying to achieve, what has been *built* versus what has been
+*proven*, and what is next — by reading the files rather than the conversation.
+`/red-team` buys an outside reader: it commissions a critique from someone with none of
+the project's accumulated context, then **independently re-measures every finding before
+acting on any of it.**
+
+That second one is not ceremony. The first time it ran, it found that every
+communication experiment for eighteen experiments had been measuring a channel that
+carried no information. It was also confidently wrong about two things, which is why the
+re-measurement step is the rule rather than a footnote.
 
 </details>
 
@@ -357,18 +496,38 @@ achieve, what has been built versus what has actually been *proven*, and what is
 **Phase 0** — a credible newly-hatched hen — is done and measured, and it holds up: she
 does seven documented chick behaviours nobody taught her.
 
-**Phase 1** — she learns — is *built* but not *proven*, and the distinction is the
-honest part. The machinery all works: eligibility traces, a neuromodulator, synapses
-that grow and prune. What it does not yet do is make her measurably better at anything.
-The current result is a clean null — a hen who learns forages indistinguishably from one
-who cannot (E020). An earlier version of this file said phase 1 was complete, on the
-strength of a finding that later turned out to be an artefact of three defects in the
-environment and the learning rule. That correction is in `docs/experiments/E019` and
-`E020`, and the record of it is worth more than the claim was.
+**Phase 1** — she learns — is *built* but not *proven*, and the distinction is the honest
+part. The machinery all works: eligibility traces, a neuromodulator, synapses that grow
+and prune. What it does not do is make her measurably better at anything. The current
+result is a clean null. An earlier version of this file called phase 1 complete, on the
+strength of a finding that turned out to be an artefact of three defects in the
+environment and the learning rule.
 
-**Phase 4** is the language experiment. It is designed in detail and not built.
+**The channel does real work — about a fifth of what we first announced, and not through
+the brain.** Rebuilt on a measurement no behaviour can distort, checked against a planted
+effect to prove the measurement could see anything at all, and then tested against a
+threshold written down in advance: **−0.044 across thirty-six worlds in three batches.**
+That is the first claim this project has made that was predicted before it was measured.
 
-Full detail in [`docs/hypothesis.md`](docs/hypothesis.md).
+But deleting the pallium's entire route to the muscles changes nothing, twice over. So
+what is supported is a statement about a *channel*; the sentence at the top of this file
+is about a *chicken*, and the thinking part of her brain is not yet involved in anything.
+
+**The reward signal was the blocker and it is fixed.** The plan was to switch learning on
+in the world where the channel works — where **87% of the teaching signal turned out to be
+"was I just caught"**, because being caught was counted every hundredth of a second rather
+than once per event. The test written to forbid exactly that ran at a setting where a hawk
+never arrives during the measurement window: the third time a guard has been checked in
+the one place its defect cannot appear. Both are repaired, and the new guard fails if no
+hawk turns up.
+
+**The two halves of the thesis have come apart, and neither is finished.** The bird does
+not yet learn. The channel helps a reflex agent. Joining them up — a flock that *learns*
+what a call means, and then invents one nature never gave it — is the rest of the
+project, and it is further away than it looked yesterday.
+
+Full detail in [`docs/hypothesis.md`](docs/hypothesis.md), which is the authority when
+this file and it disagree.
 
 ---
 
@@ -382,6 +541,7 @@ Deafened chicks develop normal calls: [Konishi 1963](https://onlinelibrary.wiley
 Aerial vs ground alarm calls and audience effects: [Evans & Marler](https://pubmed.ncbi.nlm.nih.gov/3396311/) ·
 [Animal Behaviour 1983](https://www.sciencedirect.com/science/article/abs/pii/S0003347283711589).
 The vigilance/foraging trade-off: [Royal Society Open Science](https://royalsocietypublishing.org/doi/10.1098/rsos.150135).
+Naive birds learning what to fear by watching others: [Curio 1978](https://onlinelibrary.wiley.com/doi/10.1111/j.1439-0310.1978.tb00254.x).
 How structured languages emerge: [iterated learning](https://arxiv.org/pdf/1910.05291) ·
 [symbol emergence](https://arxiv.org/pdf/2303.04544).
 Ethics of simulated minds: [Metzinger's moratorium argument](https://www.worldscientific.com/doi/abs/10.1142/S270507852150003X).

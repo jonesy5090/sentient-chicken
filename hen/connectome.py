@@ -46,7 +46,8 @@ def _region_of(reg: Regions) -> np.ndarray:
 def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           n_hens: int = spec.DEFAULT_COOP.n_hens,
           gain: float = 0.95, readout_scale: float = 0.05,
-          auditory_scaffold: bool = False) -> BrainParams:
+          auditory_scaffold: bool = False,
+          scaffold_gain: float = 1.0) -> BrainParams:
     """Sample a newly hatched flock.
 
     `readout_scale` is small on purpose: at hatch the cortical pathway is near-silent
@@ -153,9 +154,38 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         2.0, 1.0, (h_hi - h_lo, spec.INTERO_HI - spec.INTERO_LO))
 
     m_lo, m_hi = reg.bounds(regions.MOTOR)
-    w_out = jax.random.normal(
-        jax.random.fold_in(k_w, 1), (n_hens, spec.MOTOR_DIM, m_hi - m_lo)
-    ) * readout_scale
+    # Dale's law applies here too, and until E027 it did not. This drew from a zero-mean
+    # normal, so every motor-stub neuron sent excitation to some muscles and inhibition
+    # to others -- measured at 0 of 48 columns compliant, all 48 mixed, with 10 of the
+    # source neurons inhibitory. E022 found it, marked it "verified -- adopt", and it
+    # fell off the action list for four experiments.
+    #
+    # Same construction as the recurrent weights: draw a magnitude, then take the sign
+    # from the presynaptic neuron's identity.
+    #
+    # **The inhibitory weights are scaled up, and without it this fix breaks the bird.**
+    # The stub is 80% excitatory, so signing a rectified draw leaves every motor channel
+    # with a large positive DC bias where the old zero-mean draw was balanced. Measured
+    # on the first attempt: hens crouched permanently and were struck 0 times in 3000
+    # steps at a predator rate that had produced 1000, and hunger went from 43% to 92%
+    # of the reward variance. The recurrent path never showed this because synaptic
+    # scaling renormalises its row sums; the readout has no such correction.
+    #
+    # Balancing E against I in total magnitude is also the biologically right reading --
+    # inhibitory interneurons are outnumbered and individually stronger.
+    # Balanced exactly per (hen, motor channel) rather than by neuron count, which is
+    # only correct in expectation and left a residual net drive of 0.44 against a total
+    # magnitude of 2.66. Scaling the inhibitory group so its total matches the excitatory
+    # one makes the untrained readout contribute exactly zero DC to every muscle -- which
+    # is the stated design intent anyway ("starts nearly silent", and has to *earn*
+    # influence), now true by construction instead of by luck.
+    d_out = dale[m_lo:m_hi]
+    mag = jnp.abs(jax.random.normal(
+        jax.random.fold_in(k_w, 1), (n_hens, spec.MOTOR_DIM, m_hi - m_lo)))
+    exc = mag * (d_out > 0)[None, None, :]
+    inh = mag * (d_out < 0)[None, None, :]
+    scale = exc.sum(-1, keepdims=True) / (inh.sum(-1, keepdims=True) + 1e-9)
+    w_out = (exc - inh * scale) * readout_scale
 
     # Top-down projection onto the sensory representation the reflex arc reads.
     # Starts at exactly zero: a newly hatched hen predicts nothing and perceives only
@@ -182,7 +212,8 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         pred_src=pred_src,
         b=jnp.full((n,), -2.0),
         tau=tau,
-        reflex=jnp.asarray(innate.reflex_matrix(auditory_scaffold)),
+        reflex=jnp.asarray(
+            innate.reflex_matrix(auditory_scaffold, scaffold_gain)),
         b_motor=jnp.asarray(innate.reflex_bias()),
         dale=dale,
     )

@@ -77,8 +77,17 @@ LADDER = (
     # L -- the hypothesis.
     Condition("L  language", INNATE, cfg_patch=(("channel_mode", "intact"),),
               pallium_scale=EXPANDED, scaffold=True),
+    # Lx -- L with the pallium's route to the muscles cut. Added by E028 as a permanent
+    # rung. If this matches L, whatever the ladder is measuring does not run through the
+    # brain, and the result is about the reflex arc and the world. E027 found exactly
+    # that after the fact; a standing rung means the next such result announces itself.
+    Condition("Lx lesioned", INNATE, cfg_patch=(("channel_mode", "intact"),),
+              pallium_scale=EXPANDED, scaffold=True, lesion_readout=True),
 )
 
+# The registered headline, per `docs/backlog.md` section 1: L vs C?, not L vs anything
+# else. E026 reported everything against deaf and never computed this contrast, though
+# its own pairing made it a subtraction away.
 HEADLINE = ("L  language", "C? yoked")
 
 
@@ -89,10 +98,18 @@ class H4Result(NamedTuple):
     caught_rate: float     # struck / exposed -- CONFOUNDED, see below. Kept for E024.
     at_risk: float         # (hen, dive) pairs where she began inside the radius
     caught: float          # of those, how many she was struck in
-    caught_per_event: float   # caught / at_risk -- THE risk metric
+    caught_per_event: float   # caught / at_risk -- CONFOUNDED too, see E027
     head_down: float       # fraction of time foraging, i.e. blind to the sky
     hunger: float
     heard: float           # mean alarm-channel input, a manipulation check
+    # --- E028. Denominators are reported as raw counts, not folded into ratios, so
+    # that a denominator moving with the treatment is visible in the table instead of
+    # having to be inferred two experiments later.
+    dives: float           # (hen, dive) pairs, full stop. Treatment cannot touch this.
+    blind_risk: float      # of those, she began the dive in the radius AND blind
+    blind_caught: float    # of those, she was caught
+    caught_any: float      # (hen, dive) pairs in which she was caught at all
+    caught_itt: float      # caught / dives -- THE metric. Intent to treat.
 
 
 def run_condition(cond: Condition, seed: int, cfg: CoopConfig,
@@ -101,7 +118,10 @@ def run_condition(cond: Condition, seed: int, cfg: CoopConfig,
     key = jax.random.key(seed)
     w = world.reset(key, cfg)
     p = connectome.build(jax.random.fold_in(key, 1), cond.regions(),
-                         n_hens=cfg.n_hens, auditory_scaffold=cond.scaffold)
+                         n_hens=cfg.n_hens, auditory_scaffold=cond.scaffold,
+                         scaffold_gain=cond.scaffold_gain)
+    if cond.lesion_readout:
+        p = p._replace(W_out=jnp.zeros_like(p.W_out))
     x = brain.initial_state(p, cfg.n_hens)
     w_end, _x, _p, _ps, _k, s = simulate.simulate(
         w, x, p, jax.random.fold_in(key, 2), cfg, seconds, 60.0, cond.pc)
@@ -111,6 +131,10 @@ def run_condition(cond: Condition, seed: int, cfg: CoopConfig,
     exposed = float(jnp.sum(w_end.n_exposed))
     at_risk = float(jnp.sum(w_end.n_at_risk))
     caught = float(jnp.sum(w_end.n_caught))
+    dives = float(jnp.sum(w_end.n_dives))
+    caught_any = float(jnp.sum(w_end.n_caught_any))
+    blind_risk = float(jnp.sum(w_end.n_blind_risk))
+    blind_caught = float(jnp.sum(w_end.n_blind_caught))
     return H4Result(
         fed_rate=float(jnp.sum(w_end.n_fed) / steps) * 100,
         struck=struck / cfg.n_hens,
@@ -132,6 +156,12 @@ def run_condition(cond: Condition, seed: int, cfg: CoopConfig,
         caught=caught,
         # THE metric. Denominator is fixed at the instant the hawk commits, before any
         # response can alter it, so the treatment cannot move it.
+        # CONFOUNDED, and it took E027 to see it. The claim attached to this line in
+        # four separate files was "the denominator is fixed the instant the hawk
+        # commits, so the treatment cannot move it". The denominator *within* a dive is
+        # fixed; the number of dives that find a hen at risk is not, because crouching
+        # zeroes locomotion and a crouching hen is still there when the next hawk comes.
+        # Measured spread across conditions: up to 63%. Kept so E026 stays reproducible.
         caught_per_event=caught / max(at_risk, 1.0),
         head_down=float(jnp.mean(s.head_down)),
         hunger=float(jnp.mean(s.hunger)),
@@ -140,6 +170,14 @@ def run_condition(cond: Condition, seed: int, cfg: CoopConfig,
         # much as anyone, and nobody hears them. Measuring production to check a
         # manipulation of reception is the same mistake E019's guard test made.
         heard=float(jnp.mean(s.audio[:, aerial])),
+        dives=dives,
+        blind_risk=blind_risk,
+        blind_caught=blind_caught,
+        caught_any=caught_any,
+        # Intent to treat: every hen, every dive, whether or not she was near it or
+        # could see it. Smaller than the conditional rate and harder to move, which is
+        # the point -- it is the only denominator no behaviour can reach.
+        caught_itt=caught_any / max(dives, 1.0),
     )
 
 
@@ -223,8 +261,9 @@ def main() -> None:
     print("intake and risk are a trade-off, not a score: a flock that never forages")
     print("is safe and starving. Read the two columns together.\n")
 
-    hdr = (f"{'condition':<14}{'fed %':>8}{'caught/event':>14}{'at risk':>9}"
-           f"{'caught rate':>13}{'head down':>11}{'alarm heard':>13}")
+    hdr = (f"{'condition':<14}{'fed %':>8}{'caught/dive':>13}{'dives':>8}"
+           f"{'at risk':>9}{'blind risk':>12}{'caught/event':>14}"
+           f"{'head down':>11}{'alarm heard':>13}")
     print(hdr)
     print("-" * len(hdr))
 
@@ -250,8 +289,9 @@ def main() -> None:
         table[cond.name] = rs
         m = lambda f: float(jnp.mean(jnp.array([f(r) for r in rs])))
         print(f"{cond.name:<14}{m(lambda r: r.fed_rate):>8.2f}"
-              f"{m(lambda r: r.caught_per_event):>14.3f}{m(lambda r: r.at_risk):>9.1f}"
-              f"{m(lambda r: r.caught_rate):>13.3f}"
+              f"{m(lambda r: r.caught_itt):>13.3f}{m(lambda r: r.dives):>8.0f}"
+              f"{m(lambda r: r.at_risk):>9.1f}{m(lambda r: r.blind_risk):>12.1f}"
+              f"{m(lambda r: r.caught_per_event):>14.3f}"
               f"{m(lambda r: r.head_down):>11.3f}{m(lambda r: r.heard):>13.4f}")
 
     total = len(LADDER) * len(seeds)
@@ -268,17 +308,60 @@ def main() -> None:
     col = lambda name, g: [g(r) for r in table[name]]
     L, Cq = HEADLINE
 
+    # Denominators first, because a denominator that moves with the treatment is what
+    # invalidated the previous two metrics and it was visible in the printed table both
+    # times. `dives` is fixed by construction; anything else drifting is a warning.
+    print("\n--- denominator check: can the treatment move what it is divided by? ---")
+    base_d = float(jnp.mean(jnp.array(col(Cq, lambda r: r.dives))))
+    base_r = float(jnp.mean(jnp.array(col(Cq, lambda r: r.blind_risk))))
+    print(f"  {'condition':<14}{'dives':>8}{'vs C?':>9}{'blind risk':>12}{'vs C?':>9}")
+    for name in table:
+        d = float(jnp.mean(jnp.array(col(name, lambda r: r.dives))))
+        b = float(jnp.mean(jnp.array(col(name, lambda r: r.blind_risk))))
+        print(f"  {name:<14}{d:>8.0f}{100*(d-base_d)/max(base_d,1):>8.1f}%"
+              f"{b:>12.1f}{100*(b-base_r)/max(base_r,1):>8.1f}%")
+    print("  dives must be flat. blind risk drifting by tens of percent is E027's")
+    print("  finding, and it is why caught/dive is the headline and caught/event is not.")
+
     print(f"\n--- HEADLINE: {L} vs {Cq} ---")
-    print("identical brain, identical bandwidth, identical calling cost. The only")
-    print("difference is whether what she hears is about her own surroundings.\n")
-    for label, get, good in (("fed %", lambda r: r.fed_rate, "higher"),
-                             ("caught/event", lambda r: r.caught_per_event, "lower"),
+    print("The registered contrast (backlog section 1), not L vs deaf. Identical brain,")
+    print("identical bandwidth, identical calling cost. The only difference is whether")
+    print("what she hears is about her own surroundings.\n")
+    for label, get, good in (("caught/dive", lambda r: r.caught_itt, "lower"),
+                             ("fed %", lambda r: r.fed_rate, "higher"),
+                             ("caught/event*", lambda r: r.caught_per_event, "lower"),
                              ("caught rate*", lambda r: r.caught_rate, "lower"),
                              ("struck/hen", lambda r: r.struck, "lower"),
                              ("hunger", lambda r: r.hunger, "lower")):
         mean, se, verdict = _paired(col(L, get), col(Cq, get), n)
-        print(f"  {label:<12} {mean:+8.3f} +/- {se:.3f} SE   {verdict}"
+        print(f"  {label:<14}{mean:+8.3f} +/- {se:.3f} SE   {verdict}"
               f"   ({good} is better for L)")
+    print("  * confounded denominators, see the check above. Reported, not relied on.")
+
+    # Pooled counts alongside the paired mean. E026 quoted the per-seed mean-of-ratios
+    # (-0.198) in prose while the pooled rate over the same events was -0.150; both are
+    # legitimate estimators and the write-up should not silently pick the larger.
+    pool = lambda name, num, den: (sum(num(r) for r in table[name])
+                                   / max(sum(den(r) for r in table[name]), 1.0))
+    print("\n  pooled over events, for comparison with the paired means above:")
+    for label, num, den in (
+            ("caught/dive", lambda r: r.caught_any, lambda r: r.dives),
+            ("caught/event", lambda r: r.caught, lambda r: r.at_risk),
+            ("caught|blind", lambda r: r.blind_caught, lambda r: r.blind_risk)):
+        print(f"    {label:<14}{L} {pool(L, num, den):.3f}   "
+              f"{Cq} {pool(Cq, num, den):.3f}   "
+              f"diff {pool(L, num, den) - pool(Cq, num, den):+.3f}")
+
+    # T1's own registered metric. `docs/backlog.md` section 96 specifies "food intake at
+    # matched predation risk"; E026 reported a risk metric instead and never recorded
+    # that this one was null. Printed unconditionally so it cannot be quietly skipped.
+    print("\n--- T1's registered metric: food intake at matched risk ---")
+    mean, se, verdict = _paired(col(L, lambda r: r.fed_rate),
+                                col(Cq, lambda r: r.fed_rate), n)
+    print(f"  fed % {mean:+.3f} +/- {se:.3f} SE   {verdict}")
+    print("  backlog section 3 predicted L forages MORE than C? at equal risk.")
+    print("  In E026 this was 3.06 vs 3.07 and then 2.54 vs 2.41 -- null, and worse in")
+    print("  the replication. Reported here whatever it says.")
 
     print(f"\n--- The falsifiers H4 named in advance ---")
     for label, treat, base, meaning in (
@@ -289,11 +372,19 @@ def main() -> None:
             ("L vs C0 (severed)", L, "C0 severed",
              "if ~0, hearing nothing costs nothing -- no information was flowing"),
             ("L vs N (natural)", L, "N  natural",
-             "does the language flock beat a naturalistic bird, or a lobotomised one?")):
-        mean, se, verdict = _paired(col(treat, lambda r: r.fed_rate),
-                                    col(base, lambda r: r.fed_rate), n)
-        print(f"  {label:<22} fed % {mean:+7.3f} +/- {se:.3f} SE  {verdict}")
+             "does the language flock beat a naturalistic bird, or a lobotomised one?"),
+            ("L vs Lx (lesioned)", L, "Lx lesioned",
+             "if ~0, the pallium is not in the causal path and this is a result "
+             "about the reflex arc")):
+        mean, se, verdict = _paired(col(treat, lambda r: r.caught_itt),
+                                    col(base, lambda r: r.caught_itt), n)
+        print(f"  {label:<22} caught/dive {mean:+7.3f} +/- {se:.3f} SE  {verdict}")
         print(f"  {'':<22} {meaning}")
+
+    print("\n  NOTE on C-: with plasticity off in every condition, the capacity control")
+    print("  is vacuous by construction -- an untrained pallium is a random projection")
+    print("  that cannot use extra neurons. H0's 'at any capacity' clause is untested")
+    print("  until a learning rule works. Kept in the ladder so it is not re-dropped.")
 
     print(f"\nmanipulation check: 'alarm heard' must be ~0 for C- and C0, and "
           f"non-zero elsewhere.")

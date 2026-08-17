@@ -1,0 +1,45 @@
+E029 -- positive control on the intent-to-treat metric
+12 seeds (48-59), 10 min, 16 hens, hawk every 20 s, no plasticity
+gain 1.0 is the real hen (E028 measured -0.029 +/- 0.020, t=1.42 here).
+higher gains are an exaggerated bird, present only to test the metric.
+
+planted effect      caught/dive  vs control      SE      t   detected?
+----------------------------------------------------------------------
+C? yoked (control)        0.156          --      --     --          --
+E029 -- positive control on the intent-to-treat metric
+12 seeds (48-59), 10 min, 16 hens, hawk every 20 s, no plasticity
+gain 1.0 is the real hen (E028 measured -0.029 +/- 0.020, t=1.42 here).
+higher gains are an exaggerated bird, present only to test the metric.
+
+planted effect      caught/dive  vs control      SE      t   detected?
+----------------------------------------------------------------------
+C? yoked (control)        0.156          --      --     --          --
+E029 -- positive control on the intent-to-treat metric
+12 seeds (48-59), 10 min, 16 hens, hawk every 20 s, no plasticity
+gain 1.0 is the real hen (E028 measured -0.029 +/- 0.020, t=1.42 here).
+higher gains are an exaggerated bird, present only to test the metric.
+
+planted effect      caught/dive  vs control      SE      t   detected?
+----------------------------------------------------------------------
+C? yoked (control)        0.156          --      --     --          --
+L, gain 1                 0.079      -0.076   0.016   4.75         YES
+L, gain 2                 0.047      -0.109   0.017   6.53         YES
+E029 -- positive control on the intent-to-treat metric
+12 seeds (48-59), 10 min, 16 hens, hawk every 20 s, no plasticity
+gain 1.0 is the real hen (E028 measured -0.029 +/- 0.020, t=1.42 here).
+higher gains are an exaggerated bird, present only to test the metric.
+
+planted effect      caught/dive  vs control      SE      t   detected?
+----------------------------------------------------------------------
+C? yoked (control)        0.156          --      --     --          --
+L, gain 1                 0.079      -0.076   0.016   4.75         YES
+L, gain 2                 0.047      -0.109   0.017   6.53         YES
+L, gain 4                 0.054      -0.101   0.019   5.43         YES
+
+(significance threshold t=2.201 at 11 df)
+
+The real hen's effect (gain 1.0) IS detected here.
+=> disagrees with E028 on the same contrast; treat as a seed-block
+   difference and reconcile before claiming anything.
+
+wall clock: 298 s

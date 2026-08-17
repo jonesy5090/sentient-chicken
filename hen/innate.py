@@ -45,7 +45,8 @@ TONIC_FORWARD = 1.4     # a hatchling that never moves learns nothing
 SCAFFOLD_WEIGHT = 1.5
 
 
-def reflex_matrix(auditory_scaffold: bool = False) -> np.ndarray:
+def reflex_matrix(auditory_scaffold: bool = False,
+                  scaffold_gain: float = 1.0) -> np.ndarray:
     """The innate arc as a fixed (MOTOR_DIM, OBS_DIM) matrix.
 
     `auditory_scaffold` adds an innate response to *hearing* an alarm call. It is off
@@ -53,6 +54,13 @@ def reflex_matrix(auditory_scaffold: bool = False) -> np.ndarray:
     it on silently would change the comparison basis for every experiment before it.
     See `_add_auditory_scaffold` for what it wires and, more importantly, what it does
     not.
+
+    `scaffold_gain` scales that response and exists for **positive controls**. E028's
+    ladder returned a contrast that did not clear (-0.029, t=1.42), and a null is only
+    informative if the instrument could have shown a positive -- so the way to read that
+    number is to plant an effect of known size and check the metric finds it. Gain 1.0
+    is the real hen; anything above it is a deliberately exaggerated bird used to test
+    the harness, never to make a claim about biology.
     """
     r = np.zeros((spec.MOTOR_DIM, spec.OBS_DIM), dtype=np.float32)
 
@@ -115,12 +123,12 @@ def reflex_matrix(auditory_scaffold: bool = False) -> np.ndarray:
         w(spec.M_CALL_FOOD, spec.vis_index(b, spec.CLS_FOOD), 4.0)
 
     if auditory_scaffold:
-        _add_auditory_scaffold(w)
+        _add_auditory_scaffold(w, scaffold_gain)
 
     return r
 
 
-def _add_auditory_scaffold(w) -> None:
+def _add_auditory_scaffold(w, gain: float = 1.0) -> None:
     """An innate response to *hearing* an alarm call. E018.
 
     Until E018 the arc had no auditory entry at all -- every weight from the four call
@@ -140,8 +148,8 @@ def _add_auditory_scaffold(w) -> None:
     aerial_call = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_AERIAL)
     ground_call = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_GROUND)
 
-    w(spec.M_CROUCH, aerial_call, SCAFFOLD_WEIGHT)
-    w(spec.M_FLEE, ground_call, SCAFFOLD_WEIGHT)
+    w(spec.M_CROUCH, aerial_call, SCAFFOLD_WEIGHT * gain)
+    w(spec.M_FLEE, ground_call, SCAFFOLD_WEIGHT * gain)
 
     # Raising the head. This is not decoration and it is not symmetry with the visual
     # arc -- it is required, for a reason specific to how posture is computed here.
@@ -161,8 +169,8 @@ def _add_auditory_scaffold(w) -> None:
     # scaffold-without-learning condition exists to measure exactly how much of any
     # benefit it accounts for.
     for call in (aerial_call, ground_call):
-        w(spec.M_PECK, call, -SCAFFOLD_WEIGHT)
-        w(spec.M_SCRATCH, call, -SCAFFOLD_WEIGHT)
+        w(spec.M_PECK, call, -SCAFFOLD_WEIGHT * gain)
+        w(spec.M_SCRATCH, call, -SCAFFOLD_WEIGHT * gain)
 
     # Deliberately NOT wired, each for its own reason:
     #
