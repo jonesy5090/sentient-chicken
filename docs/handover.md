@@ -32,59 +32,58 @@ window. **Do not sweep `tau_slow`** — it would fix a problem that does not exi
 
 ---
 
-## 2. Mid-flight: E032, the causal efficacy test
+## 2. E032 is COMPLETE — causal efficacy, and it misses by 0.07 in t
 
-**Pre-registered in [`docs/experiments/E032-causal-efficacy.md`](experiments/E032-causal-efficacy.md),
-committed before the run. Read it before touching anything.**
-
-This is the experiment that decides H2e, and it is `docs/backlog.md` §5's causal-efficacy
-check, unrun for 31 experiments. Rear a flock, then fork: both test branches continue from
-the **identical** end-of-rearing state, so lesioning `W_out` is the only difference.
-
-**Primary quantity, fixed in advance:**
+Full write-up in [`E032`](experiments/E032-causal-efficacy.md). `docs/backlog.md` §5's
+causal-efficacy check, unrun for 31 experiments, now run.
 
 ```
-(trained: intact − lesioned)  −  (fixed: intact − lesioned)
+MANIPULATION CHECK: |dW_out|/|W_out| during rearing = 0.0963   PASSES (gate 0.05)
+                    fixed flocks drift 0.000000                 as required
+
+rearing         intact  lesioned      drop
+trained         13.782    13.555    +0.227
+fixed           13.591    13.905    -0.314
+
+PRIMARY interaction  +0.5412 +/- 0.2537   t=2.13   threshold 2.201   NOT SIGNIFICANT
+secondary (both intact): fed % +0.1913 +/- 0.4473  t=0.43
 ```
 
-The fixed pair prices the lesion itself; anything above it is what learning bought.
-Threshold **t = 2.201** at 11 df.
+**The direction is the interesting part and it is not claimable.** Lesioning an
+*untrained* readout **helps** (−0.314) — E002's ceiling finding from the other side, a
+random projection overriding good reflexes. Lesioning a *trained* one **hurts** (+0.227).
+Training may convert a mildly harmful readout into a mildly useful one; the evidence
+misses threshold, on one seed block, which could not move a status anyway.
 
-- **H2e predicts ~0.** Lesioning a trained readout costs no more than a random one.
-- **A significantly negative interaction falsifies H2e** and hands H2's null back to being
-  a fact about the learning rule. That is the outcome worth hoping for.
+**H2e is neither confirmed nor falsified.** H2's own question is still null (t=0.43).
 
-### To resume
+**A sign error in the pre-registered falsifier is recorded in E032 §6 rather than edited
+away** — §5 said "significantly negative" while describing an outcome that is arithmetically
+positive. The verbal claim is the substantive one; it happens not to matter because
+nothing reached threshold either way. Do not use it to pick a sign after the fact.
+
+### The next run, and it is the obvious one
+
+**A second 12-seed block, with pooling declared in advance** (the E029/E030 template —
+that is what turned H4 from a contested −0.198 into a defensible −0.044).
 
 ```bash
-python -m scratchpad.e032 --seeds 12 --rear 20 --test 5 --budget 100000
+python -m scratchpad.e032 --seeds 12 --seed-offset 12 --rear 20 --test 5 --budget 100000
 ```
 
-Per-cell results are cached in `scratchpad/e032_cache.json`; completed cells are skipped,
-so it resumes safely after any kill. **Roughly 6 minutes per cell** — plastic rearing
-consolidates the full `(H,N,N)` weight tensor every 50 steps, so it is far slower than the
-fixed-weight benchmark suggests.
+⚠ **`scratchpad/e032.py` has no `--seed-offset` argument yet** — it hardcodes
+`range(args.seeds)`. Add one before running block two, or the cache keys will collide with
+block one and it will silently report the same twelve seeds back to you.
 
-### State at handover
+Cost: ~80 minutes of uninterrupted compute, ~6 min per trained cell, because consolidation
+writes the full `(H,N,N)` tensor every 50 steps. Cached per cell in
+`scratchpad/e032_cache.json`; completed cells are skipped.
 
-**11 of 24 cells**, all `trained`. **None of the 12 `fixed` control cells has run**, and
-without them there is no test — "lesioning a trained readout costs nothing" is
-uninterpretable unless you also know what lesioning an untrained one costs.
-
-Interim, 10 trained cells — **not a result**, and must not be reported as one:
-
-```
-manipulation check |dW_out|/|W_out| = 0.092   (gate >0.05: PASSES)
-intact   fed %  13.911
-lesioned fed %  13.798
-drop            +0.113 +/- 0.116   t=0.97
-per-seed        [+0.15 -0.23 -0.17 +0.46 -0.32 -0.12 +0.19 +0.90 +0.25 +0.02]
-```
-
-The manipulation check passing matters: this is **not** E001's frozen readout. Training
-genuinely moves `W_out` by ~9%.
-
----
+**If the pooled interaction lands near zero**, H2 is a fact about the architecture and
+E007's unresolved additive-versus-multiplicative gating question is the next real work.
+**If it holds near +0.5**, the readout does earn influence through learning, and H2's null
+returns to being about the *rule* — most likely its magnitude rather than its timing,
+since E031 already ruled out the credit window.
 
 ## 3. The environment trap that shaped this session — and should not affect you
 

@@ -362,6 +362,29 @@ E027 and E030 found lesioning `W_out` leaves *predation* outcomes unchanged
 (+0.010, t=0.46), and E019 measured a learned `ΔW_out` moving cortical drive by 0.7% of
 its own magnitude.
 
+**[E032](experiments/E032-causal-efficacy.md) tested it directly and missed by 0.07 in t.**
+Rear, then fork both test branches from the identical end-of-rearing state so the lesion
+is the only difference:
+
+| rearing | intact | lesioned | drop on lesion |
+|---|---|---|---|
+| trained | 13.782 | 13.555 | **+0.227** |
+| fixed | 13.591 | 13.905 | **−0.314** |
+| **interaction** | | | **+0.541 ± 0.254, t=2.13** (threshold 2.201) |
+
+Manipulation check clean: rearing moves `W_out` by 9.6%, fixed flocks by exactly 0.
+
+**The direction is the interesting part and it is not claimable.** Lesioning an *untrained*
+readout **helps** (−0.314) — E002's ceiling finding from the other side, a random
+projection overriding good reflexes. Lesioning a *trained* one **hurts** (+0.227). So
+training may convert a mildly harmful readout into a mildly useful one, and the evidence
+misses threshold on one seed block, which could not move a status anyway (the E021 rule).
+
+**H2's own question stays null**: trained vs fixed, both intact, +0.191 ± 0.447, t=0.43.
+
+**Next:** a second 12-seed block with pooling declared in advance (the E029/E030 template).
+~80 minutes of uninterrupted compute.
+
 **Prediction:** lesioning `W_out` in a flock that has been *trained* costs nothing
 measurable, on either metric.
 
@@ -853,6 +876,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | Food depletion added; it does **not** disperse the flock, and dispersal was never the problem. No file. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E032 | **Causal efficacy, the backlog's unrun test, run at last.** Lesioning a *trained* readout hurts (+0.227) where lesioning an *untrained* one helps (−0.314) — interaction **+0.541 ± 0.254, t=2.13 against 2.201**. Misses. Manipulation check clean (`W_out` moves 9.6%). H2e neither confirmed nor falsified; a second block is owed. A sign error in the pre-registered falsifier is recorded in E032 §6 rather than edited away. |
 | E031 | **The credit window is refuted, not deferred.** A hen feeds every **0.3 s** and two thirds of the peck-reward correlation sits at lag 0 — inside the rule's window. But `W_out` at 0x and 10x are both indistinguishable on `fed %` (t=0.68, t=0.54) where a halved peck reflex scores t=4.32, so **H2's null is uninformative**: the pathway may be inert. H2e opened. |
 | E030 | **H4 → `SUPPORTED` as written, on a pre-registered pooled test.** Third block (60–71) at −0.028; pooled over 36 seeds across three blocks, **−0.044 ± 0.012, t=3.60** against a threshold of 2.030 declared in advance. No falsifier fires. **But `L vs Lx` is +0.010, t=0.46 for the second time** — the effect survives deleting the pallium's route to the muscles, so H0 is *not* satisfied: this is a result about the reflex arc. |
 | E029 | **First positive control in the project's history, and the instrument passes** — every planted effect detected, including the unmodified hen, so E028's null was not a measurement failure. But the same contrast on fresh seeds gives **−0.076, t=4.75** against block A's −0.029, t=1.42; pooled over 24 seeds **−0.052 ± 0.014, t=3.87**. Not promoted: pooling was decided post-hoc, block A alone does not clear, and the `W_out` lesion is still noise. |

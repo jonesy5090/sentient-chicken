@@ -71,14 +71,76 @@ Threshold: two-tailed t at 11 df = **2.201**, 12 matched seeds.
 **Secondary, reported but not decisive:** whether the trained-intact flock feeds better
 than fixed-intact at all — which is H2's original question, on a fresh block.
 
-## 6. Result
+## 6. An error in §5, recorded rather than edited
 
-_Pending._
+**The falsifier's sign label contradicts its own description, and it was committed that
+way.** §5 reads: *"the interaction is significantly **negative**, i.e. trained flocks lose
+measurably more when their readout is cut."* Those clauses disagree. Losing more when cut
+means a **larger drop**, and the interaction as defined in §3 —
+`(trained drop) − (fixed drop)` — is then **positive**.
 
-## 7. Interpretation
+The substantive claim is the verbal one; the sign word is the error. Left in place and
+corrected here, following [E018](E018-innate-auditory-reflex.md), which recorded a
+mis-derived prediction rather than quietly editing it. **The direction being tested is
+unchanged, so this does not licence choosing a sign after the fact** — and it happens not
+to matter, because the result does not reach threshold either way.
 
-_Pending._
+## 7. Result
 
-## 8. Consequence
+12 matched seeds, 20 min rearing + 5 min test, 16 hens.
 
-_Pending._
+```
+MANIPULATION CHECK: mean |dW_out| / |W_out| during rearing = 0.0963   PASSES (gate 0.05)
+                    fixed flocks drift 0.000000                        as required
+
+rearing         intact  lesioned      drop
+trained         13.782    13.555    +0.227
+fixed           13.591    13.905    -0.314
+
+PRIMARY interaction  +0.5412 +/- 0.2537   t=2.13   threshold 2.201  NOT SIGNIFICANT
+secondary, both intact: fed % +0.1913 +/- 0.4473   t=0.43
+```
+
+**The manipulation check is clean.** Training moves the readout by 9.6%, and fixed flocks
+drift by exactly zero — so this is not E001's frozen `W_out`, and the two arms differ in
+the one thing they are supposed to.
+
+## 8. Interpretation
+
+**Not significant, and the direction is the interesting part.**
+
+- Lesioning an **untrained** readout **helps**: −0.314. A random projection into the motor
+  drive is mildly harmful, which is E002's ceiling finding — an untrained pallium
+  overriding good reflexes — seen from the other side.
+- Lesioning a **trained** readout **hurts**: +0.227. After rearing, the hen is slightly
+  better off keeping it.
+- The difference, +0.541 ± 0.254, is **t=2.13 against a 2.201 threshold**. It misses.
+
+So the honest statement is: **there is a hint that training converts a mildly harmful
+readout into a mildly useful one, and it is not strong enough to claim.** On one seed
+block it could not move a status anyway — the E021 rule.
+
+**H2e is neither confirmed nor falsified.** Its prediction was an interaction of ~0; the
+measurement is closer to +0.5 but cannot exclude 0 at this n. What E031 established
+stands: an *untrained* pathway is inert-to-harmful. What E032 was built to settle — whether
+a *trained* one is different — remains open by a margin of 0.07 in t.
+
+**H2's own question is still null.** Trained against fixed, both intact: +0.191 ± 0.447,
+t=0.43. Whatever the trained readout is doing, it does not show up as better foraging.
+
+## 9. Consequence
+
+- **H2e stays `UNDER TEST`.** Do not report this as support for either side.
+- **A second block is the obvious next move and it is cheap in a machine that can run
+  uninterrupted.** 12 fresh seeds at the same design; if the interaction holds near +0.5
+  the pooled estimate clears comfortably, and if it collapses the way E021's did, H2e
+  gains real support. **Declare the pooling in advance this time** — E029/E030 is the
+  template.
+- **The `--rear 20` cost is the binding constraint**: ~6 min per trained cell, because
+  consolidation writes the full `(H,N,N)` tensor every 50 steps. A second block is ~80
+  minutes of uninterrupted compute.
+- **If a second block lands near zero**, H2 is a fact about the architecture and E007's
+  unresolved additive-versus-multiplicative gating question is the next real piece of
+  work. If it lands near +0.5, the readout does earn influence through learning, and H2's
+  null returns to being about the *rule* — most likely its magnitude rather than its
+  timing, since E031 already ruled out the credit window.
