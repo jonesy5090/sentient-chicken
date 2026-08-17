@@ -18,7 +18,7 @@ built-versus-proven conflation this file warns about. **H4 was `SUPPORTED` for o
 and is back to `UNDER TEST`** (E026 → E027): an intact channel does beat a time-shifted
 one, but the effect **survives lesioning `W_out` entirely**, so it is a result about two
 hand-set reflex weights and not about the neural model. `docs/hypothesis.md` is
-authoritative; `/status` will read it for you.
+authoritative; `/project-status` will read it for you.
 
 **Before anything else runs: the reward is 87% `n_struck` at the H4 configuration**
 (hawk every 20 s), and the guard forbidding exactly that runs at `hawk_period_s=900`
@@ -145,11 +145,12 @@ scalar. Name things for what they are.
 The failure mode for a project like this is drifting into testing whatever is
 convenient and calling the accumulation a result.
 
-**The `status` skill** (`.claude/skills/status/`) answers the three standing
-questions — what we are trying to achieve, what has been built versus what has been
-*proven*, and what is next — from these files rather than from memory. Use it when
+**The `project-status` skill** (`.claude/skills/project-status/`) answers the three
+standing questions — what we are trying to achieve, what has been built versus what has
+been *proven*, and what is next — from these files rather than from memory. Use it when
 asked where the project is, and before starting significant new work, to check the
-work ladders up to the tree.
+work ladders up to the tree. (Named `project-status`, not `status` — `/status` is a
+reserved built-in command, and a skill sharing its name cannot be invoked.)
 
 **The `red-team` skill** (`.claude/skills/red-team/`) buys an outside reader. It
 commissions an adversarial review from an agent with none of the conversation's

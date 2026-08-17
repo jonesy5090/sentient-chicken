@@ -475,8 +475,8 @@ the pile a result. Four rules:
    comparison on a fresh batch and watched a decisive-looking result become nothing at
    all. A batch that happens to be homogeneous makes a small difference look certain.
 
-Two tools sit alongside those rules. `/status` answers the same three questions at any
-point — what we are trying to achieve, what has been *built* versus what has been
+Two tools sit alongside those rules. `/project-status` answers the same three questions
+at any point — what we are trying to achieve, what has been *built* versus what has been
 *proven*, and what is next — by reading the files rather than the conversation.
 `/red-team` buys an outside reader: it commissions a critique from someone with none of
 the project's accumulated context, then **independently re-measures every finding before
