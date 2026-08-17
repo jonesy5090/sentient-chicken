@@ -1,0 +1,5 @@
+E029 -- positive control on the intent-to-treat metric
+12 seeds (48-59), 10 min, 16 hens, hawk every 20 s, no plasticity
+gain 1.0 is the real hen (E028 measured -0.029 +/- 0.020, t=1.42 here).
+higher gains are an exaggerated bird, present only to test the metric.
+
