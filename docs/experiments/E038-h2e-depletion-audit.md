@@ -105,14 +105,63 @@ python -m scratchpad.e032 --seeds 24 --rear 20 --test 5 --food-deplete-rate 0.0 
   --cache scratchpad/e038_audit_cache.json --budget 100000
 ```
 
-*Pending — filled in after this run, not before.*
+```
+MANIPULATION CHECK: mean |dW_out| / |W_out| = 0.0981   PASSES (fixed drift 0.000000)
+
+rearing         intact  lesioned      drop
+trained         30.680    30.485     0.195
+fixed           31.616    30.531     1.085
+
+PRIMARY interaction  -0.8902 +/- 0.5564   t=1.60   threshold 2.069   NOT SIGNIFICANT
+  (E033's depleted-world result: +0.390 +/- 0.153, t=2.55, SIGNIFICANT)
+
+secondary, both intact: fed % -0.9356 +/- 1.3016  t=0.72
+```
 
 ## 7. Interpretation
 
-*Pending the full run above.*
+**On equal footing — 24 seeds each — the clean world gives a null and the depleted
+world gave a significant positive result.** The sign is negative in both the 8-seed
+interim check (−0.954) and the full 24-seed run (−0.890), reasonably consistent between
+them, and opposite to E033's +0.390. Neither clean measurement clears its threshold.
+
+**E033's `REFUTED` verdict does not replicate under a properly controlled, equally
+powered test, and the most likely explanation is the confound this file set out to
+check.** This is not proof the confound *caused* E033's result — a true effect could
+still exist and simply not have cleared threshold here (t=1.60 is not "zero," it is
+"not significant," and the CI still contains meaningfully negative values) — but the
+burden has shifted. A result that appears at t=2.55 in one world and vanishes (even
+trending in the *opposite* direction) at t=1.60 in a properly controlled version of the
+identical seeds and design is not a result that stands on the depleted-world number
+alone.
+
+**H2e reverts to `UNDER TEST`, not to `SUPPORTED`.** The clean null does not confirm
+H2e's original claim (the pathway is inert) either — t=1.60 is a null, not a
+significant result in H2e's predicted direction. What is settled is narrower: **E033's
+specific `REFUTED` finding does not hold up**, and H2e is back to being an open question,
+now on a connectome and a world both correctly controlled for the first time.
 
 ## 8. Consequence
 
-*Pending the full run above.* **Interim consequence, in force until it lands:** H2e's
-status in `docs/hypothesis.md` is marked provisional / under re-examination, not left
-standing as settled `REFUTED`.
+- **H2e moves from `REFUTED` to `UNDER TEST`** in `docs/hypothesis.md`. E032 and E033
+  are corrected in place (struck through, not deleted) with pointers here, per this
+  project's standing convention.
+- **H2's own "the null is informative again" framing, which depended on H2e being
+  refuted, reverts too.** H2's null (E037, +0.0003 ± 0.0156) stands on its own — that
+  measurement already controlled for `food_deplete_rate` — but whether it is
+  *informative* (whether the pathway can carry a trained signal to behaviour at all)
+  is open again, exactly where E031 left it.
+- **E007's multiplicative-gating question, which H2f's write-up noted was "on hold"
+  pending this result, stays open** rather than resolving either way.
+- **A properly powered clean measurement of H2e now exists and should be the number
+  cited going forward**: interaction −0.890 ± 0.556, t=1.60, 24 seeds,
+  `food_deplete_rate=0`. Not `REFUTED`, not `SUPPORTED` — a null, on the first version of
+  this experiment run without an uncontrolled confound.
+- **The broader audit `docs/backlog.md` flagged (E032/E033/E036 all exposed to
+  `food_deplete_rate`) is partially closed by this file** — E032/E033 checked and found
+  materially affected. E036 remains reasoned-about-but-unchecked: its primary metric
+  comes from a short, deterministic staged assay run after rearing rather than the
+  depleting world directly, and its own data already shows stability across a 15×
+  duration range (2-min smoke test comprehension 0.1899 vs. the 30-min full run's
+  0.1921) — evidence it is less exposed, not a direct test of the same kind this file
+  ran for E032/E033.

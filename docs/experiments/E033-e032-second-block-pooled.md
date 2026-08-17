@@ -146,25 +146,38 @@ comparison against a different flock's baseline).
 
 ## 8. Consequence
 
-- **H2e moves to `REFUTED`.** The claim was that the cortical pathway is behaviourally
+> **Correction ([E038](E038-h2e-depletion-audit.md)):** this entire section assumed the
+> world E032/E033 ran in matched every other H2-lineage experiment. It did not —
+> `spec.DEFAULT_COOP`'s `food_deplete_rate`, added by E025 for an unrelated question, was
+> never controlled for here, and E037 later found it substantially confounds exactly this
+> duration and flock size. A clean, equally-powered (24-seed) re-measurement with it
+> removed found the interaction at **−0.890 ± 0.556, t=1.60, NOT significant** — opposite
+> sign from this file's +0.390, and not replicating it. **Everything below is retained for
+> the record and should not be cited as current.** H2e's status is `UNDER TEST`, not
+> `REFUTED` — see E038.
+
+- ~~**H2e moves to `REFUTED`.** The claim was that the cortical pathway is behaviourally
   inert regardless of training — that no change in `W_out` can register on H2's metric
   family. A pre-registered, pooled, two-block test (24 seeds) found a trained pathway
   *does* register: t=2.55 against a threshold of 2.069, sign consistent across both
-  blocks. The pathway is not inert once structured by learning.
-- **H2's null regains standing, with a caveat.** E031 had withdrawn H2's null to
+  blocks. The pathway is not inert once structured by learning.~~
+- ~~**H2's null regains standing, with a caveat.** E031 had withdrawn H2's null to
   "uninformative" because an untrained pathway couldn't be shown to reach behaviour at
   all — so a null on `fed %` might just mean the measurement route was closed. E033 shows
   the route is not closed for a trained readout: it can be moved (E023's rearing drift),
   and moving it has a measurable behavioural cost when removed (this experiment). So H2's
   clean null (E020/E021, +0.011 ± 0.012, t=0.95) is a fact about **what the rule learns**,
-  not about whether the architecture can express what it learns.
-- **Next real work is the rule itself, not the architecture.** E031 already ruled out the
+  not about whether the architecture can express what it learns.~~ (H2's null itself was
+  separately re-confirmed on a clean world by E037, for unrelated reasons — that part
+  holds. Whether it is *informative* about the architecture, which is what this paragraph
+  claimed, does not.)
+- ~~**Next real work is the rule itself, not the architecture.** E031 already ruled out the
   credit window (lag 0 correlation, 0.3 s feeding interval inside the rule's 0.2 s window).
   What remains open is the rule's *magnitude* or what it is actually optimizing — the
   readout changes in a way that costs something to remove, but not in a way that improves
   feeding, which is consistent with it learning something real but not the thing H2's
   metric rewards. E007's multiplicative-gating question is not ruled back in by this
   result — it was motivated by H2e being *true*, and H2e is now refuted — so it drops in
-  priority rather than becoming the next step.
+  priority rather than becoming the next step.~~
 - `scratchpad/e032.py`'s `--seed-offset` argument stays; a third block (or a differently
   designed follow-up on what the trained readout actually encodes) would need it again.

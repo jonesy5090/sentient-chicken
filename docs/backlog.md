@@ -348,16 +348,25 @@ new home.
   results relying on `spec.DEFAULT_COOP`'s default since commit `f659745` are quietly
   running in a hungrier world than intended.
 
-  **Includes this session's own merged work.** E032/E033 (H2e) and E036 (H2f) both used
-  20-minute rearing at `n_hens=16` with no `food_deplete_rate` override — the same
-  duration and flock size E037 found depletion collapses foraging in. Their *contrasts*
-  are plausibly more robust than E037's own absolute levels, since depletion is shared
-  across every branch compared within a matched seed (trained vs fixed, scaffold vs not)
-  — but this has not been checked, only argued, and the absolute `fed %` numbers those
-  experiments report (e.g. E032/E033's ~11–14, a different scale from `run/experiment.py`'s
-  percentage because it's computed over the 5-minute test window only) have not been
-  re-examined against this finding at all. Worth a dedicated check before leaning further
-  on either result, not a re-litigation performed here.
+  ~~**Includes this session's own merged work.** E032/E033 (H2e) and E036 (H2f) both used
+  20-minute rearing at `n_hens=16` with no `food_deplete_rate` override... this has not
+  been checked, only argued... Worth a dedicated check before leaning further on either
+  result, not a re-litigation performed here.~~
+
+  **E032/E033 checked (E038): the contrast was NOT robust, contrary to the argument
+  above.** A clean, equally-powered 24-seed re-measurement reversed the interaction's
+  sign (+0.390, t=2.55 → −0.890, t=1.60, not significant). H2e reverted from `REFUTED` to
+  `UNDER TEST`; E032 and E033 corrected in place. The "shared across compared branches"
+  reasoning turned out to be wrong, or at least insufficient, for the *outer*
+  trained-vs-fixed comparison, which is not protected by the intact/lesioned forking that
+  shields the *inner* one — see E038 §2 for why.
+
+  **E036 (H2f) reasoned about, still not directly checked**, though on firmer ground:
+  its primary metric comes from a short, deterministic staged assay run after rearing,
+  not from the depleting world directly, and its own data shows stability across a 15×
+  duration range (2-min smoke test comprehension 0.1899 vs. the 30-min full run's 0.1921).
+  That is evidence of low exposure, not a direct audit of the kind E038 ran. Still owed if
+  H2f's falsifier result is ever leaned on for something consequential.
 
 ## 8. Open items from experiments
 

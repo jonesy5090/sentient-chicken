@@ -130,7 +130,9 @@ t=0.43. Whatever the trained readout is doing, it does not show up as better for
 
 ## 9. Consequence
 
-- **H2e stays `UNDER TEST`.** Do not report this as support for either side.
+- **H2e stays `UNDER TEST`.** Do not report this as support for either side. (It still
+  does, after E033's second block and [E038](E038-h2e-depletion-audit.md)'s correction of
+  it — this file's caution held up better than what followed it.)
 - **A second block is the obvious next move and it is cheap in a machine that can run
   uninterrupted.** 12 fresh seeds at the same design; if the interaction holds near +0.5
   the pooled estimate clears comfortably, and if it collapses the way E021's did, H2e
