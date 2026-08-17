@@ -114,17 +114,24 @@ sits at lag 0, inside the rule's 0.2 s window. Do not sweep `tau_slow`.
 ~~**Status: UNDER TEST — a clean null** —
 [E020](experiments/E020-h2-after-the-e019-fixes.md), re-run after the E019 fixes.~~
 
-A hen who learns is **statistically indistinguishable** from one who cannot:
-**+0.011 ± 0.012, t=0.95**, pooled across **24 matched seeds** in two independent blocks
+A hen who learns is **statistically indistinguishable** from one who cannot.
+~~**+0.011 ± 0.012, t=0.95**, pooled across **24 matched seeds** in two independent blocks
 ([E020](experiments/E020-h2-after-the-e019-fixes.md) seeds 0–11 at +0.001,
-[E021](experiments/E021-the-cost-of-exploration.md) seeds 12–23 at +0.021). The rule
-neither helps nor harms.
+[E021](experiments/E021-the-cost-of-exploration.md) seeds 12–23 at +0.021).~~ **Re-measured
+on the corrected connectome by [E037](experiments/E037-h2-rebaseline.md):
++0.0003 ± 0.0156, t=0.02, 24 seeds (gain=0.95, E/I-fixed, and — a second confound E037
+found and controlled for — `food_deplete_rate=0`, matching E020/E021's actual world; a
+mechanic added by E025 for an unrelated hypothesis silently degrades this exact contrast
+at the duration and flock size this harness uses).** An even cleaner null than the
+original, and worth citing over E020/E021's stale number now. The rule neither helps nor
+harms.
 
-**Quoted as the pooled estimate deliberately.** E020 reported its own block as
+**Quoted as the pooled estimate deliberately, still.** E020 reported its own block as
 +0.001 ± 0.010 and read that as "the harm is gone". E021 showed a single 12-seed block is
-not enough to support that precision: the pooled interval is compatible with a residual
-harm up to about +0.035, and E013's +0.062 is roughly 2 SE away rather than firmly
-excluded. The null holds; the confidence E020 attached to it did not.
+not enough to support that precision — and E037 repeated the lesson inside itself: its
+two 12-seed blocks individually read **t=2.96 and t=2.19, significant, in opposite
+directions**, and only pooling reveals the null. The null holds; the confidence any
+single block would attach to it does not.
 
 **Read this as a withdrawal, not a success.** `REFUTED at this timescale` was a positive
 claim that learning makes hens worse, and that claim is gone. Nothing has replaced it.
@@ -411,8 +418,9 @@ outcome) and are not in tension.
 **What this changes for H2.** E031 had withdrawn H2's null to "uninformative" because an
 untrained pathway couldn't be shown to reach behaviour at all. E033 shows the route is
 not closed for a *trained* readout, so H2's clean null
-([E020](experiments/E020-h2-after-the-e019-fixes.md)/
-[E021](experiments/E021-the-cost-of-exploration.md), +0.011 ± 0.012, t=0.95) regains
+([E020](experiments/E020-h2-after-the-e019-fixes.md)/[E021](experiments/E021-the-cost-of-exploration.md),
+re-measured on the corrected connectome by
+[E037](experiments/E037-h2-rebaseline.md) at +0.0003 ± 0.0156, t=0.02) regains
 standing as a fact about **what the rule learns**, not about whether learning can reach
 behaviour at all. The credit window remains ruled out
 ([E031](experiments/E031-the-credit-window-is-not-the-blocker.md) §3). What is open is
@@ -1018,6 +1026,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E037 | **H2's null re-confirmed on the corrected connectome — and a second, undocumented confound found and controlled for.** First pass (today's defaults) gave `fed %` 2.6 against E020's 6.6, hunger change 40× larger — traced to `food_deplete_rate` (added by E025 for H4's dispersal question, never checked against H2's 20-minute/16-hen harness; one feeder ends at 0.97% remaining). Gain/readout ruled out directly (lesioning `W_out` at both gains changes nothing). Re-run with `food_deplete_rate=0`, matching E020's world: **+0.0003 ± 0.0156, t=0.02**, 24 seeds — an even cleaner null. The two 12-seed blocks alone were **individually significant in opposite directions** (t=2.96, t=2.19) — only pooling reveals the null, the E021 lesson recurring inside the experiment meant to move past it. |
 | E036 | **E018's aborted 2×2 re-run: the falsifier fires, H2f opened.** An innate crouch-on-hearing scaffold (wired, not learned) supplies the precondition H2b said H3 was missing. Learning still does not add a contingent audience effect on top of it: **S+L − S = −0.005 ± 0.002, t=2.25**, wrong-signed, short of threshold 2.37 at 8 seeds. Manipulation check clean (0.19, matching E018's addendum). Innate floor (`S` vs `N`, zero learning) replicates a third time at +0.066. **New node H2f**: the rule may be the wrong *kind* — instrumental where the biology is closer to Pavlovian. Secondary "strikes/hen" flagged uninterpretable: it reads the pre-E027 `n_struck` exposure-step count, not the event-anchored metric H4's lineage moved to. |
 | E035 | **E017/E034's Field-L segregation numbers (2.06×, 1.45×) do not replicate — corrected in both files rather than quietly edited.** Moved modality segregation into `connectome.build(modality_segregated=...)`, properly fan-in-renormalised, instead of the ad hoc probe's post-hoc zeroing. On a **paired** 12-genome sample: structural vs. intact **t=0.04** against threshold 2.201 — no effect. The prior numbers were unpaired ratio-of-means on a quantity with ~6× genome-to-genome spread (0.039–0.221 in this sample) — the same statistical trap E021 caught for seed blocks, uncaught here for genomes across two experiments. Localisation (loss at sensory→pallium, recurrence not the cause) is unaffected — a within-genome comparison, never exposed to the confound. |
 | E034 | **H2d re-measured on the corrected (E023) connectome, and reprioritised upward.** Localisation replicates: loss still ~14.5× at sensory→pallium (E017: 17×), recurrence removed still 0.87× (not the cause). ~~Field-L segregation now 1.45×, not E017's 2.06×~~ — **neither number survives E035, run immediately after.** **Occurrence check reverses H2d's demotion**: a 5-min live rollout at H4's config found a hen blind to the hawk while a flockmate audibly alarm-calls on **11.9% of all hen-steps** — the contrast this node depends on is routine, not hypothetical, contra the E019-era reasoning that demoted it. |

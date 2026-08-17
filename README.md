@@ -317,9 +317,12 @@ Then she learns. Except she doesn't.
 | **E024–E026** | The control failed, the risk metric was confounded three ways, and the world had no warning interval. All three fixed → **H4 supported.** |
 
 **The honest state: a clean null.** A hen who learns forages indistinguishably from one
-who cannot — **+0.011 ± 0.012** across 24 seeds. Learning does not hurt her. It does not
-help her either. The earlier headline that it *harmed* her has been withdrawn, and the
-withdrawal sits in the record next to the claim it replaced.
+who cannot — **+0.0003 ± 0.0156** across 24 seeds, re-measured on the connectome E022–E023
+fixed (`docs/experiments/E037-h2-rebaseline.md`; this is a later number than the rest of
+this table — the tree, not this file, is authoritative for anything more current).
+Learning does not hurt her. It does not help her either. The earlier headline that it
+*harmed* her has been withdrawn, and the withdrawal sits in the record next to the claim
+it replaced.
 
 Nothing is deleted here. E013's refutation, E015's decomposition of the harm, E016's
 staging result and E020's finding that exploration had become costly have all been

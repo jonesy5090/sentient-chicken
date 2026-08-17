@@ -23,9 +23,12 @@ ap.add_argument("--hens", type=int, default=spec.DEFAULT_COOP.n_hens)
 ap.add_argument("--chunk", type=float, default=60.0)
 ap.add_argument("--cache", default="scratchpad/e037_cache.json")
 ap.add_argument("--budget", type=float, default=100000.0)
+ap.add_argument("--food-deplete-rate", type=float, default=spec.DEFAULT_COOP.food_deplete_rate,
+                help="E020/E021 ran before E025 introduced this (commit f659745); "
+                     "pass 0.0 to match their world exactly")
 a = ap.parse_args()
 
-cfg = spec.DEFAULT_COOP._replace(n_hens=a.hens)
+cfg = spec.DEFAULT_COOP._replace(n_hens=a.hens, food_deplete_rate=a.food_deplete_rate)
 seconds = a.minutes * 60.0
 cache = json.load(open(a.cache)) if os.path.exists(a.cache) else {}
 t0 = time.perf_counter()
@@ -33,7 +36,7 @@ t0 = time.perf_counter()
 rows = {c.name: {} for c in PHASE1}
 for cond in PHASE1:
     for s in range(a.seeds):
-        ck = f"{cond.name}|{s}|{a.minutes}"
+        ck = f"{cond.name}|{s}|{a.minutes}|deplete={a.food_deplete_rate}"
         if ck not in cache:
             if time.perf_counter() - t0 > a.budget:
                 print(f"budget reached; stopping early")
