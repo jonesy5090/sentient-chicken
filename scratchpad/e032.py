@@ -26,9 +26,12 @@ ap.add_argument("--rear", type=float, default=20.0, help="rearing minutes")
 ap.add_argument("--test", type=float, default=5.0, help="test minutes")
 ap.add_argument("--cache", default="scratchpad/e032_cache.json")
 ap.add_argument("--budget", type=float, default=500.0)
+ap.add_argument("--food-deplete-rate", type=float, default=spec.DEFAULT_COOP.food_deplete_rate,
+                help="E037 found this silently confounds 20-min/16-hen runs; pass 0.0 "
+                     "to audit whether E032/E033's interaction survives without it")
 a = ap.parse_args()
 
-cfg = spec.DEFAULT_COOP._replace(n_hens=16)
+cfg = spec.DEFAULT_COOP._replace(n_hens=16, food_deplete_rate=a.food_deplete_rate)
 LEARN = PlasticConfig(enabled=True, explore_sigma=0.6)
 FIXED = PlasticConfig(enabled=False, explore_sigma=0.0)
 cache = json.load(open(a.cache)) if os.path.exists(a.cache) else {}
@@ -66,7 +69,7 @@ for plastic in (True, False):
     name = "trained" if plastic else "fixed"
     acc = []
     for s in range(a.seed_offset, a.seed_offset + a.seeds):
-        ck = f"{name}|{s}|{a.rear}|{a.test}"
+        ck = f"{name}|{s}|{a.rear}|{a.test}|deplete={a.food_deplete_rate}"
         if ck not in cache:
             if time.perf_counter() - t0 > a.budget:
                 print(f"budget reached; {len(cache)}/{2*a.seeds} cells cached")
