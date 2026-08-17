@@ -611,6 +611,26 @@ headline was substantially an artefact of that.
 **−0.198 became −0.029.** The direction still favours the intact channel in every
 contrast, so a small real effect is likely; it is not what `SUPPORTED` claimed.
 
+**[E029](experiments/E029-positive-control.md) ran the project's first positive control
+and the instrument passed.** Planted effects of every size are detected, including the
+unmodified hen — so E028's null was **not** a measurement failure, which was the live
+possibility. But the same contrast on a fresh block measures **−0.076 ± 0.016, t=4.75**,
+against block A's −0.029 ± 0.020, t=1.42. Spread is comparable (sd ratio 0.80×), so the
+*means* differ, by 2.7×; the control's own risk differs too (0.115 vs 0.156), i.e. block
+B is a more dangerous world.
+
+| block | L vs C?, caught/dive |
+|---|---|
+| A (36–47) | −0.029 ± 0.020, t=1.42 |
+| B (48–59) | −0.076 ± 0.016, t=4.75 |
+| **pooled, 24 seeds** | **−0.052 ± 0.014, t=3.87** |
+
+**Not promoted, for three reasons:** the decision to pool was made *after* seeing the
+blocks disagree and was not the registered analysis; block A alone does not clear; and
+the `Lx` lesion rung is still noise, so this remains a result about two hand-set reflex
+weights rather than the neural model. A third block with pooling declared in advance is
+the honest way to settle it.
+
 ~~**Status: SUPPORTED** at this capacity and this task —
 [E026](experiments/E026-h4-supported.md). **The first status past H1a to be supported,
 and the headline.**~~
@@ -739,6 +759,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | Food depletion added; it does **not** disperse the flock, and dispersal was never the problem. No file. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E029 | **First positive control in the project's history, and the instrument passes** — every planted effect detected, including the unmodified hen, so E028's null was not a measurement failure. But the same contrast on fresh seeds gives **−0.076, t=4.75** against block A's −0.029, t=1.42; pooled over 24 seeds **−0.052 ± 0.014, t=3.87**. Not promoted: pooling was decided post-hoc, block A alone does not clear, and the `W_out` lesion is still noise. |
 | E028b | **The ladder re-run on the repaired instrument (seeds 36–47) does not clear.** L vs C? is **−0.029 ± 0.020, t=1.42** on the unmovable denominator, against **−0.142, SIGNIFICANT** on E026's confounded one — same 12 seeds, opposite verdicts. **L vs Lx = +0.006, noise**: the pallium is not in the causal path, replicated on fresh seeds. T1's registered fed % null for a third time. |
 | E028 | **Instrument repair, and a re-baselining.** Strikes become events: the strike share of reward variance goes **87.3% → 0.2%**. Dale's law reaches `W_out` (0/48 → 48/48) — and the naive fix broke the flock, which the measurement caught in one run. Metric moves to intent-to-treat `caught/dive`, whose denominator is flat to **0.0%** where E026's swung **−57.7% to +50.0%**. `Lx lesioned` becomes a permanent rung. Registered contrasts (L vs C?, T1's fed %) reported at last. |
 | E027 | **Third review, verified. H4 downgraded: the effect survives lesioning `W_out`**, so it is not a result about the neural model. The metric's denominator moves **up to 63%**; the headline is 15.0 pp pooled, not 19.8. **The reward is 87% `n_struck` at the H4 configuration** and the guard that forbids this runs where no hawk arrives. Dale's law violated on `W_out` (0/48). |
