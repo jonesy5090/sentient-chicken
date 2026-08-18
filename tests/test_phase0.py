@@ -235,6 +235,87 @@ def test_wall_escape_reflex_turns_a_cornered_hen_away(flock):
     assert float(w1.pos[0, 0]) > 0.3   # started at 0.1 m
 
 
+# --- T2 contamination/sickness scaffold (E060) ------------------------------
+
+def test_contamination_only_changes_on_epoch_transition():
+    """A real bug caught while building this: an earlier version recomputed
+    `food_contaminated` unconditionally every step, silently overriding any staged
+    value back to whatever epoch 0 resolves to. It must persist within an epoch
+    (the hawk_on/hawk_t pattern -- state, not a recomputation) so it can be staged.
+    """
+    cfg = CFG._replace(n_hens=1, n_food=1, contamination_period_s=300.0)
+    w = world.reset(jax.random.key(0), cfg)
+    w = w._replace(food_contaminated=jnp.array([False]))   # stage: clean, epoch 0
+    motor = jnp.zeros((1, spec.MOTOR_DIM))
+    for t in range(50):
+        w = world.step(w, motor, jax.random.fold_in(jax.random.key(1), t), cfg)
+    assert bool(w.food_contaminated[0]) is False, (
+        "staged contamination was overwritten within the same epoch")
+
+
+def test_sick_channel_only_fires_for_sick_flockmates(flock):
+    """CLS_SICK must be exactly zero for a healthy flockmate and nonzero for a
+    sick one, mirroring CLS_CROWDING's own gating test.
+    """
+    w, _, _ = flock
+    far_corner = jnp.full((CFG.n_hens - 2, 2), CFG.size - 0.5)
+    pos = w.pos.at[0].set(jnp.array([5.0, 5.0])).at[1].set(jnp.array([6.0, 5.0])) \
+                .at[2:].set(far_corner)
+    heading = jnp.zeros((CFG.n_hens,))
+
+    def max_sick(sick):
+        sick_on = jnp.zeros((CFG.n_hens,), dtype=bool).at[1].set(sick)
+        obs = sensing.observe(w._replace(pos=pos, heading=heading, sick_on=sick_on),
+                              CFG)
+        return max(float(obs[0, spec.vis_index(b, spec.CLS_SICK)])
+                  for b in range(spec.N_BINS))
+
+    assert max_sick(False) == pytest.approx(0.0, abs=1e-6)
+    assert max_sick(True) > 0.5
+
+
+def test_avoid_sick_reflex_dominates_attraction():
+    """The repulsion weight from CLS_SICK must exceed CLS_FLOCKMATE's attraction
+    weight, or a sick flockmate only damps the pull toward her instead of reversing
+    it -- the same algebraic requirement CLS_CROWDING has, for the same reason (a
+    linear reflex arc cannot produce attract-then-repel from one channel alone).
+    """
+    r = innate.reflex_matrix()
+    for b in innate._LEFT:
+        attract = r[spec.M_TURN_L, spec.vis_index(b, spec.CLS_FLOCKMATE)]
+        repel = r[spec.M_TURN_R, spec.vis_index(b, spec.CLS_SICK)]
+        assert repel > attract
+    for b in innate._RIGHT:
+        attract = r[spec.M_TURN_R, spec.vis_index(b, spec.CLS_FLOCKMATE)]
+        repel = r[spec.M_TURN_L, spec.vis_index(b, spec.CLS_SICK)]
+        assert repel > attract
+
+
+def test_sickness_onset_sets_timer_and_decays_but_outlasts_the_call():
+    """Eating contaminated food must set a bounded sickness timer and spike the
+    gakel-call drive together, on the same step -- and the sickness timer must
+    clearly outlast the call's own short decay (E060's design: a discovery pulse for
+    the call, a much longer physiological state for the sickness itself).
+    """
+    cfg = CFG._replace(n_hens=1, n_food=1)
+    w = world.reset(jax.random.key(0), cfg)
+    w = w._replace(pos=jnp.array([[10.0, 10.0]]), heading=jnp.array([0.0]),
+                   food_pos=jnp.array([[10.05, 10.0]]),
+                   food_contaminated=jnp.array([True]))
+    motor = jnp.zeros((1, spec.MOTOR_DIM)).at[0, spec.M_PECK].set(1.0)
+
+    w1 = world.step(w, motor, jax.random.key(1), cfg)
+    assert float(w1.sick_t[0]) == pytest.approx(cfg.sickness_duration_s, abs=1e-6)
+    assert bool(w1.sick_on[0])
+    assert float(w1.sick_call_drive[0]) == pytest.approx(1.0, abs=1e-6)
+
+    wn = w1
+    for t in range(int(cfg.gakel_call_decay_s / cfg.dt) + 50):
+        wn = world.step(wn, motor, jax.random.fold_in(jax.random.key(1), t), cfg)
+    assert float(wn.sick_call_drive[0]) < 0.05   # the call has decayed
+    assert bool(wn.sick_on[0])                   # she is still sick
+
+
 # --- Null control ---------------------------------------------------------
 
 def test_blind_hen_does_nothing_purposeful(flock):

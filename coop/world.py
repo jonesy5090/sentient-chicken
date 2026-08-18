@@ -27,6 +27,12 @@ class World(NamedTuple):
     vigour: jax.Array       # (H,) in [0, 1]; vocal energy, 1 = rested
     food_call_drive: jax.Array  # (H,) in [0,1]; spikes on newly arriving at food, decays
     at_food_prev: jax.Array     # (H,); was she at a food patch last step? edge detector
+    # T2 sickness state (E060). sick_t/sick_on follow the hawk_t/hawk_on pattern
+    # exactly: a bounded event duration, not a level.
+    sick_t: jax.Array           # (H,) seconds remaining sick
+    sick_on: jax.Array          # (H,) bool, sick_t > 0
+    sick_call_drive: jax.Array  # (H,) in [0,1]; spikes on newly falling sick, decays
+    at_bad_food_prev: jax.Array  # (H,); was she eating a contaminated patch last step?
     head_down: jax.Array    # (H,) in [0, 1], from the previous motor vector
     speed: jax.Array        # (H,) metres/sec last step
     calls: jax.Array        # (H, N_CALLS) amplitudes emitted last step
@@ -41,6 +47,10 @@ class World(NamedTuple):
     food_pos: jax.Array     # (F, 2)
     food_amount: jax.Array  # (F,) in [0, 1]
     water_pos: jax.Array    # (W, 2)
+    # T2 (E060): exactly one feeder contaminated at a time, invisible in food_amount
+    # or any other sensed channel -- the only way to find out is to eat it.
+    food_contaminated: jax.Array  # (F,) bool
+    contamination_epoch: jax.Array  # scalar int, last epoch food_contaminated was set at
 
     # Predators
     hawk_pos: jax.Array     # (2,)
@@ -140,6 +150,10 @@ def reset(key: jax.Array, cfg: CoopConfig = spec.DEFAULT_COOP) -> World:
         vigour=jnp.ones((h,)),
         food_call_drive=jnp.zeros((h,)),
         at_food_prev=jnp.zeros((h,)),
+        sick_t=jnp.zeros((h,)),
+        sick_on=jnp.zeros((h,), dtype=bool),
+        sick_call_drive=jnp.zeros((h,)),
+        at_bad_food_prev=jnp.zeros((h,)),
         head_down=jnp.zeros((h,)),
         speed=jnp.zeros((h,)),
         calls=jnp.zeros((h, spec.N_CALLS)),
@@ -147,6 +161,13 @@ def reset(key: jax.Array, cfg: CoopConfig = spec.DEFAULT_COOP) -> World:
         food_pos=jax.random.uniform(k_food, (cfg.n_food, 2),
                                     minval=0.1 * s, maxval=0.9 * s),
         food_amount=jnp.ones((cfg.n_food,)),
+        # Epoch 0 of the same rotation `step` computes, so a hen born mid-contamination
+        # is possible and consistent, not a special-cased always-safe start.
+        food_contaminated=jax.nn.one_hot(
+            jax.random.randint(jax.random.fold_in(jax.random.key(0xBADF00D), 0),
+                               (), 0, cfg.n_food),
+            cfg.n_food) > 0.5,
+        contamination_epoch=jnp.array(0, dtype=jnp.int32),
         water_pos=jax.random.uniform(k_water, (cfg.n_water, 2),
                                      minval=0.1 * s, maxval=0.9 * s),
         hawk_pos=jnp.array([0.5 * s, 0.5 * s]),
@@ -252,6 +273,26 @@ def step(w: World, motor: jax.Array, key: jax.Array,
     kin = actuation.apply_motor(w, motor, cfg)
     hawk_pos, hawk_on, hawk_t, fox_pos, fox_on, fox_t = _step_predators(w, key, cfg)
 
+    # --- Contamination (T2, E060). Exactly one feeder is bad at a time, rotating on
+    # `contamination_period_s`. A fixed constant key combined with the epoch number
+    # (the same idiom `_channel`'s "shuffled" mode uses) makes the pick unpredictable
+    # per rotation but deterministic and reproducible given the epoch -- decoupled
+    # from the world's own `key` stream, which nothing else here depends on.
+    #
+    # Only recomputed on a genuine epoch transition (the hawk_on/hawk_t pattern: state
+    # persists until an event changes it, not recomputed from scratch every step).
+    # Unconditional recomputation is what a first version of this did, and it is a
+    # real bug, not just an unnecessary recompute: it silently overrides any staged
+    # `food_contaminated` (probes setting up a specific scenario) back to whatever a
+    # step-0 epoch resolves to, because nothing ever reads the incoming value.
+    epoch = jnp.floor(w.t * cfg.dt / cfg.contamination_period_s).astype(jnp.int32)
+    rotate = epoch != w.contamination_epoch
+    bad_idx = jax.random.randint(
+        jax.random.fold_in(jax.random.key(0xBADF00D), epoch), (), 0, cfg.n_food)
+    food_contaminated = jnp.where(
+        rotate, jax.nn.one_hot(bad_idx, cfg.n_food) > 0.5, w.food_contaminated)
+    contamination_epoch = jnp.where(rotate, epoch, w.contamination_epoch)
+
     # --- Feeding ---
     d_food = jnp.linalg.norm(w.pos[:, None, :] - w.food_pos[None, :, :], axis=-1)
     at_food = (d_food < cfg.peck_radius) & (w.food_amount[None, :] > 0.01)
@@ -271,6 +312,22 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         food_arrival,
         1.0,
         jnp.clip(w.food_call_drive - cfg.dt / cfg.food_call_decay_s, 0.0, 1.0))
+
+    # --- Sickness (T2, E060). Contamination is invisible in `food_amount` or any
+    # sensed channel -- the only way to discover it is to eat it. Rising edge on
+    # newly eating from the contaminated patch (not gated on already being sick, so a
+    # hen who keeps pecking a bad patch doesn't re-trigger every step she continues,
+    # only on the first bite of a bout -- the same discovery-pulse idiom as
+    # `food_arrival` above, applied to eating rather than arriving).
+    eating_bad = jnp.any(at_food & food_contaminated[None, :], axis=-1) & pecking
+    sickness_onset = eating_bad & (w.at_bad_food_prev < 0.5)
+    sick_t = jnp.where(sickness_onset, cfg.sickness_duration_s,
+                       jnp.maximum(w.sick_t - cfg.dt, 0.0))
+    sick_on = sick_t > 0.0
+    sick_call_drive = jnp.where(
+        sickness_onset,
+        1.0,
+        jnp.clip(w.sick_call_drive - cfg.dt / cfg.gakel_call_decay_s, 0.0, 1.0))
 
     # Patches deplete under pressure and recover when abandoned. This is the only
     # force in the coop that pushes hens *apart*; without it a patch is infinite, the
@@ -372,7 +429,13 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         vigour=vigour,
         food_call_drive=food_call_drive,
         at_food_prev=at_food_any.astype(jnp.float32),
+        sick_t=sick_t,
+        sick_on=sick_on,
+        sick_call_drive=sick_call_drive,
+        at_bad_food_prev=eating_bad.astype(jnp.float32),
         food_amount=food_amount,
+        food_contaminated=food_contaminated,
+        contamination_epoch=contamination_epoch,
         hawk_pos=hawk_pos, hawk_on=hawk_on, hawk_t=hawk_t,
         fox_pos=fox_pos, fox_on=fox_on, fox_t=fox_t,
         t=w.t + 1,

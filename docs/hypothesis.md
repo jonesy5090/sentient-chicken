@@ -23,7 +23,7 @@ Status values: `SUPPORTED` · `UNDER TEST` · `NOT STARTED` · `REFUTED` · `ABA
 > different and weaker claim. Statuses are retained rather than reset, and each should
 > be read as "established on the pre-E023 brain" until re-run. The queue is in E023 §6.
 
-> ## ⚠ OBS_DIM moved 59 → 71 → 73 → 74 at E048/E051/E053 — narrower than E023, still worth flagging
+> ## ⚠ OBS_DIM moved 59 → 71 → 73 → 74 → 88 at E048/E051/E053/E060 — narrower than E023, still worth flagging
 >
 > [E048](experiments/E048-personal-space-fix.md) added `CLS_CROWDING`, a fifth vision
 > class giving the reflex arc a personal-space signal (E025's diagnosed fix for flock
@@ -31,7 +31,11 @@ Status values: `SUPPORTED` · `UNDER TEST` · `NOT STARTED` · `REFUTED` · `ABA
 > `IDX_WALL_ESCAPE_L/R`, wiring a wall-avoidance reflex that hadn't existed at all: 71 →
 > 73. [E053](experiments/E053-food-call-discovery-pulse.md) added `IDX_FOOD_ARRIVAL`,
 > replacing the food-call reflex's continuous sight-gating with a discovery pulse: 73 →
-> 74. Unlike E023, none of these touch neuron identity or any existing channel's values —
+> 74. [E060](experiments/E060-t2-contamination-scaffold.md) (T2 Stage 1) added
+> `CLS_SICK` and `IDX_SICKNESS_ONSET` together: 74 → 88 — the biggest single jump so
+> far, and `MOTOR_DIM` also moved for the first time (11 → 12, the gakel call), which
+> none of the earlier additions touched. Unlike E023, none of these touch neuron
+> identity or any existing channel's values —
 > the observation layout is symbolic and offset-based (`coop/spec.py`), so every prior
 > channel keeps its old index and meaning, just at a new absolute position. What they do
 > change: the connectome's sensory fan-in size, and therefore anything sensitive to
@@ -1250,9 +1254,12 @@ consequence, which remains separately open.
 
 ## T2 — the rotating poisoned feeder: does the flock learn *which* feeder to avoid
 
-**Status: NOT STARTED** — fully specified following a design review
+**Status: NOT STARTED — Stage 1 complete**
 ([docs/backlog.md](../docs/backlog.md)'s T2 section has the complete mechanical design;
-[E060](experiments/E060-t2-contamination-scaffold.md) is Stage 1's pre-registration).
+[E060](experiments/E060-t2-contamination-scaffold.md) built and validated the scaffold,
+12/12 ethogram assays including four new falsifier checks, 70/70 full suite). Status
+stays `NOT STARTED` because Stage 1 tests the instrument, not the hypothesis — nothing
+about T2's actual claim (does the flock learn to avoid the feeder) has been tested yet.
 
 **Claim:** a flock with a working communication channel converges toward roughly one
 hen's mistake per contamination rotation (the discoverer eats the bad feeder, gets
@@ -1296,11 +1303,38 @@ H4's own control design) on flock-wide sickness per rotation, the anchor was not
 surprising given, E058/E059), or the scaffold needs a stronger or differently-shaped
 anchor. Not a falsifier of H2f, which already stands on its own, independent evidence.
 
-**Staging.** Stage 1 (E060): build and validate the scaffold — the world mechanic, the
-call, the visual channel, the anchor — against the ethogram, no learning involved,
-exactly the "test the instrument before the hypothesis" discipline this project treats
-as its most expensive lesson. Stage 2 (not yet pre-registered): the L vs. C? contrast
-itself, once Stage 1 confirms the scaffold behaves as designed.
+**Staging — four stages, not two, on review.** The original two-stage plan (build the
+scaffold, then run the contrast) repeats a shape this project has been burned by
+before: jumping from "the reflex fires in an isolated staged test" straight to "test
+the hypothesis" skipped exactly the population-level checks that caught real defects in
+H4 (E024's shuffled control, verified only when someone actually measured audibility)
+and E025→E048 (a reflex validated in isolation, then found not to disperse the flock
+until checked at the population level). T2's scaffold is unusually large — a world
+mechanic, a call, a vision class and a reflex, all new at once — so skipping the
+equivalent checks here would be repeating that mistake with more moving parts, not fewer.
+
+- **Stage 1 — done** ([E060](experiments/E060-t2-contamination-scaffold.md)): built and
+  validated each piece in isolation — staged ethogram probes, no learning, matching
+  `run/probes.py`'s existing style. All four falsifier checks pass; a real
+  contamination-staging bug and a real viz rendering bug were both found and fixed
+  during validation.
+- **Stage 1b** (not yet pre-registered): population-level check, full flock, still no
+  learning. Does contamination actually get discovered at a workable rate (the
+  manipulated-variable check CLAUDE.md's instrument discipline names first)? Is the
+  gakel call actually *audible* to nearby flockmates at realistic flock density and
+  duration — measured, not assumed, the specific lesson E019/E024/E026 cost this
+  project eighteen experiments to learn? Does the innate anchor produce real,
+  measurable dispersal away from a sick hen in the full dynamic system, the same
+  E025→E048 population check the personal-space reflex needed?
+- **Stage 1c** (not yet pre-registered): calibrate `contamination_period_s`.
+  `docs/backlog.md` §2 names this explicitly — "the answer must change faster than an
+  individual can learn it, but slower than the flock can propagate it... finding that
+  band is a sweep, and finding it is itself a result" — not a value to guess once and
+  fix.
+- **Stage 2** (not yet pre-registered): the L vs. C? contrast itself, run once 1b and
+  1c have confirmed the scaffold behaves as designed and found a workable rotation
+  period, rather than spending Stage 2's compute on a possibly-broken instrument or an
+  untuned parameter.
 
 ---
 
@@ -1363,6 +1397,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E060 | **T2 Stage 1: contamination/sickness/gakel scaffold built and validated, no learning involved.** New `CLS_SICK` vision class + `IDX_SICKNESS_ONSET` (`OBS_DIM` 74 -> 88) and `M_CALL_GAKEL` (`MOTOR_DIM` 11 -> 12, first motor-dim change). All four falsifier checks pass (12/12 ethogram, 70/70 suite): sickness onset is a rising edge (contaminated -> sick=True, clean -> sick=False), sickness mechanically slows movement (0.14m vs 0.93m travelled), the gakel call is a discovery pulse (not continuous, matching E053's fix), and the innate anchor reverses gregariousness's attraction to a sick flockmate (turn_R 0.97 vs turn_L 0.79 sick, vs turn_L 0.79 vs turn_R 0.50 healthy). **Found and fixed two real bugs during validation**: contamination was being unconditionally recomputed every step, silently overriding any staged value (caught by the probe's own negative control); `viz/web/app.js` hardcoded a 4-call stride that would have silently misaligned rendering once N_CALLS grew to 5. T2 stays `NOT STARTED` — Stage 1 tests the instrument, not the hypothesis. |
 | E059 | **Exposure escalation closes E058's open question, mechanistically.** Doubled predator exposure (`hawk_period_s` 20 -> 10, matching E042->E043) reproduced E058's numbers almost exactly — no movement. Checked directly: mean `\|W_out\|` drift **0.054 at both exposure levels** (3 seeds) — `readout_scaling_strength` reaches a dynamic equilibrium independent of exposure, unlike `W_pred`'s hard clip (which E043 found *does* respond to exposure). H2c stays `NOT STARTED`, now for a checked mechanistic reason rather than "maybe more data would help." |
 | E058 | **H2f's validated rule tried on H2c, and it fails cleanly — general excitability, not comprehension.** Same `hebbian_readout`+`readout_scaling_strength` config, crouch-on-hearing-a-call, no scaffold (build from nothing, unlike H2f's wired-anchor task), `pred_gain=0.0`. Crouch nominally significant (t=2.58) but so are three unrelated control channels — peck (t=3.58), scratch (t=3.29), flee (t=2.74) — at matched tiny magnitudes (~0.004, two orders below H2f's effect). The mandatory diagnostic (pre-registered before running) catches this cleanly: uniform elevation across every channel tested, not a targeted crouch association. H2c stays `NOT STARTED`. Narrows H2f's mechanism to *amplifying an existing anchor*, not building one from nothing. |
 | E057 | **H2f's falsifier clears — replicated. First genuine positive result in this project's learning-rule history.** Separated E056's mixed effect via difference-in-differences against the `S` baseline's own alone/audience gap, full 8-seed sample: general elevation **+0.123, t=8.81**, audience-specific **+0.232, t=45.59** (significantly larger than general, t=10.39). Food-channel control (no mechanistic audience route) null on both components, ruling out indiscriminate dysregulation. **Replicated on a fresh 8-seed block** (general +0.121 t=11.37, audience-specific +0.232 t=21.90, food null) — both blocks agree to three decimal places. **H2f -> `SUPPORTED`, narrower than a clean audience-only ideal**: a real, context-specific (not indiscriminate) general component rides alongside the larger targeted one. Opens a fresh, direct pass at H2c under the same scrutiny. |
