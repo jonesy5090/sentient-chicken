@@ -406,6 +406,38 @@ to *see* which flockmate is calling and orient toward her, the same visual pathw
 gregariousness already uses, not decode it from the call. Worth designing around
 explicitly rather than assuming the call alone solves it.
 
+#### The full repertoire — what real *Gallus gallus* has, against what's built
+
+The four calls above are not the whole vocabulary; they're the subset this project has
+had a specific, testable reason to build so far. For scoping future work (T2 in
+particular) it's worth knowing what else is documented in the literature, and being
+honest about confidence: the first four rows are the well-established core this
+project's own citations (Evans & Marler; Evans, Evans & Marler) are about. The rest are
+from the broader chicken bioacoustics and welfare literature and are described here at
+the resolution that literature supports, not with invented specifics.
+
+| call | documented function | built here? |
+|---|---|---|
+| aerial alarm call | referential warning, aerial predator | **yes** |
+| ground/terrestrial alarm call | referential warning, ground predator | **yes** |
+| food call ("took-took", often with tidbitting) | announces a find, audience-sensitive in real birds | **yes** (production only — audience-sensitivity is exactly what H3 tests for) |
+| contact/assembly call | low clucking that maintains flock cohesion, hen-to-chicks and among adults | **partial** — built as an isolation/cold distress signal, not the ongoing low-level contact clucking real flocks maintain |
+| distress call / fear scream | loud, sharp vocalization under acute physical threat (e.g. capture), acoustically distinct from the alarm calls above | no |
+| **gakel-call ("gackering")** | a frustration/negative-expectation call — given when an anticipated reward is denied or a situation turns out worse than expected; studied as a candidate indicator of negative affective state | no — **the most relevant gap for T2**, see below |
+| copulation / courtship calls, rooster crow | mating and territorial, not foraging or predator-related | no — out of scope, no reproduction modelled |
+| egg cackle, pre-lay calls | given by hens around oviposition | no — out of scope, no egg-laying modelled |
+| chick distress peep / pleasure trill | early-ontogeny repertoire, separate from the adult calls above | no — out of scope, no chicks/generational turnover modelled (see "not built at all" below) |
+
+**Why the gakel-call matters for T2 specifically.** T2 needs a hen who discovers a
+feeder is bad to have *something* to do about it beyond simply leaving — and unlike
+"a call for poisoned food," which has no documented real-world counterpart to point to,
+the gakel-call is a real, studied vocalization tied to exactly the right kind of event:
+an expectation (this feeder has food, food is good) being violated for the worse. It's
+a more honest foundation than inventing a bespoke "danger: bad food" signal from
+nothing, and it comes with real audience-sensitivity findings of its own to check the
+model against, the same way the alarm and food calls already do. It is not built —
+this is a proposal for T2's design, not a claim about the current model.
+
 ### A scaffold — stands in for learning that doesn't work yet, off by default
 
 One piece of the reflex arc is not real biology, it's a deliberate placeholder:
