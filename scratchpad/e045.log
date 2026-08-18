@@ -1,0 +1,29 @@
+capacity 0.5x done (126s)
+capacity 1.0x done (295s)
+capacity 1.5x done (530s)
+capacity 2.0x done (854s)
+capacity 4.0x done (1946s)
+
+E045 -- T1 Pareto frontier, 8 seeds, 10 min, hawk every 20s, food_deplete_rate=0
+
+capacity  cond     fed %  caught/dive
+0.5       L        4.335       0.1122
+0.5       C?       4.586       0.1604
+1.0       L        5.010       0.0871
+1.0       C?       4.757       0.1970
+1.5       L        4.462       0.1088
+1.5       C?       4.303       0.1309
+2.0       L        5.025       0.1039
+2.0       C?       4.886       0.1690
+4.0       L        4.216       0.0990
+4.0       C?       4.362       0.1119
+
+capacity         fed% L-C?      t   caught/dive L-C?      t
+0.5          -0.251          0.54     -0.0481          1.17
+1.0          +0.253          0.56     -0.1099*         4.59
+1.5          +0.159          0.47     -0.0222          1.01
+2.0          +0.138          0.31     -0.0651          1.43
+4.0          -0.145          0.56     -0.0129          0.47
+
+* = clears threshold t=2.365 (df=7)
+wall clock: 1946 s

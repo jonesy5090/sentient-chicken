@@ -74,20 +74,19 @@ herself, too fast and nothing helps anyone. **The answer must change faster than
 individual can learn it, but slower than the flock can propagate it.** Finding that
 band is a sweep, and finding it is itself a result.
 
-### T1 — Shared vigilance (build first)
+### T1 — Shared vigilance — **done, see the T1 node in `docs/hypothesis.md`**
 
-Nearly free: the head-down gate, hawks, and innate alarm calls are already built. A
-hen who forages cannot watch the sky. With a working channel the flock can divide
-vigilance -- one bird watches, the rest feed.
+~~Nearly free... Metric: food intake at matched predation risk (compare Pareto
+frontiers, not raw intake)... Prediction: L forages more than C? at equal risk...~~
 
-- **Metric**: food intake at matched predation risk (compare Pareto frontiers, not
-  raw intake -- a flock that never forages is safe and starving).
-- **Grounding**: this is the many-eyes effect, well documented in real flocks.
-- **Prediction**: L forages more than C? at equal risk, and per-hen vigilance falls
-  as flock size rises.
-- **Caveat**: alarm calls are already innate here, so T1 tests *usage*, not
-  invention. That is exactly the phase 2/3 target, which makes it the right warm-up
-  and the right way to validate the harness — but it is not the headline experiment.
+**Built and run (E045), finally with the Pareto treatment this section always called
+for** instead of the four single-point mean comparisons that preceded it (E026, E028,
+E028b, plus a zero-compute re-analysis). **The intake prediction is not supported** —
+null at every capacity across a 0.5×–4.0× sweep, nine checks total now agreeing. **What
+is supported**: a real, capacity-robust safety benefit (L safer than C? at all five
+capacities), which is genuine Pareto improvement even without the intake side. Per-hen
+vigilance falling with flock size was never tested — still open, lower priority now that
+the headline half of the prediction has a settled answer. Full result in the T1 node.
 
 ### T2 — The rotating poisoned feeder (the headline experiment)
 
