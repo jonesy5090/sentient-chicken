@@ -384,6 +384,28 @@ Evans & Marler found in real chickens. This is deliberate and biologically groun
 a shortcut: Konishi's deafened chicks grew up making the same calls with no model to
 copy, so **production is not supposed to be learned**, in the model or the animal.
 
+#### The four innate calls, in full
+
+| call | motor channel | fires on (`hen/innate.py`) | what it communicates |
+|---|---|---|---|
+| **contact call** | `M_CALL_CONTACT` | isolation from the flock, or being cold | "I'm alone" — distress, calls until answered |
+| **food call** | `M_CALL_FOOD` | newly *arriving* at a food patch — a discovery pulse, not continuous sight (E053) | "food is here" — one undifferentiated signal, not tied to a specific patch (see note below) |
+| **aerial alarm call** | `M_CALL_AERIAL` | sees an aerial threat (hawk) | "danger from above" — paired with crouch + freeze |
+| **ground alarm call** | `M_CALL_GROUND` | sees a ground threat (fox) | "danger on the ground" — paired with fleeing |
+
+**What "functionally referential" means here, precisely, because it matters for task
+design.** The aerial/ground distinction is a real, referential *category* — a listener
+hearing the aerial call and one hearing the ground call get different information, and
+the model's own audience-effect and comprehension work (H2/H3/H2c) tests exactly that.
+The food call is not referential in that sense: it is a single channel, identical
+regardless of which food patch (or how many) triggered it. A hen who hears it knows
+"food was found somewhere," not *which* patch. Any task that needs the call itself to
+carry *which* location (T2, the rotating-feeder design in `docs/backlog.md`) is asking
+for a distinction the current channel cannot carry acoustically — a receiver would have
+to *see* which flockmate is calling and orient toward her, the same visual pathway
+gregariousness already uses, not decode it from the call. Worth designing around
+explicitly rather than assuming the call alone solves it.
+
 ### A scaffold — stands in for learning that doesn't work yet, off by default
 
 One piece of the reflex arc is not real biology, it's a deliberate placeholder:
