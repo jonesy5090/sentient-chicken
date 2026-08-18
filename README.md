@@ -409,8 +409,10 @@ was measured without it.
   by a representational bottleneck (the brain state for "heard a call" and "saw a hawk"
   barely differ) and, under the normal reward-modulated rule, by only being able to
   re-time existing behaviour, never invent a new stimulus-response pairing from scratch.
-  Not yet re-tried with the non-reward-gated rule that worked for audience-sensitive
-  calling below — the natural next step.
+  Tried with the non-reward-gated rule that worked for audience-sensitive calling below —
+  it also failed, cleanly: a nominal crouch effect turned out to be matched by an
+  identical-sized rise on three unrelated actions, i.e. general excitability, not
+  learning. That rule builds on an existing anchor; it does not build one from nothing.
 - **Foraging improving with experience** — the cleanest, most-tested claim in the
   project, and currently a null under the normal rule: a hen who learns forages
   indistinguishably from one who cannot.
