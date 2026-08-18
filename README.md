@@ -341,7 +341,7 @@ answer:
 | Can the rule learn a genuinely **new** behaviour — one the reflex arc doesn't already produce? | **No.** She can only re-time something she already does. To learn "crouch at a call" she would first have to crouch at one, even once, and nothing built in ever makes that happen. |
 | Can she even **represent the difference** between hearing a call and seeing a hawk? | **Barely.** The two brain states differ by about 7% of resting activity — enough to measure, not enough to obviously learn from. |
 | Does a **trained** connection to the muscles do anything at all, once those two problems are set aside? | **Open again.** It looked settled — removing a trained connection cost more than removing a random one — until E025's food-competition bug turned out to be driving the result. Clean measurement: no detectable effect either way (E038). |
-| Is the learning rule even the **right kind** for this job? | **Open, and the live question.** Wiring in by hand the one piece she was missing — a reflex to *hearing* an alarm, not just seeing the danger — still didn't produce learned, audience-sensitive calling on top of it (E018/E036). The rule rewards actions after the fact; the biology this project is chasing (naive birds learning what to fear by *watching*, no reward involved) looks more like learning by observation. |
+| Is the learning rule even the **right kind** for this job? | **Yes, when it isn't reward-gated — the project's first genuine positive result.** Wiring in by hand the one piece she was missing (a reflex to *hearing* an alarm) still didn't produce learned, audience-sensitive calling under the normal, reward-modulated rule (E018/E036). Swapping to a non-reward-gated, correlation-based update on the same pathway did: a real, twice-replicated, predominantly audience-conditional increase in alarm calling (+0.232, t=40.90 pooled across 16 seeds) that the reward-modulated rule never produced on the identical task. Not a clean, audience-*only* effect — a smaller, real, context-specific (not indiscriminate) general component rides alongside it — but the falsifier this question was waiting on has cleared (`docs/hypothesis.md`'s H2f, E055–E057). |
 
 An unplanned finding along the way that still stands: the hens that **grow** new
 connections do *worse* than the ones that only prune. That inverts the obvious
@@ -407,17 +407,27 @@ was measured without it.
 - **Comprehension** — associating a heard call with the danger it refers to, so a hen
   who cannot see a hawk herself can still learn what a flockmate's call means. Blocked
   by a representational bottleneck (the brain state for "heard a call" and "saw a hawk"
-  barely differ) and by the learning rule only being able to re-time existing behaviour,
-  never invent a new stimulus-response pairing from scratch.
-- **Audience-sensitive calling** — calling more when a flockmate can hear it, which real
-  cockerels do and this project was never told to reproduce. Three separate nulls now,
-  including one where comprehension was supplied by hand specifically to remove the
-  excuse that nothing responds to calls (see above).
+  barely differ) and, under the normal reward-modulated rule, by only being able to
+  re-time existing behaviour, never invent a new stimulus-response pairing from scratch.
+  Not yet re-tried with the non-reward-gated rule that worked for audience-sensitive
+  calling below — the natural next step.
 - **Foraging improving with experience** — the cleanest, most-tested claim in the
-  project, and currently a null: a hen who learns forages indistinguishably from one who
-  cannot.
+  project, and currently a null under the normal rule: a hen who learns forages
+  indistinguishably from one who cannot.
 - **A trained connection doing something distinctive** — whether the specific weights a
   hen learns matter, independent of whether they help her forage. Currently open.
+
+### Working, under a different rule than the one everything else above uses
+
+- **Audience-sensitive calling** — calling more when a flockmate can hear it, which real
+  cockerels do. Three separate nulls under the normal, reward-modulated rule, including
+  one where comprehension was supplied by hand specifically to remove the excuse that
+  nothing responds to calls. Swapping to a non-reward-gated, correlation-based update on
+  the same pathway produced a real, twice-replicated, predominantly audience-conditional
+  increase (+0.232, t=40.90 pooled across 16 seeds) — this project's first positive
+  result on a targeted learned behaviour. Not a clean, audience-*only* effect (a
+  smaller, context-specific general component rides alongside it), and specific to this
+  one rule variant and this one task — not yet shown to generalise.
 
 ### Not built at all
 
@@ -622,17 +632,23 @@ hundredth of a second rather than once per event. Fixed, and learning has since 
 switched on and tested repeatedly in the corrected world. It still produces a clean
 null on foraging.
 
-**The two halves of the thesis have come apart, and neither is finished, for reasons
-that are now specific rather than vague.** The bird does not yet learn — not because
-nobody has tried, but because the rule can only re-time behaviour she already has, and
-the brain state it would need to condition on barely distinguishes the relevant stimuli.
-The channel helps a reflex agent, and that part has now also been checked against the
+**The two halves of the thesis have come apart, and the first has a genuine, if narrow,
+crack of light in it now.** Under the *normal*, reward-modulated rule, the bird still
+does not learn anything new — she can only re-time behaviour she already has, and the
+brain state she'd need to condition on barely distinguishes the relevant stimuli. But
+`docs/hypothesis.md`'s H2f asked a sharper question — is the rule the wrong *kind*,
+not just wired to the wrong place — and building the alternative it named (a
+non-reward-gated, correlation-based update, closer to the observational learning real
+alarm-call acquisition looks like) produced this project's first real positive: a
+twice-replicated, predominantly audience-conditional rise in alarm calling that the
+normal rule never produced, on the identical task. It came with a real, honest caveat —
+a smaller general component rides alongside the targeted one — and it does not touch
+the general-foraging null above, which used the normal rule and stands unchanged. The
+channel helps a reflex agent, and that part has now also been checked against the
 world-config bug that broke the trained-connection result above, and held. Joining the
-two halves — a
-flock that *learns* what a call means, and then invents one nature never gave it — is
-the rest of the project. `docs/hypothesis.md`'s H2f is the current best guess at why the
-first half hasn't worked yet: the learning rule may be the wrong *kind*, not just wired
-to the wrong place.
+two halves — a flock that *learns* what a call means, and then invents one nature never
+gave it — is the rest of the project, and H2f's result is the first evidence that the
+learning half is not a dead end.
 
 Full detail in [`docs/hypothesis.md`](docs/hypothesis.md), which is the authority when
 this file and it disagree.

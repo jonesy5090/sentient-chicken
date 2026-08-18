@@ -903,7 +903,14 @@ a change to the core architecture and has not been made.
 
 ## H2f — the learning rule is the wrong *kind*, not merely wrongly routed or blocked
 
-**Status: UNDER TEST** — opened by [E017](experiments/E017-where-separability-is-lost.md)
+**Status: SUPPORTED — narrower than the falsifier's clean ideal**
+([E057](experiments/E057-separating-audience-from-elevation.md)). A non-reward-gated
+readout rule builds a real, twice-replicated, predominantly audience-conditional change
+in alarm calling — the falsifier's own terms — where the reward-modulated instrumental
+rule was null on the identical task and scaffold (E036/E040). See below for the full
+history and the precise scope of what is and is not established.
+
+Opened by [E017](experiments/E017-where-separability-is-lost.md)
 as an unnamed possibility, promoted to a node by
 [E036](experiments/E036-e018-rerun.md)'s pre-committed falsifier firing. **Checked
 against the `food_deplete_rate` confound that broke H2e and found robust**
@@ -964,17 +971,34 @@ audience condition. Cause identified: `W_out` has no synaptic-scaling correction
 `W` — the reward-modulated rule's zero-mean-over-time property had been incidentally
 keeping growth bounded, and removing the reward gate removed that too.
 
-**Second attempt, with the missing stabiliser added, is more targeted but still does not
-clear the falsifier as specified** ([E056](experiments/E056-hebbian-readout-scaled.md)).
-`readout_scaling_strength` (unit-tested to actually bound growth) fixed the cortical/
-reflex ratio (now 0.75–0.9×, not 2–3×) and roughly halved the hunger cost — but
-`alarm_alone` still rose 30–40% from baseline instead of staying flat, mixed with a
-larger, genuinely disproportionate rise in `alarm_audience`. Applying the pre-registered
-sanity checks literally rather than generously: one of three fails, so the falsifier
-does not clear. **Status stays `UNDER TEST`** — neither confirmed (not clean) nor
-refuted (not simply broken, unlike E055) — with a specific next diagnostic identified:
-separate the audience-specific component from the general-elevation component directly,
-rather than re-running with adjusted constants.
+**Second attempt, with the missing stabiliser added, is more targeted but a 3-seed
+diagnostic could not cleanly separate two effects mixed together**
+([E056](experiments/E056-hebbian-readout-scaled.md)). `readout_scaling_strength`
+(unit-tested to actually bound growth) fixed the cortical/reflex ratio (now 0.75–0.9×,
+not 2–3×) and roughly halved the hunger cost — but `alarm_alone` also rose from
+baseline, mixed with a larger rise in `alarm_audience`, and 3 seeds were not enough to
+tell whether the two were separable with any confidence.
+
+**Third pass, done properly on the full sample with a matched design, separates them —
+and replicates on an independent seed block**
+([E057](experiments/E057-separating-audience-from-elevation.md)). Measuring the
+audience-specific effect as a difference-in-differences against the `S` baseline's own
+alone/audience gap (rather than a raw before/after read), on 8 seeds: general elevation
+**+0.123, t=8.81** (significant, real) and audience-specific **+0.232, t=45.59**
+(significant, and significantly larger than general elevation, t=10.39). A food-channel
+control — a call type this task gives no mechanistic route to an audience effect —
+showed neither component, ruling out indiscriminate dysregulation as the explanation.
+**Given the scale of the claim, replicated on a fresh, non-overlapping 8-seed block
+before being trusted**: general +0.121 (t=11.37), audience-specific +0.232 (t=21.90),
+food channel null again — both blocks agree to three decimal places, a level of
+consistency this project has not seen on any prior result.
+
+**The falsifier, applied literally, does not fire.** A non-reward-gated rule produces a
+real, replicated, predominantly audience-conditional effect where the instrumental rule
+was null, on the identical task and scaffold. The honest caveat: this is not a *pure*
+audience effect — a smaller, real, context-specific (not indiscriminate) general
+component rides alongside it. Status updated to reflect exactly this scope, not a
+cleaner claim than the evidence supports.
 
 ---
 
@@ -1256,6 +1280,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E057 | **H2f's falsifier clears — replicated. First genuine positive result in this project's learning-rule history.** Separated E056's mixed effect via difference-in-differences against the `S` baseline's own alone/audience gap, full 8-seed sample: general elevation **+0.123, t=8.81**, audience-specific **+0.232, t=45.59** (significantly larger than general, t=10.39). Food-channel control (no mechanistic audience route) null on both components, ruling out indiscriminate dysregulation. **Replicated on a fresh 8-seed block** (general +0.121 t=11.37, audience-specific +0.232 t=21.90, food null) — both blocks agree to three decimal places. **H2f -> `SUPPORTED`, narrower than a clean audience-only ideal**: a real, context-specific (not indiscriminate) general component rides alongside the larger targeted one. Opens a fresh, direct pass at H2c under the same scrutiny. |
 | E056 | **Bounded Hebbian readout: more targeted than E055, still doesn't clear the falsifier as specified.** `readout_scaling_strength=0.3` fixed E055's runaway (cortical/reflex ratio 2-2.7x -> 0.75-0.9x, hunger 0.728 -> 0.546). Audience effect **+0.2324 ± 0.0051, t=45.59** — but the mandatory diagnostic found `alarm_alone` rose 30-40% from baseline (should stay flat per the pre-registered check) alongside a larger, genuinely disproportionate rise in `alarm_audience`. One of three sanity checks fails, applied literally. H2f stays `UNDER TEST`: not confirmed (not clean), not refuted (not simply broken like E055). Next step identified: separate the audience-specific component from the general-elevation one directly, not another constant sweep. |
 | E055 | **First attempt at H2f's own falsifier — broke before it could be tested.** A non-reward-gated ("Hebbian") `W_out` update produced a "significant" audience effect (+0.096, t=2.63) that the mandatory diagnostic (this project's own discipline: a surprising positive gets checked before trusted) found was an artifact: cortical drive 2.0-2.7x reflex magnitude (the documented "behaviour gets worse" regime from `eta_out`'s own docstring), hunger nearly doubled (0.39->0.73), every calling channel elevated regardless of audience. Cause: `W_out` has no synaptic-scaling correction, unlike `W` — the reward-modulated rule's zero-mean property had been incidentally bounding growth, and removing the reward gate removed that too. Fixed in E056. |
 | E054 | **Food-call saturation was not crowding out pallium capacity for the alarm channel — a clean null, not a repeat of an old one.** Same instrument as E042 (comprehension after rearing), density held at E041's fix throughout, only `legacy_food_call` varied: discovery pulse (E053) vs. recreated pre-fix continuous calling. **−0.0005 ± 0.0007, t=0.70**, not significant, wrong sign if anything. First test of a *competing-channel capacity* account rather than the alarm channel's own representation (unlike E042–E044); it fails the same way. H2c stays `NOT STARTED`; strengthens the case for H2f (rule-kind) over any remaining representational precondition. Single 8-seed block, not independently replicated — a null consistent with four prior experiments' worth of the same pattern, judged not to need the ~490s a second block would cost. |
