@@ -1254,12 +1254,15 @@ consequence, which remains separately open.
 
 ## T2 — the rotating poisoned feeder: does the flock learn *which* feeder to avoid
 
-**Status: NOT STARTED — Stage 1 complete**
+**Status: NOT STARTED — Stage 1 and Stage 1b complete**
 ([docs/backlog.md](../docs/backlog.md)'s T2 section has the complete mechanical design;
-[E060](experiments/E060-t2-contamination-scaffold.md) built and validated the scaffold,
-12/12 ethogram assays including four new falsifier checks, 70/70 full suite). Status
-stays `NOT STARTED` because Stage 1 tests the instrument, not the hypothesis — nothing
-about T2's actual claim (does the flock learn to avoid the feeder) has been tested yet.
+[E060](experiments/E060-t2-contamination-scaffold.md) built and validated the scaffold
+in isolation, 12/12 ethogram assays including four new falsifier checks, 74/74 full
+suite; [E061](experiments/E061-t2-population-scaffold-check.md) confirmed all three
+pieces work at the population level in a free-running 16-hen flock — no learning
+involved in either). Status stays `NOT STARTED` because both stages test the
+instrument, not the hypothesis — nothing about T2's actual claim (does the flock learn
+to avoid the feeder) has been tested yet.
 
 **Claim:** a flock with a working communication channel converges toward roughly one
 hen's mistake per contamination rotation (the discoverer eats the bad feeder, gets
@@ -1318,14 +1321,21 @@ equivalent checks here would be repeating that mistake with more moving parts, n
   `run/probes.py`'s existing style. All four falsifier checks pass; a real
   contamination-staging bug and a real viz rendering bug were both found and fixed
   during validation.
-- **Stage 1b** (not yet pre-registered): population-level check, full flock, still no
-  learning. Does contamination actually get discovered at a workable rate (the
-  manipulated-variable check CLAUDE.md's instrument discipline names first)? Is the
-  gakel call actually *audible* to nearby flockmates at realistic flock density and
-  duration — measured, not assumed, the specific lesson E019/E024/E026 cost this
-  project eighteen experiments to learn? Does the innate anchor produce real,
-  measurable dispersal away from a sick hen in the full dynamic system, the same
-  E025→E048 population check the personal-space reflex needed?
+- **Stage 1b — done** ([E061](experiments/E061-t2-population-scaffold-check.md)):
+  population-level check, full 16-hen flock, still no learning. All three falsifiers
+  survived: contamination is discovered at a workable rate (22.3 sickness onsets / 20
+  min at the untuned `contamination_period_s=300s` default); the gakel call is
+  genuinely audible (heard amplitude correlates 0.167 with a nearby sick flockmate,
+  an 11× heard\|sick vs. heard\|not ratio — real signal, not assumed); the innate
+  anchor produces real population-level dispersal (mean distance to a sick hen 5.44 m
+  with the anchor present vs. 2.71 m stripped, the same shape of result E048 found for
+  `CLS_CROWDING`). One caveat recorded, not treated as a failure: the sender-shuffle
+  control (E024's original, not E026's fixed yoked one) retains 82% of the intact
+  correlation, the same architectural shape CLAUDE.md documents for the alarm channel's
+  98% — the flock clumps, so shuffling *which* nearby hen is credited mostly preserves
+  "someone nearby is calling." Does not affect T2's claim, which only needs "something
+  happened nearby" (`CLS_SICK` carries *where* separately), but is worth a future
+  reader knowing about before mistaking it for a new defect.
 - **Stage 1c** (not yet pre-registered): calibrate `contamination_period_s`.
   `docs/backlog.md` §2 names this explicitly — "the answer must change faster than an
   individual can learn it, but slower than the flock can propagate it... finding that
@@ -1397,6 +1407,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E061 | **T2 Stage 1b: the scaffold works at the population level, not just in isolation, no learning involved.** 16-hen free-running flock, 3 checks × 3 seeds, 20 min each. **Discovery**: 22.3 sickness onsets / 20 min at the untuned `contamination_period_s=300s` default — not a bottleneck. **Audibility**: heard gakel amplitude correlates 0.167 with a nearby sick flockmate, 11× heard\|sick vs. heard\|not ratio — real signal. **Dispersal**: mean distance to a sick hen 5.44m with the anchor present vs. 2.71m stripped, matching E048's `CLS_CROWDING` result. One caveat, not a failure: the sender-shuffle control (E024's original, not E026's fixed yoked one) retains 82% of intact's correlation, the same architectural shape E024 found for the alarm channel (98%) — the flock clumps, so shuffling *which* nearby hen is credited mostly preserves "someone nearby is calling." Doesn't affect T2's claim, which only needs "something happened" (`CLS_SICK` carries *where* separately). T2 stays `NOT STARTED` — Stage 1b tests the instrument too, not the hypothesis. |
 | E060 | **T2 Stage 1: contamination/sickness/gakel scaffold built and validated, no learning involved.** New `CLS_SICK` vision class + `IDX_SICKNESS_ONSET` (`OBS_DIM` 74 -> 88) and `M_CALL_GAKEL` (`MOTOR_DIM` 11 -> 12, first motor-dim change). All four falsifier checks pass (12/12 ethogram, 70/70 suite): sickness onset is a rising edge (contaminated -> sick=True, clean -> sick=False), sickness mechanically slows movement (0.14m vs 0.93m travelled), the gakel call is a discovery pulse (not continuous, matching E053's fix), and the innate anchor reverses gregariousness's attraction to a sick flockmate (turn_R 0.97 vs turn_L 0.79 sick, vs turn_L 0.79 vs turn_R 0.50 healthy). **Found and fixed two real bugs during validation**: contamination was being unconditionally recomputed every step, silently overriding any staged value (caught by the probe's own negative control); `viz/web/app.js` hardcoded a 4-call stride that would have silently misaligned rendering once N_CALLS grew to 5. T2 stays `NOT STARTED` — Stage 1 tests the instrument, not the hypothesis. |
 | E059 | **Exposure escalation closes E058's open question, mechanistically.** Doubled predator exposure (`hawk_period_s` 20 -> 10, matching E042->E043) reproduced E058's numbers almost exactly — no movement. Checked directly: mean `\|W_out\|` drift **0.054 at both exposure levels** (3 seeds) — `readout_scaling_strength` reaches a dynamic equilibrium independent of exposure, unlike `W_pred`'s hard clip (which E043 found *does* respond to exposure). H2c stays `NOT STARTED`, now for a checked mechanistic reason rather than "maybe more data would help." |
 | E058 | **H2f's validated rule tried on H2c, and it fails cleanly — general excitability, not comprehension.** Same `hebbian_readout`+`readout_scaling_strength` config, crouch-on-hearing-a-call, no scaffold (build from nothing, unlike H2f's wired-anchor task), `pred_gain=0.0`. Crouch nominally significant (t=2.58) but so are three unrelated control channels — peck (t=3.58), scratch (t=3.29), flee (t=2.74) — at matched tiny magnitudes (~0.004, two orders below H2f's effect). The mandatory diagnostic (pre-registered before running) catches this cleanly: uniform elevation across every channel tested, not a targeted crouch association. H2c stays `NOT STARTED`. Narrows H2f's mechanism to *amplifying an existing anchor*, not building one from nothing. |
