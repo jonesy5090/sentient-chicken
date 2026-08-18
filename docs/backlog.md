@@ -542,12 +542,20 @@ new home.
   general-elevation component a sensible "threat salience" association, or something
   less interpretable? Not required for E057's result to stand; a follow-up explanation,
   the same kind of analysis E044 did for `W_pred`.
-- **New item, opened by E057's own consequence section**: a fresh, direct pass at H2c
-  (comprehension) using the same non-reward-gated-and-bounded rule family and the same
-  mandatory-diagnostic-before-trusting discipline that got H2f's result right on the
-  third attempt. H2c was last tested (E042-E044, E054) exclusively via the instrumental
-  or unbounded-`W_pred` route; it has not been re-tried since a *working* non-instrumental
-  mechanism was demonstrated to be possible at all on this architecture.
+- ~~**A fresh, direct pass at H2c** using the same non-reward-gated-and-bounded rule
+  family and the same mandatory-diagnostic-before-trusting discipline that got H2f's
+  result right on the third attempt.~~ **Done (E058): fails cleanly.** Crouch nominally
+  significant (t=2.58) but matched by three unrelated control channels at the same tiny
+  magnitude (~0.004) — general excitability, not comprehension. The mandatory
+  diagnostic (built in this time, not added after a surprise) caught it immediately.
+  H2c stays `NOT STARTED`. Narrows H2f's mechanism: it amplifies an existing anchor
+  (the scaffold), it does not build one from nothing.
+- **New item, opened by E058's own consequence section**: does comprehension emerge via
+  the readout rule with a longer rearing duration or higher hawk rate (more
+  co-occurrence events for the correlation to accumulate on), the same escalation E043
+  already ran for the `W_pred` pathway, not yet tried for the readout pathway. Genuinely
+  open — E058 does not distinguish "not enough exposure yet" from "H2d's bottleneck
+  blocks this route too."
 - ~~**Predator exposure as a metric.**~~ Retired. Uninformative in both E003 and E004
   (SEs of 1460-2469 on means of 13-44). E001's apparent 43% difference was noise, as
   it was flagged at the time.

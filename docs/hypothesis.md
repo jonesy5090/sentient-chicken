@@ -629,6 +629,20 @@ structural capacity, and now competing-channel saturation — has failed to prod
 comprehension; the pattern increasingly points toward H2f (the rule may be the wrong
 *kind*) rather than any remaining precondition still to be found.
 
+**H2f's now-validated rule was tried directly, and it also fails — but cleanly, with
+the reason distinguished from a repeat of the earlier confound**
+([E058](experiments/E058-h2c-hebbian-readout.md)). The same non-reward-gated, bounded
+readout rule that built H2f's audience effect was tested on crouch-comprehension, no
+scaffold (building from nothing, unlike H2f's task, which had a wired-in anchor to
+amplify), `pred_gain=0.0` so only the readout could contribute. Crouch rose
+nominally significantly (t=2.58) — but so did three unrelated control channels (peck,
+scratch, flee), at matched magnitudes (~0.004, two orders of magnitude below H2f's
+effect and the scaffold's own comprehension). General excitability, not a targeted
+association — the same diagnostic discipline that validated H2f's positive rules this
+one out cleanly, the other direction. **Status stays `NOT STARTED`.** Narrows what
+H2f's mechanism generalises to: amplifying an existing anchor, not building one from
+nothing — at least not at this rearing duration and hawk rate.
+
 ---
 
 ## H2d — the pallium does not form separable representations of distinct stimuli
@@ -1280,6 +1294,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E058 | **H2f's validated rule tried on H2c, and it fails cleanly — general excitability, not comprehension.** Same `hebbian_readout`+`readout_scaling_strength` config, crouch-on-hearing-a-call, no scaffold (build from nothing, unlike H2f's wired-anchor task), `pred_gain=0.0`. Crouch nominally significant (t=2.58) but so are three unrelated control channels — peck (t=3.58), scratch (t=3.29), flee (t=2.74) — at matched tiny magnitudes (~0.004, two orders below H2f's effect). The mandatory diagnostic (pre-registered before running) catches this cleanly: uniform elevation across every channel tested, not a targeted crouch association. H2c stays `NOT STARTED`. Narrows H2f's mechanism to *amplifying an existing anchor*, not building one from nothing. |
 | E057 | **H2f's falsifier clears — replicated. First genuine positive result in this project's learning-rule history.** Separated E056's mixed effect via difference-in-differences against the `S` baseline's own alone/audience gap, full 8-seed sample: general elevation **+0.123, t=8.81**, audience-specific **+0.232, t=45.59** (significantly larger than general, t=10.39). Food-channel control (no mechanistic audience route) null on both components, ruling out indiscriminate dysregulation. **Replicated on a fresh 8-seed block** (general +0.121 t=11.37, audience-specific +0.232 t=21.90, food null) — both blocks agree to three decimal places. **H2f -> `SUPPORTED`, narrower than a clean audience-only ideal**: a real, context-specific (not indiscriminate) general component rides alongside the larger targeted one. Opens a fresh, direct pass at H2c under the same scrutiny. |
 | E056 | **Bounded Hebbian readout: more targeted than E055, still doesn't clear the falsifier as specified.** `readout_scaling_strength=0.3` fixed E055's runaway (cortical/reflex ratio 2-2.7x -> 0.75-0.9x, hunger 0.728 -> 0.546). Audience effect **+0.2324 ± 0.0051, t=45.59** — but the mandatory diagnostic found `alarm_alone` rose 30-40% from baseline (should stay flat per the pre-registered check) alongside a larger, genuinely disproportionate rise in `alarm_audience`. One of three sanity checks fails, applied literally. H2f stays `UNDER TEST`: not confirmed (not clean), not refuted (not simply broken like E055). Next step identified: separate the audience-specific component from the general-elevation one directly, not another constant sweep. |
 | E055 | **First attempt at H2f's own falsifier — broke before it could be tested.** A non-reward-gated ("Hebbian") `W_out` update produced a "significant" audience effect (+0.096, t=2.63) that the mandatory diagnostic (this project's own discipline: a surprising positive gets checked before trusted) found was an artifact: cortical drive 2.0-2.7x reflex magnitude (the documented "behaviour gets worse" regime from `eta_out`'s own docstring), hunger nearly doubled (0.39->0.73), every calling channel elevated regardless of audience. Cause: `W_out` has no synaptic-scaling correction, unlike `W` — the reward-modulated rule's zero-mean property had been incidentally bounding growth, and removing the reward gate removed that too. Fixed in E056. |
