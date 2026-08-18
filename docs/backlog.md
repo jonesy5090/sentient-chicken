@@ -233,11 +233,19 @@ caveat recorded, not a failure: the sender-shuffle control retains 82% of intact
 correlation, the same architectural shape E024 found for the alarm channel — the flock
 clumps, so it isn't specific to gakel and doesn't affect T2's claim.
 
-**Stage 1c** (not yet pre-registered): calibrate `contamination_period_s` against the
-band named in §2 above — fast enough to matter, slow enough to propagate — a sweep,
-not a guessed constant. E061's discovery-rate check (22.3 events/20min at the untuned
-300s default) suggests this may already be in a workable range, but Stage 1c should
-measure across a range rather than assume that.
+~~**Stage 1c**: calibrate `contamination_period_s` against the band named in §2 above —
+fast enough to matter, slow enough to propagate — a sweep, not a guessed constant.~~
+**Done ([E062](experiments/E062-t2-contamination-period-calibration.md)).** Swept
+{100,200,300,450,600}s, 16 hens, no learning. Audience saturates flat at every period
+(gregariousness already clumps the flock tightly, E025) — propagation is nearly free
+here regardless of period. Overlap (a rotation firing while a hen is still sick) held
+43–61% at *every* period including 600s — ten times `sickness_duration_s` — because at
+~5.6 discovery events per rotation (E061), cumulative sick-time (~335s) exceeds the
+300s rotation itself; a measured picture of the "C? pays ~N times" no-learning
+baseline, not a period defect. `contamination_period_s` stays at 300.0 — no evidence
+favoured any other candidate. Per-feeder sickness attribution doesn't exist yet, so the
+narrower stale-cue-misattribution risk this stage set out to check remains unmeasured;
+worth building only if Stage 2's results look consistent with it.
 
 **Stage 2** (not yet pre-registered): the actual L vs. C? contrast — does the flock,
 with the validated and calibrated scaffold and the H2f-style learning rule, converge
