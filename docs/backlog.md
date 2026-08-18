@@ -487,6 +487,14 @@ new home.
   **The 24-seed H2-contrast replication (from E041) is still separately owed**,
   unaffected by any of this.
 
+  ~~A structurally different candidate: food-call saturation crowding out pallium
+  capacity for the alarm channel.~~ **Tested and closed (E054): not the answer either.**
+  Fixing the saturation (E053) and re-running the exact E042 comprehension check with
+  only `legacy_food_call` varied gave a clean, non-significant null (t=0.70) — the first
+  test of a competing-channel-capacity account rather than the alarm channel's own
+  representation, and it failed the same way as the other three. Strengthens H2f over
+  any remaining named precondition.
+
   ~~H3's audience effect~~ **Done (E047): H3's original design re-run on the corrected
   system, and it closes rather than opens a direction.** Comprehension confirmed exactly
   zero without a scaffold (H2b's diagnosis is architectural, not an artefact of the

@@ -83,7 +83,8 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           scaffold_gain: float = 1.0,
           modality_segregated: bool = False,
           aud_fraction: float = regions.AUD_FRACTION,
-          sensory_pallium_density: float | None = None) -> BrainParams:
+          sensory_pallium_density: float | None = None,
+          legacy_food_call: bool = False) -> BrainParams:
     """Sample a newly hatched flock.
 
     `readout_scale` is small on purpose: at hatch the cortical pathway is near-silent
@@ -156,6 +157,9 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     automatically re-normalised for whatever density results -- same mechanism
     `modality_segregated` relies on, applied to density instead of a partition. None of
     the numbers in the table above hold once this is changed; re-measure, don't assume.
+
+    `legacy_food_call` restores the pre-E053 innate food call (continuous on raw sight,
+    not the discovery pulse). Off by default; exists only as E054's ablation condition.
     """
     k_mask, k_w, k_in = jax.random.split(key, 3)
     n = reg.total
@@ -294,7 +298,7 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         b=jnp.full((n,), -2.0),
         tau=tau,
         reflex=jnp.asarray(
-            innate.reflex_matrix(auditory_scaffold, scaffold_gain)),
+            innate.reflex_matrix(auditory_scaffold, scaffold_gain, legacy_food_call)),
         b_motor=jnp.asarray(innate.reflex_bias()),
         dale=dale,
     )

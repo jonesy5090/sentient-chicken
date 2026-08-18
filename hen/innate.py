@@ -46,7 +46,8 @@ SCAFFOLD_WEIGHT = 1.5
 
 
 def reflex_matrix(auditory_scaffold: bool = False,
-                  scaffold_gain: float = 1.0) -> np.ndarray:
+                  scaffold_gain: float = 1.0,
+                  legacy_food_call: bool = False) -> np.ndarray:
     """The innate arc as a fixed (MOTOR_DIM, OBS_DIM) matrix.
 
     `auditory_scaffold` adds an innate response to *hearing* an alarm call. It is off
@@ -61,6 +62,12 @@ def reflex_matrix(auditory_scaffold: bool = False,
     number is to plant an effect of known size and check the metric finds it. Gain 1.0
     is the real hen; anything above it is a deliberately exaggerated bird used to test
     the harness, never to make a claim about biology.
+
+    `legacy_food_call` restores the pre-E053 food call: continuous firing on raw
+    `CLS_FOOD` sight instead of the `IDX_FOOD_ARRIVAL` discovery pulse. Off by default
+    (E053 ships as the real hen); exists solely as E054's ablation condition, to test
+    whether the old near-constant calling was crowding out pallium capacity that could
+    otherwise represent the rarer alarm channel -- never to make a claim about biology.
     """
     r = np.zeros((spec.MOTOR_DIM, spec.OBS_DIM), dtype=np.float32)
 
@@ -135,7 +142,11 @@ def reflex_matrix(auditory_scaffold: bool = False,
     # roughly a quarter of the flock calling on over half of all steps. Production is
     # still innate and audience-blind by design; the modulation a real cockerel shows
     # is left for plasticity to discover, unchanged from before this fix.
-    w(spec.M_CALL_FOOD, spec.IDX_FOOD_ARRIVAL, 4.0)
+    if legacy_food_call:
+        for b in _FRONT:
+            w(spec.M_CALL_FOOD, spec.vis_index(b, spec.CLS_FOOD), 4.0)
+    else:
+        w(spec.M_CALL_FOOD, spec.IDX_FOOD_ARRIVAL, 4.0)
 
     if auditory_scaffold:
         _add_auditory_scaffold(w, scaffold_gain)
