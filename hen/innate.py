@@ -163,6 +163,27 @@ def reflex_matrix(auditory_scaffold: bool = False,
     else:
         w(spec.M_CALL_FOOD, spec.IDX_FOOD_ARRIVAL, 4.0)
 
+    # --- Gakel call on falling sick (T2, E060). Same discovery-pulse architecture as
+    # the food call: fires on IDX_SICKNESS_ONSET, not continuously for the whole sick
+    # duration. Weight matches M_CALL_FOOD's for the same reason (both are single
+    # discovery pulses read at the same magnitude scale). A real, documented
+    # frustration/negative-expectation vocalisation, not an invented "bad food" call
+    # -- see README.md's call repertoire table for the biological grounding.
+    w(spec.M_CALL_GAKEL, spec.IDX_SICKNESS_ONSET, 4.0)
+
+    # --- Avoid a visibly sick flockmate (T2, E060 anchor). Mirrors CLS_CROWDING
+    # exactly: turn *away* on the opposite channel from CLS_FLOCKMATE's attraction,
+    # at a weight (4.0) that must and does exceed the attraction weight (1.2) for
+    # genuine reversal rather than damping -- a sick hen still registers on
+    # CLS_FLOCKMATE too, so without this the two would only partially cancel. Gives
+    # learning a real, momentary anchor to amplify into durable place-avoidance,
+    # exactly the kind of scaffold H2f's validated rule needs (E055-E059): it builds
+    # on an existing reaction, it does not invent one from nothing.
+    for b in _LEFT:
+        w(spec.M_TURN_R, spec.vis_index(b, spec.CLS_SICK), 4.0)
+    for b in _RIGHT:
+        w(spec.M_TURN_L, spec.vis_index(b, spec.CLS_SICK), 4.0)
+
     if auditory_scaffold:
         _add_auditory_scaffold(w, scaffold_gain)
 

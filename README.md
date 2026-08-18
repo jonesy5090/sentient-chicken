@@ -377,6 +377,9 @@ separate cortical pathway, and a test asserts the two never mix.
 | approach flockmates | cold | measurable leftward bias |
 | turn away from a flockmate | crowded past personal-space range | nn dist 0.14 → 0.38 m (E048) |
 | turn away from a wall | close to the boundary | longest dwell 22.6s → 2.3s (E051) |
+| get sick and slow down | eats from a contaminated feeder | distance 0.14 m vs 0.93 m healthy (E060) |
+| produce the gakel call | newly falls sick (not continuous) | early peak 0.82, late mean 0.08 (E060) |
+| turn away from a sick flockmate | sees a visibly sick flockmate | turn_R 0.97 vs turn_L 0.79 (E060) |
 
 All four call *types* — contact, food, aerial alarm, ground alarm — are produced this
 way: hardwired, graded correctly to the threat, and functionally referential exactly as
@@ -384,7 +387,7 @@ Evans & Marler found in real chickens. This is deliberate and biologically groun
 a shortcut: Konishi's deafened chicks grew up making the same calls with no model to
 copy, so **production is not supposed to be learned**, in the model or the animal.
 
-#### The four innate calls, in full
+#### The five innate calls, in full
 
 | call | motor channel | fires on (`hen/innate.py`) | what it communicates |
 |---|---|---|---|
@@ -392,6 +395,7 @@ copy, so **production is not supposed to be learned**, in the model or the anima
 | **food call** | `M_CALL_FOOD` | newly *arriving* at a food patch — a discovery pulse, not continuous sight (E053) | "food is here" — one undifferentiated signal, not tied to a specific patch (see note below) |
 | **aerial alarm call** | `M_CALL_AERIAL` | sees an aerial threat (hawk) | "danger from above" — paired with crouch + freeze |
 | **ground alarm call** | `M_CALL_GROUND` | sees a ground threat (fox) | "danger on the ground" — paired with fleeing |
+| **gakel call** | `M_CALL_GAKEL` | newly falling sick from contaminated food — a discovery pulse (T2, E060) | "something bad just happened here" — paired with a visual cue (`CLS_SICK`) that carries *where*, not just that |
 
 **What "functionally referential" means here, precisely, because it matters for task
 design.** The aerial/ground distinction is a real, referential *category* — a listener
@@ -423,7 +427,7 @@ the resolution that literature supports, not with invented specifics.
 | food call ("took-took", often with tidbitting) | announces a find, audience-sensitive in real birds | **yes** (production only — audience-sensitivity is exactly what H3 tests for) |
 | contact/assembly call | low clucking that maintains flock cohesion, hen-to-chicks and among adults | **partial** — built as an isolation/cold distress signal, not the ongoing low-level contact clucking real flocks maintain |
 | distress call / fear scream | loud, sharp vocalization under acute physical threat (e.g. capture), acoustically distinct from the alarm calls above | no |
-| **gakel-call ("gackering")** | a frustration/negative-expectation call — given when an anticipated reward is denied or a situation turns out worse than expected; studied as a candidate indicator of negative affective state | no — **the most relevant gap for T2**, see below |
+| **gakel-call ("gackering")** | a frustration/negative-expectation call — given when an anticipated reward is denied or a situation turns out worse than expected; studied as a candidate indicator of negative affective state | **yes** (E060) — fires on the sickness-discovery pulse, see below |
 | copulation / courtship calls, rooster crow | mating and territorial, not foraging or predator-related | no — out of scope, no reproduction modelled |
 | egg cackle, pre-lay calls | given by hens around oviposition | no — out of scope, no egg-laying modelled |
 | chick distress peep / pleasure trill | early-ontogeny repertoire, separate from the adult calls above | no — out of scope, no chicks/generational turnover modelled (see "not built at all" below) |
@@ -435,8 +439,11 @@ the gakel-call is a real, studied vocalization tied to exactly the right kind of
 an expectation (this feeder has food, food is good) being violated for the worse. It's
 a more honest foundation than inventing a bespoke "danger: bad food" signal from
 nothing, and it comes with real audience-sensitivity findings of its own to check the
-model against, the same way the alarm and food calls already do. It is not built —
-this is a proposal for T2's design, not a claim about the current model.
+model against, the same way the alarm and food calls already do. **Built as of E060**
+(T2 Stage 1): fires on the rising edge of falling sick from a contaminated feeder,
+decays like the food call's own discovery pulse (E053) rather than nagging for the
+whole, much longer sickness duration. Production only — audience-sensitivity, like the
+other calls, is left for learning to discover, not wired in.
 
 ### A scaffold — stands in for learning that doesn't work yet, off by default
 

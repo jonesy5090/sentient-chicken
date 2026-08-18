@@ -1,11 +1,12 @@
 # E060 — T2 Stage 1: build and validate the contamination/sickness/gakel scaffold
 
-> **Pre-registered. Design only — nothing in this file is built yet.** Sections 1–5
-> specify what will be built and how it will be validated; sections 6–8 are written
-> after implementation and the validation run, per this project's standing discipline.
-> This is Stage 1 of two: it builds and validates the innate scaffold with no learning
-> involved. Stage 2 (the actual L vs. C? contrast) is a separate, later pre-registration
-> that depends on this one passing.
+> **Pre-registered.** Sections 1–5 written and committed before implementation starts;
+> sections 6–8 after. This is **Stage 1 of four** (`docs/hypothesis.md`'s T2 node has
+> the full staging and the reason it isn't two): isolated, staged validation of each
+> scaffold piece with no learning involved. Stage 1b (population-level check, still no
+> learning), Stage 1c (calibrating `contamination_period_s`) and Stage 2 (the actual
+> L vs. C? contrast) are separate, later pre-registrations, each depending on the one
+> before it passing.
 
 ## 1. Parent hypothesis
 
@@ -116,12 +117,73 @@ PYTHONPATH=. .venv/bin/python -m pytest tests/ -q
 
 ## 6. Result
 
-_Not yet built._
+**Built exactly as specified in §5**: `food_contaminated`/`contamination_epoch`
+(`World`), `sick_t`/`sick_on`/`sick_call_drive`/`at_bad_food_prev` (`World`,
+`hawk_t`/`hawk_on` pattern), the four new `CoopConfig` fields, `CLS_SICK`
+(`N_VIS_CLASSES` 5→6), `IDX_SICKNESS_ONSET` (new interoceptive channel), `M_CALL_GAKEL`
+(`MOTOR_DIM` 11→12, `N_CALLS` 4→5, `OBS_DIM` 74→88), the mechanical mobility multiplier
+in `actuation.py`, and the two `hen/innate.py` reflexes (gakel-on-onset, turn-away-from-
+`CLS_SICK`).
+
+**All four falsifier checks pass** (`run/probes.py`, `PlasticConfig` disabled
+throughout — nothing here is learned):
+
+```
+PASS  sick immediately after eating contaminated food  contaminated -> sick=True, clean -> sick=False
+PASS  sickness slows movement                          distance sick=0.139 m vs healthy=0.930 m
+PASS  gakel call on falling sick, not continuous        early peak=0.82, late mean=0.08, still sick at step 500=True
+PASS  avoid a sick flockmate                            right-bias sick=+0.52 vs healthy=-0.11 (attraction)
+```
+
+Full ethogram: **12/12** (the four new probes plus all eight pre-existing ones,
+unaffected). Full test suite: **70/70** (four new unit tests plus the 66 pre-existing).
+
+**A real bug was found and fixed during validation, not before it — exactly why Stage 1
+exists.** The first implementation recomputed `food_contaminated` unconditionally every
+step from the current epoch, which is internally consistent for an unstaged simulation
+(the same epoch always resolves to the same feeder) but silently overrides any staged
+value — the "sick immediately after eating contaminated food" probe's own negative
+control (a clean patch should *not* cause sickness) caught it directly: both conditions
+came back `sick=True`. Fixed by tracking `contamination_epoch` and only rotating
+`food_contaminated` on a genuine transition, the same state-persists-until-an-event
+pattern `hawk_on`/`hawk_t` already use elsewhere in this file.
+
+**A second, unrelated bug was found by inspection, not by a failing test**: `viz/web/app.js`
+hardcoded the call-channel stride as `4` in two places. This would not have crashed —
+it would have silently misaligned which colour is shown for which call type the moment
+`N_CALLS` grew to 5, exactly the kind of quietly-wrong defect this project's own
+history (E019's three term-relocation bugs) warns is easy to miss. Fixed to derive the
+stride from `CALL_COLORS.length`; gakel gets its own colour (purple) in the viewer.
 
 ## 7. Interpretation
 
-_Pending §6._
+**The scaffold works as designed, in isolation, with no learning involved.** Every
+piece — the contamination mechanic, the physiological sickness state, the gakel
+discovery pulse, and the innate avoidance anchor — passes its own targeted falsifier,
+and the anchor specifically reverses gregariousness's attraction (turn_R 0.97 vs
+turn_L 0.79 for a sick flockmate, against turn_L 0.79 vs turn_R 0.50 for the identical
+healthy one) rather than merely damping it, the same standard `CLS_CROWDING` was held
+to.
+
+**What this does not yet show, and is not supposed to at this stage**: whether the
+scaffold behaves sensibly at the population level (does contamination actually get
+discovered often enough to matter, is the gakel call actually audible to nearby
+flockmates in a real flock, does the anchor produce measurable dispersal away from a
+sick hen the way `CLS_CROWDING` was shown to at the population level) — that is Stage
+1b, not this experiment. Nor does it say anything about whether `contamination_period_s`
+(currently a first-pass placeholder, 300s) is well-calibrated — that is Stage 1c. Both
+are named, not run, in `docs/hypothesis.md`'s T2 node.
 
 ## 8. Consequence
 
-_Pending §6._
+- **Stage 1 complete.** The scaffold exists, is unit-tested, and passes every
+  pre-registered check.
+- **`OBS_DIM` 74 → 88, `MOTOR_DIM` 11 → 12.** `docs/hypothesis.md`'s re-baselining
+  banner needs extending the same way E048/E051/E053 each did.
+- **Two real bugs closed as part of building this, not left for later**: the
+  contamination-staging bug (fixed, now unit-tested directly —
+  `test_contamination_only_changes_on_epoch_transition`) and the viz hardcoded-stride
+  bug (fixed, `CALL_COLORS.length`-derived).
+- **Next**: Stage 1b (population-level validation, no learning) and Stage 1c
+  (`contamination_period_s` calibration), both pre-registered separately, per
+  `docs/hypothesis.md`'s T2 staging.

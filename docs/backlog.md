@@ -208,15 +208,33 @@ to run alongside it, not the primary hypothesis.
 
 #### Staging, following this project's own rule about testing the instrument first
 
-**Stage 1** ([E060](experiments/E060-t2-contamination-scaffold.md)): build the world
-mechanic, the gakel call, the visual channel and the innate anchor; validate all four
-against the ethogram the same way every other innate behaviour in this project has been
-validated (`run/probes.py`), with no learning involved. Confirms the scaffold does what
-it is supposed to before any hypothesis is tested on top of it.
+Four stages, not two — the original plan (build, then test) skips exactly the
+population-level checks that caught real defects for H4 (E024's control) and the
+personal-space reflex (E025→E048), and T2's scaffold is bigger than either of those
+(a world mechanic, a call, a vision class and a reflex, all new together).
+
+~~**Stage 1**: build the world mechanic, the gakel call, the visual channel and the
+innate anchor; validate all four against the ethogram, no learning involved.~~ **Done
+([E060](experiments/E060-t2-contamination-scaffold.md)).** All four falsifier checks
+pass (12/12 ethogram, 70/70 suite). Two real bugs found and fixed during validation,
+not before it: contamination was being silently overwritten every step regardless of
+staging (caught by a probe's own negative control), and `viz/web/app.js` hardcoded a
+call-channel stride that would have misaligned rendering once `N_CALLS` grew.
+
+**Stage 1b** (not yet pre-registered): the same population-level check H4's audio
+channel and the personal-space reflex both needed before anyone could trust a headline
+number — full flock, no learning, and specifically: does contamination get discovered
+at a workable rate, is the gakel call actually audible to nearby flockmates (measured,
+not assumed — the E019/E024/E026 lesson), and does the anchor produce real dispersal
+away from a sick hen.
+
+**Stage 1c** (not yet pre-registered): calibrate `contamination_period_s` against the
+band named in §2 above — fast enough to matter, slow enough to propagate — a sweep,
+not a guessed constant.
 
 **Stage 2** (not yet pre-registered): the actual L vs. C? contrast — does the flock,
-with the validated scaffold and the H2f-style learning rule, converge toward one hen's
-mistake per rotation, as the original prediction states.
+with the validated and calibrated scaffold and the H2f-style learning rule, converge
+toward one hen's mistake per rotation, as the original prediction states.
 
 ### T3 — The safe corridor (stretch)
 

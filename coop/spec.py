@@ -6,9 +6,9 @@ vector. Nothing else should hardcode these offsets.
 
 The dimensions here are the whole thesis of the project made literal. A real chicken
 spends ~42M neurons on an optic tectum and ~182M on a cerebellum: 78% of its brain on
-vision and motor control. We replace those with a compact observation (`OBS_DIM`, see
-below for its history) and an 11-dimensional motor vector, and spend the savings
-elsewhere.
+vision and motor control. We replace those with a compact observation (`OBS_DIM`) and
+motor vector (`MOTOR_DIM`), see below for both dimensions' history, and spend the
+savings elsewhere.
 """
 
 from typing import NamedTuple
@@ -43,7 +43,16 @@ CLS_GROUND_THREAT = 3
 # contact; the reflex arc wires it to turn *away*, opposing CLS_FLOCKMATE's
 # turn-toward with a larger weight so repulsion wins once triggered.
 CLS_CROWDING = 4
-N_VIS_CLASSES = 5
+# Sick-flockmate visibility (T2, E060). Same `_bin_proximity` mechanism as
+# CLS_FLOCKMATE, gated to fire only for a hen currently in the sickness state
+# (`world.py`'s `sick_on`) -- a directly located visual referent for "something bad
+# happened here", the fix for the acoustic call's inability to carry *which* feeder
+# on its own (the same problem flagged for the ordinary food call). Paired with the
+# gakel call (below) the same way the aerial threat is paired with seeing a hawk:
+# the call broadcasts that something happened past visual range and gives learning a
+# stimulus to condition on, the visual channel supplies where.
+CLS_SICK = 5
+N_VIS_CLASSES = 6
 
 # Raw CLS_FLOCKMATE proximity above which CLS_CROWDING starts activating (both are
 # `1 - d/vision_range`, so 0.95 is `d < vision_range * 0.05` = 0.5 m at the default
@@ -64,7 +73,7 @@ VIS_HI = VIS_LO + N_BINS * N_VIS_CLASSES          # 48 lateral visual channels
 
 IDX_AERIAL = VIS_HI                                # 1 overhead channel
 
-INTERO_LO = IDX_AERIAL + 1                         # 5 interoceptive drives
+INTERO_LO = IDX_AERIAL + 1                         # 6 interoceptive drives
 IDX_HUNGER = INTERO_LO + 0
 IDX_THIRST = INTERO_LO + 1
 IDX_COLD = INTERO_LO + 2
@@ -80,7 +89,14 @@ IDX_ISOLATION = INTERO_LO + 3
 # world state computed in `world.py` (the same pattern `hunger`/`cold`/`vigour` already
 # use) rather than something `sensing.py` derives fresh each step.
 IDX_FOOD_ARRIVAL = INTERO_LO + 4
-INTERO_HI = INTERO_LO + 5
+# Sickness-onset pulse (T2, E060). Same rising-edge-plus-decay idiom as
+# IDX_FOOD_ARRIVAL, sourced from `world.py`'s `sick_call_drive`: spikes on newly
+# falling sick (eating from a contaminated patch), decays over
+# `CoopConfig.gakel_call_decay_s`. Drives the gakel call -- a discovery pulse, not
+# continuous distress calling for the whole sick duration, deliberately matching
+# E053's fix rather than repeating the defect it corrected for a different channel.
+IDX_SICKNESS_ONSET = INTERO_LO + 5
+INTERO_HI = INTERO_LO + 6
 
 IDX_WALL = INTERO_HI + 0                           # 4 somatic channels
 IDX_SPEED = INTERO_HI + 1
@@ -96,10 +112,10 @@ IDX_SPEED = INTERO_HI + 1
 IDX_WALL_ESCAPE_L = INTERO_HI + 2
 IDX_WALL_ESCAPE_R = INTERO_HI + 3
 
-AUDIO_LO = INTERO_HI + 4                           # 4 auditory call channels
-AUDIO_HI = AUDIO_LO + 4
+AUDIO_LO = INTERO_HI + 4                           # 5 auditory call channels
+AUDIO_HI = AUDIO_LO + 5
 
-OBS_DIM = AUDIO_HI                                 # 74 (59 pre-E025, 71 pre-E051, 73 pre-E053)
+OBS_DIM = AUDIO_HI                                 # 88 (59 pre-E025, 71 pre-E051, 73 pre-E053, 74 pre-E060)
 
 
 def vis_index(bin_idx: int, cls: int) -> int:
@@ -121,14 +137,21 @@ M_CALL_CONTACT = 7
 M_CALL_FOOD = 8
 M_CALL_AERIAL = 9
 M_CALL_GROUND = 10
-MOTOR_DIM = 11
+# Gakel call (T2, E060): a real, documented frustration / negative-expectation
+# vocalisation in Gallus gallus, not an invented "danger: bad food" call. Innate in
+# production like every other call here, fired on the sickness-onset pulse
+# (IDX_SICKNESS_ONSET). See README.md's call repertoire table for the biological
+# grounding and why this was chosen over inventing a bespoke signal.
+M_CALL_GAKEL = 11
+MOTOR_DIM = 12                                     # 11 pre-E060, first motor-dim change
 
-# The four call channels, in the order they appear in both the motor vector and the
+# The five call channels, in the order they appear in both the motor vector and the
 # auditory slice of the observation. Konishi (1963) deafened day-old chicks and they
-# developed the normal repertoire regardless, so production of all four is innate and
+# developed the normal repertoire regardless, so production of all five is innate and
 # hardwired in `hen/innate.py`. Only *usage* and *comprehension* are left to learn.
-CALL_MOTOR_IDX = (M_CALL_CONTACT, M_CALL_FOOD, M_CALL_AERIAL, M_CALL_GROUND)
-N_CALLS = 4
+CALL_MOTOR_IDX = (M_CALL_CONTACT, M_CALL_FOOD, M_CALL_AERIAL, M_CALL_GROUND,
+                  M_CALL_GAKEL)
+N_CALLS = 5
 
 # A silent hen must emit silence. Motor channels are sigmoids, so a bird at rest sits
 # at sigmoid(REST_BIAS) = 0.076 on *every* channel including the four call ones -- a
@@ -238,6 +261,30 @@ class CoopConfig(NamedTuple):
     # patch supports a couple of birds for roughly a minute"), so a hen who stays at a
     # feeder spends most of that minute silent on this channel, not continuously calling.
     food_call_decay_s: float = 4.0
+
+    # --- T2 contamination/sickness scaffold (E060) ------------------------------
+    # Which feeder is contaminated rotates on this period. First-pass placeholder,
+    # not yet calibrated -- `docs/backlog.md`'s own design note names this "a sweep,
+    # and finding it is itself a result" (Stage 1c, not yet run): the period needs to
+    # be fast enough that private information stays valuable, slow enough that it can
+    # actually propagate through the flock before rotating again.
+    contamination_period_s: float = 300.0
+    # How long a hen who eats contaminated food stays in the sickness state -- long
+    # enough to be a reliable, observable cue to flockmates (the whole point of
+    # CLS_SICK), short enough not to permanently cripple her. First-pass, matching the
+    # order of magnitude `hawk_dive_s`/`ground_pred_dwell_s` already use for a bounded
+    # event duration in this file.
+    sickness_duration_s: float = 60.0
+    # Fraction of normal mobility retained while sick. "Visibly slow / still", not a
+    # hard freeze like crouching -- 0.15 leaves a clearly-reduced but nonzero drift,
+    # applied mechanically in `actuation.py`, not mediated by the reflex arc or any
+    # learned weight: this is a physiological fact about being sick, the same way
+    # crouching mechanically zeroes locomotion regardless of what drove the crouch.
+    sickness_mobility_scale: float = 0.15
+    # Gakel-call discovery-pulse decay (IDX_SICKNESS_ONSET), matching
+    # food_call_decay_s's own reasoning and default: a bout, not continuous distress
+    # calling for the whole sickness duration.
+    gakel_call_decay_s: float = 4.0
 
     # Restores the pre-E019 audio path: emit the raw sigmoid (so a resting hen calls
     # at 0.076 on every channel) and sum voices linearly into a clip. It exists purely

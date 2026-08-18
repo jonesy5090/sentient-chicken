@@ -7,7 +7,8 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 
 const CALL_FLOOR = 0.0759;      // sigmoid(REST_BIAS); a silent hen still reads this
 const CALL_ON = CALL_FLOOR + 0.15; // threshold above the floor to count as "calling"
-const CALL_COLORS = [0xe0e0e0, 0x5ad86b, 0xff4d4d, 0xffb020]; // contact/food/aerial/ground
+// contact/food/aerial/ground/gakel (T2, E060) -- order must match spec.CALL_MOTOR_IDX.
+const CALL_COLORS = [0xe0e0e0, 0x5ad86b, 0xff4d4d, 0xffb020, 0x9b59b6];
 const STRUCK_FLASH_S = 0.4;
 
 // ---------------------------------------------------------------------------
@@ -240,8 +241,8 @@ function render(fi) {
     // Calling indicator: a small sphere above the hen, coloured by call type,
     // visible only while amplitude clears the rest-floor.
     let bestCh = -1, bestAmp = CALL_ON;
-    for (let c = 0; c < 4; c++) {
-      const a = calls[fi * callS + i * 4 + c];
+    for (let c = 0; c < CALL_COLORS.length; c++) {
+      const a = calls[fi * callS + i * CALL_COLORS.length + c];
       if (a > bestAmp) { bestAmp = a; bestCh = c; }
     }
     if (bestCh >= 0) {

@@ -123,9 +123,16 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     crowding = jnp.clip(
         (flock - spec.PERSONAL_SPACE_THRESHOLD) / (1.0 - spec.PERSONAL_SPACE_THRESHOLD),
         0.0, 1.0)
+    # Sick-flockmate visibility (T2, E025 location fix, E060). Same _bin_proximity
+    # computation as `flock`, gated to only currently-sick hens -- the visual referent
+    # that lets a flockmate locate *where* something bad happened, which the gakel
+    # call alone cannot carry (the same acoustic-location gap already flagged for the
+    # ordinary food call).
+    sick = _bin_proximity(w.pos, w.heading, w.pos,
+                          (1.0 - jnp.eye(h)) * w.sick_on[None, :], cfg)
 
-    vis = jnp.stack([food, water, flock, threat, crowding], axis=-1)  # (H, N_BINS, 5)
-    vis = vis.reshape(h, spec.N_BINS * spec.N_VIS_CLASSES)      # index = bin*5 + cls
+    vis = jnp.stack([food, water, flock, threat, crowding, sick], axis=-1)  # (H,N_BINS,6)
+    vis = vis.reshape(h, spec.N_BINS * spec.N_VIS_CLASSES)      # index = bin*6 + cls
 
     # --- Overhead channel, gated by posture ---
     d_hawk = jnp.linalg.norm(w.pos - w.hawk_pos[None, :], axis=-1)
@@ -136,8 +143,8 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     d_hens = jnp.linalg.norm(w.pos[:, None, :] - w.pos[None, :, :], axis=-1)
     d_hens = d_hens + jnp.eye(h) * 1e6
     isolation = jnp.clip(jnp.min(d_hens, axis=-1) / 3.0, 0.0, 1.0)
-    intero = jnp.stack([w.hunger, w.thirst, w.cold, isolation, w.food_call_drive],
-                       axis=-1)
+    intero = jnp.stack([w.hunger, w.thirst, w.cold, isolation, w.food_call_drive,
+                        w.sick_call_drive], axis=-1)
 
     # --- Somatic ---
     d_wall = jnp.min(jnp.minimum(w.pos, cfg.size - w.pos), axis=-1)

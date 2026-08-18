@@ -38,6 +38,11 @@ def apply_motor(w, motor: jax.Array, cfg: CoopConfig) -> Kinematics:
     # Crouching is freezing: it suppresses locomotion entirely. That is the trade the
     # hen makes -- invisible to the hawk, but not foraging and not going anywhere.
     mobility = jnp.clip(1.0 - crouch, 0.0, 1.0)
+    # Sickness (T2, E060): a physiological constraint, not a decision -- applied
+    # directly here the same way crouch's own mechanical effect is, not mediated by
+    # the reflex arc or any learned weight. "Visibly slow", not frozen solid like
+    # crouching: sickness_mobility_scale leaves a clearly-reduced but nonzero residual.
+    mobility = jnp.where(w.sick_on, mobility * cfg.sickness_mobility_scale, mobility)
     speed = mobility * (fwd * cfg.walk_speed + flee * cfg.flee_speed)
 
     heading = w.heading + turn * cfg.turn_rate * cfg.dt * mobility

@@ -230,9 +230,88 @@ def food_call_on_arrival_not_continuous(cfg: CoopConfig) -> Probe:
                 f"early peak={early:.2f} (want >0.5), late mean={late:.2f} (want <0.1)")
 
 
+def contamination_causes_sickness_onset(cfg: CoopConfig) -> Probe:
+    """T2 (E060). Eating from a contaminated patch must make her sick on the very
+    next step (rising edge, no delay); the same setup with a clean patch must not.
+    """
+    cfg = cfg._replace(n_hens=1, n_food=1)
+
+    def sick_after_one_bite(contaminated):
+        w = _staged(cfg, pos=[[10.0, 10.0]], heading=0.0, food=[[10.05, 10.0]], hunger=0.5)
+        w = w._replace(food_contaminated=jnp.array([contaminated]))
+        w_end, _ = _run(cfg, w, steps=3)
+        return bool(w_end.sick_on[0])
+
+    bad, clean = sick_after_one_bite(True), sick_after_one_bite(False)
+    return Probe("sick immediately after eating contaminated food", bad and not clean,
+                f"contaminated patch -> sick={bad}, clean patch -> sick={clean}")
+
+
+def sickness_slows_movement(cfg: CoopConfig) -> Probe:
+    """T2 (E060). Sickness is a physiological constraint applied mechanically in
+    `actuation.py`, not a reflex or learned choice -- a sick hen should travel much
+    less distance than an otherwise-identical healthy one under the same drives.
+    """
+    cfg = cfg._replace(n_hens=1)
+
+    def distance_travelled(sick):
+        w = _staged(cfg, pos=[[10.0, 10.0]], heading=0.0, hunger=0.9)
+        w = w._replace(sick_t=jnp.array([30.0 if sick else 0.0]),
+                       sick_on=jnp.array([sick]))
+        w_end, _ = _run(cfg, w, steps=300)
+        return float(jnp.linalg.norm(w_end.pos[0] - w.pos[0]))
+
+    d_sick, d_healthy = distance_travelled(True), distance_travelled(False)
+    passed = d_sick < d_healthy * 0.5
+    return Probe("sickness slows movement", passed,
+                f"distance sick={d_sick:.3f} m vs healthy={d_healthy:.3f} m")
+
+
+def gakel_call_on_falling_sick_not_continuous(cfg: CoopConfig) -> Probe:
+    """T2 (E060). The gakel call must be a discovery pulse on falling sick, matching
+    E053's fix for the food call -- not continuous distress calling for the whole,
+    much longer sickness duration.
+    """
+    cfg = cfg._replace(n_hens=1, n_food=1)
+    w = _staged(cfg, pos=[[10.0, 10.0]], heading=0.0, food=[[10.05, 10.0]], hunger=0.5)
+    w = w._replace(food_contaminated=jnp.array([True]))
+    w_end, tr = _run(cfg, w, steps=500)
+    early = float(jnp.max(tr.motor[:50, 0, spec.M_CALL_GAKEL]))
+    late = float(jnp.mean(tr.motor[400:, 0, spec.M_CALL_GAKEL]))
+    still_sick = bool(w_end.sick_on[0])   # decay must not just be recovery
+    passed = early > 0.5 and late < 0.1 and still_sick
+    return Probe("gakel call on falling sick, not continuous", passed,
+                f"early peak={early:.2f} (want >0.5), late mean={late:.2f} (want <0.1), "
+                f"still sick at step 500={still_sick} (want True)")
+
+
+def avoid_a_sick_flockmate(cfg: CoopConfig) -> Probe:
+    """T2 (E060) innate anchor. A sick, visible flockmate must produce a turning
+    bias *away*, reversing the ordinary gregariousness attraction to the same
+    flockmate when she is healthy -- checked as a within-setup contrast, not just a
+    sign, since CLS_SICK and CLS_FLOCKMATE co-fire on the same bin.
+    """
+    cfg = cfg._replace(n_hens=2)
+
+    def bias(sick):
+        w = _staged(cfg, pos=[[10.0, 10.0], [10.0, 11.5]], heading=0.0)
+        w = w._replace(sick_t=jnp.array([0.0, 30.0 if sick else 0.0]),
+                       sick_on=jnp.array([False, sick]))
+        _, tr = _run(cfg, w, steps=1)
+        return _mean(tr, spec.M_TURN_R) - _mean(tr, spec.M_TURN_L)   # positive = away
+
+    away_bias, toward_bias = bias(True), bias(False)
+    passed = away_bias > 0.0 and away_bias > toward_bias
+    return Probe("avoid a sick flockmate", passed,
+                f"right-bias sick={away_bias:+.2f} vs healthy={toward_bias:+.2f} "
+                f"(healthy should be negative -- attraction)")
+
+
 ALL = (peck_at_food, crouch_at_hawk, head_down_blindness, flee_from_fox,
        referential_alarm, contact_call_when_isolated, approach_flockmates,
-       food_call_on_arrival_not_continuous)
+       food_call_on_arrival_not_continuous, contamination_causes_sickness_onset,
+       sickness_slows_movement, gakel_call_on_falling_sick_not_continuous,
+       avoid_a_sick_flockmate)
 
 
 def run_all(cfg: CoopConfig = spec.DEFAULT_COOP):
