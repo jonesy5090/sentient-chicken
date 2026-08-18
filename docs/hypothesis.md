@@ -1248,6 +1248,62 @@ consequence, which remains separately open.
 
 ---
 
+## T2 — the rotating poisoned feeder: does the flock learn *which* feeder to avoid
+
+**Status: NOT STARTED** — fully specified following a design review
+([docs/backlog.md](../docs/backlog.md)'s T2 section has the complete mechanical design;
+[E060](experiments/E060-t2-contamination-scaffold.md) is Stage 1's pre-registration).
+
+**Claim:** a flock with a working communication channel converges toward roughly one
+hen's mistake per contamination rotation (the discoverer eats the bad feeder, gets
+sick, and warns the rest); a flock without one pays roughly N times that, each hen
+discovering independently. This is `docs/backlog.md` §3's original T2 design,
+unchanged in substance — what changed is that building it surfaced two real gaps that
+needed their own design rather than being assumed away.
+
+**What had to be added, in brief** (full reasoning in the backlog): no call in this
+model, or in the real-chicken literature this project already cites, is specific to
+bad food — the gap is filled with the gakel-call, a real, documented
+frustration/negative-expectation vocalisation, not an invented one. No contamination
+mechanic existed at all — added as a new `World` state, rotating on a period, invisible
+until eaten. Discovering the bad feeder produces a physiological consequence stated
+directly by design instruction: **visibly slowed movement for a duration, then
+recovery** — mechanical, like crouching, not a learned or reflex *choice*. The
+acoustic-only "which feeder" problem already flagged for the ordinary food call applies
+identically here, and is fixed the same way any referential-alarm case in this model
+is fixed: a call (marks that something happened, carries information past visual
+range) paired with a visual cue (`CLS_SICK`, a sick flockmate's location, the same
+mechanism `CLS_FLOCKMATE` already uses) that actually carries *where*.
+
+**Innate vs. learned, stated precisely — both, the same split this project has used
+throughout.** Contamination, the sickness state and its physiological slowdown, gakel
+production, the `CLS_SICK` sense, and a proposed innate turn-away-from-`CLS_SICK`
+reflex (the anchor) are all wired, none of it learned — matching how every other
+reflex, sense and call in this model is built. **What is learned, and is the entire
+point of the task**: whether the flock can turn that innate anchor's momentary
+reaction into a *durable*, *location-specific* avoidance that outlasts the visible cue
+— continuing to avoid the feeder after the sick hen has recovered and moved on. That is
+precisely the "build a new, durable, referential contingency" claim H2f's own result
+(E055–E057) showed this project's only working learning mechanism can only do by
+*amplifying* an anchor, never from nothing (E058, E059) — so the anchor here is not
+optional scaffolding, it is the specific, tested precondition for T2 to have any chance
+of succeeding at all, chosen for that reason and stated as such.
+
+**Falsifier:** with the scaffold validated (Stage 1) and the H2f-style learning rule
+applied, if `L` (intact channel) does not out-perform `C?` (shuffled/yoked, matching
+H4's own control design) on flock-wide sickness per rotation, the anchor was not enough
+— either the durability claim itself is beyond this rule (consistent with, not
+surprising given, E058/E059), or the scaffold needs a stronger or differently-shaped
+anchor. Not a falsifier of H2f, which already stands on its own, independent evidence.
+
+**Staging.** Stage 1 (E060): build and validate the scaffold — the world mechanic, the
+call, the visual channel, the anchor — against the ethogram, no learning involved,
+exactly the "test the instrument before the hypothesis" discipline this project treats
+as its most expensive lesson. Stage 2 (not yet pre-registered): the L vs. C? contrast
+itself, once Stage 1 confirms the scaffold behaves as designed.
+
+---
+
 ## H5 — compositional structure requires a transmission bottleneck
 
 **Status: NOT STARTED** (phase 4+)
