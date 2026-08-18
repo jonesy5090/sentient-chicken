@@ -340,13 +340,14 @@ new home.
   still needs a crowding/individual-distance channel. Depletion stayed on regardless and
   turned out to have a large, previously unmeasured side effect on foraging baselines at
   20+ minutes (E037) — see the new item below.
-- **Audit `food_deplete_rate`'s effect on other tree results.** E037 found "fixed
-  (innate only)" hens' `fed %` collapse from 6.6% (E020/E021, pre-depletion) to ~2.5%
-  over a 20-minute run at 16 hens — individual patches driven to ~1% remaining, well past
-  what E025's own 6-minute diagnostics saw. Not yet checked: whether H4's 10-minute
-  windows (E026–E030) are short enough for this to be negligible, or whether other
-  results relying on `spec.DEFAULT_COOP`'s default since commit `f659745` are quietly
-  running in a hungrier world than intended.
+- ~~**Audit `food_deplete_rate`'s effect on other tree results.**~~ **Mostly done.**
+  H2 (E037), H2e/E032/E033 (E038) and H4 (E039) all checked directly. Two different
+  outcomes: real and status-changing for H2e, not consequential for H4 despite depletion
+  being non-negligible at H4's own 10-minute duration too (one feeder to 4.3% by minute
+  10). Still open: whether anything beyond `n_hens=16`/`food_deplete_rate` default
+  (e.g. other durations, other flock sizes, `run/audience.py`'s rearing phase for H3
+  results not yet built) needs the same treatment — not exhaustively swept, only the
+  three highest-stakes results checked.
 
   ~~**Includes this session's own merged work.** E032/E033 (H2e) and E036 (H2f) both used
   20-minute rearing at `n_hens=16` with no `food_deplete_rate` override... this has not
