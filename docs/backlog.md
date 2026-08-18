@@ -340,34 +340,20 @@ new home.
   still needs a crowding/individual-distance channel. Depletion stayed on regardless and
   turned out to have a large, previously unmeasured side effect on foraging baselines at
   20+ minutes (E037) — see the new item below.
-- ~~**Audit `food_deplete_rate`'s effect on other tree results.**~~ **Mostly done.**
-  H2 (E037), H2e/E032/E033 (E038) and H4 (E039) all checked directly. Two different
-  outcomes: real and status-changing for H2e, not consequential for H4 despite depletion
-  being non-negligible at H4's own 10-minute duration too (one feeder to 4.3% by minute
-  10). Still open: whether anything beyond `n_hens=16`/`food_deplete_rate` default
-  (e.g. other durations, other flock sizes, `run/audience.py`'s rearing phase for H3
-  results not yet built) needs the same treatment — not exhaustively swept, only the
-  three highest-stakes results checked.
+- ~~**Audit `food_deplete_rate`'s effect on other tree results.**~~ **Closed — all four
+  highest-stakes results checked directly.** H2 (E037): confound real, number corrected.
+  H2e/E032/E033 (E038): confound real, sign reversed, status reverted `REFUTED` →
+  `UNDER TEST`. H4 (E039): confound present at this duration too (one feeder to 4.3% by
+  minute 10) but not consequential — result holds, significant even at reduced n. H2f/E036
+  (E040): also not consequential — result reproduces to three decimal places. Two
+  affected, two not; checking each was the only way to know which, and reasoning by
+  analogy from one result to another was tried (for H4 and H2f both) and worked for
+  neither — both got checked anyway rather than left on the argument.
 
-  ~~**Includes this session's own merged work.** E032/E033 (H2e) and E036 (H2f) both used
-  20-minute rearing at `n_hens=16` with no `food_deplete_rate` override... this has not
-  been checked, only argued... Worth a dedicated check before leaning further on either
-  result, not a re-litigation performed here.~~
-
-  **E032/E033 checked (E038): the contrast was NOT robust, contrary to the argument
-  above.** A clean, equally-powered 24-seed re-measurement reversed the interaction's
-  sign (+0.390, t=2.55 → −0.890, t=1.60, not significant). H2e reverted from `REFUTED` to
-  `UNDER TEST`; E032 and E033 corrected in place. The "shared across compared branches"
-  reasoning turned out to be wrong, or at least insufficient, for the *outer*
-  trained-vs-fixed comparison, which is not protected by the intact/lesioned forking that
-  shields the *inner* one — see E038 §2 for why.
-
-  **E036 (H2f) reasoned about, still not directly checked**, though on firmer ground:
-  its primary metric comes from a short, deterministic staged assay run after rearing,
-  not from the depleting world directly, and its own data shows stability across a 15×
-  duration range (2-min smoke test comprehension 0.1899 vs. the 30-min full run's 0.1921).
-  That is evidence of low exposure, not a direct audit of the kind E038 ran. Still owed if
-  H2f's falsifier result is ever leaned on for something consequential.
+  **Genuinely still open**, narrower than before: whether anything beyond
+  `n_hens=16`/20–30 minute durations (other flock sizes, other durations, any future H3
+  harness) needs the same treatment. Not exhaustively swept — the four results actually
+  in the tree were the ones checked.
 
 ## 8. Open items from experiments
 

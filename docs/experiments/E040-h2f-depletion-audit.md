@@ -47,12 +47,42 @@ python -m run.audience --minutes 30 --seeds 8 --scaffold-2x2 --food-deplete-rate
 
 ## 6. Result
 
-*Pending — filled in after the run, not before.*
+8 matched seeds, 16 hens, 30 min rearing, `food_deplete_rate=0`. Wall clock 1096 s.
+
+```
+condition                   audience  compreh.  strikes/hen   hunger  synapses
+--------------------------------------------------------------------------------
+N   (bare, fixed)             +0.003   -0.0001       432.45    0.334     36319
+S   (scaffold, fixed)         +0.066    0.1921       384.81    0.321     36319
+N+L (bare, learning)          +0.001   -0.0001       595.45    0.310     35722
+S+L (scaffold, learning)      +0.061    0.1894       417.77    0.329     35724
+
+PRIMARY: audience effect, S+L - S     -0.005 +/- 0.003 SE  t=1.53  need 2.37  NOT SIGNIFICANT
+  (E036's depleted-world result: -0.005 +/- 0.002, t=2.25)
+
+MANIPULATION CHECK: comprehension scaffold 0.1921 (E036: 0.1921 and 0.1894 — identical)
+```
+
+**The falsifier does not fire.** The mean is identical to E036's to three decimal places
+(−0.005 both), same sign, comparable SE, not significant in either world. The
+manipulation check and the innate `S` floor (+0.066, matching E036 and this file's own
+earlier smoke test) both reproduce exactly.
 
 ## 7. Interpretation
 
-*Pending §6.*
+**H2f's result is robust to the confound that broke H2e, joining H4.** Unlike E032/E033
+(sign reversed, status changed), E036's finding holds essentially unchanged with
+`food_deplete_rate` removed. The structural reasoning in §2 — the primary metric comes
+from a short staged assay computed after rearing, not from the depleting world directly
+— appears to be the right explanation this time, and now has a direct check behind it
+rather than only the duration-stability argument.
 
 ## 8. Consequence
 
-*Pending §6.*
+- **H2f's status and evidence are unchanged.** No correction needed to E018/E036.
+- **The `food_deplete_rate` audit trail is now complete for all four results it was
+  raised against**: H2 (E037, confound real, number corrected), H2e (E038, confound
+  real, status reverted), H4 (E039, confound present but not consequential), H2f (E040,
+  confound present but not consequential). Two affected, two not — checking each was
+  the only way to know which.
+- **`docs/backlog.md`'s audit item can close.**
