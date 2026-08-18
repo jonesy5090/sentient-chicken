@@ -248,10 +248,15 @@ def main() -> None:
                     help="seconds between hawk passes; the default coop's 900 gives "
                          "~1.3 passes in 20 min, so the whole H4 signal would rest on "
                          "~16 s of a 1200 s run")
+    ap.add_argument("--food-deplete-rate", type=float, default=spec.DEFAULT_COOP.food_deplete_rate,
+                    help="E037/E038 found this confounds H2's harness at 16 hens/20 min; "
+                         "pass 0.0 to check whether L vs C? is exposed too. The cache key "
+                         "already hashes the whole cfg, so this needs no cache changes.")
     args = ap.parse_args()
 
     cfg = spec.DEFAULT_COOP._replace(n_hens=args.hens,
-                                     hawk_period_s=args.hawk_period)
+                                     hawk_period_s=args.hawk_period,
+                                     food_deplete_rate=args.food_deplete_rate)
     seconds = args.minutes * 60.0
     seeds = list(range(args.seed_offset, args.seed_offset + args.seeds))
 
