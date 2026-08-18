@@ -1,7 +1,8 @@
 """The coop: state, reset, and one step of world dynamics.
 
 The environment is deliberately impoverished. That is the point -- it is what licenses
-replacing the optic tectum and cerebellum with a 59-dim vector and 11 motor channels.
+replacing the optic tectum and cerebellum with a compact observation vector (`OBS_DIM`)
+and 11 motor channels.
 But it is not *arbitrarily* impoverished: it contains exactly the pressures the later
 phases need, in particular a foraging/vigilance conflict (see `sensing.py`) and
 predators that arrive without warning.

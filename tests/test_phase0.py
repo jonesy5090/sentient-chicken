@@ -11,7 +11,7 @@ import jax.numpy as jnp
 import pytest
 
 from coop import sensing, spec, world
-from hen import brain, connectome, neurons, regions
+from hen import brain, connectome, innate, neurons, regions
 from run import probes, simulate
 
 CFG = spec.DEFAULT_COOP
@@ -118,6 +118,47 @@ def test_head_down_gates_the_aerial_channel(flock):
         w._replace(head_down=jnp.ones((CFG.n_hens,))), CFG)[0, spec.IDX_AERIAL]
     assert float(up) > 0.5
     assert float(down) == pytest.approx(0.0, abs=1e-6)
+
+
+# --- Personal space (E025) -------------------------------------------------
+
+def test_crowding_channel_activates_only_inside_personal_space(flock):
+    """CLS_CROWDING must stay exactly zero at ordinary flocking distance and turn on
+    once a flockmate is well inside PERSONAL_SPACE_THRESHOLD.
+
+    Isolates hens 0 and 1 and parks the rest of the flock far away, since with 16
+    hens at their reset positions some other bird could otherwise be close enough
+    to hen 0 to contaminate the reading.
+    """
+    w, _, _ = flock
+    far_corner = jnp.full((CFG.n_hens - 2, 2), CFG.size - 0.5)
+    pos = w.pos.at[0].set(jnp.array([5.0, 5.0])).at[2:].set(far_corner)
+    heading = jnp.zeros((CFG.n_hens,))
+
+    def max_crowding(sep):
+        p = pos.at[1].set(jnp.array([5.0 + sep, 5.0]))
+        obs = sensing.observe(w._replace(pos=p, heading=heading), CFG)
+        return max(float(obs[0, spec.vis_index(b, spec.CLS_CROWDING)])
+                  for b in range(spec.N_BINS))
+
+    assert max_crowding(2.0) == pytest.approx(0.0, abs=1e-6)   # ordinary flocking range
+    assert max_crowding(0.2) > 0.5                            # well inside contact range
+
+
+def test_personal_space_reflex_dominates_attraction_at_contact():
+    """The repulsion weight must exceed the attraction weight, or CLS_CROWDING only
+    damps CLS_FLOCKMATE's pull instead of reversing it -- a linear reflex arc cannot
+    produce attract-then-repel any other way. See the derivation in hen/innate.py.
+    """
+    r = innate.reflex_matrix()
+    for b in innate._LEFT:
+        attract = r[spec.M_TURN_L, spec.vis_index(b, spec.CLS_FLOCKMATE)]
+        repel = r[spec.M_TURN_R, spec.vis_index(b, spec.CLS_CROWDING)]
+        assert repel > attract
+    for b in innate._RIGHT:
+        attract = r[spec.M_TURN_R, spec.vis_index(b, spec.CLS_FLOCKMATE)]
+        repel = r[spec.M_TURN_L, spec.vis_index(b, spec.CLS_CROWDING)]
+        assert repel > attract
 
 
 # --- Null control ---------------------------------------------------------

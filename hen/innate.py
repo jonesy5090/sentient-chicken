@@ -113,6 +113,18 @@ def reflex_matrix(auditory_scaffold: bool = False,
         w(spec.M_TURN_R, spec.vis_index(b, spec.CLS_FLOCKMATE), 1.2)
     w(spec.M_FORWARD, spec.IDX_COLD, 2.5)
 
+    # --- Personal space (E025). Turn *away* from a flockmate once she is well inside
+    # PERSONAL_SPACE_THRESHOLD -- the mirror of the attraction wiring above, on the
+    # opposite turn channel. Weight must exceed the attraction weight (1.2) for
+    # repulsion to actually win at close range rather than merely damping attraction;
+    # 4.0 gives a clear margin, not a marginal one, matching how every other reflex
+    # weight in this file is chosen. Below PERSONAL_SPACE_THRESHOLD, CLS_CROWDING is
+    # exactly zero, so this adds nothing to ordinary flocking or huddling distances.
+    for b in _LEFT:
+        w(spec.M_TURN_R, spec.vis_index(b, spec.CLS_CROWDING), 4.0)
+    for b in _RIGHT:
+        w(spec.M_TURN_L, spec.vis_index(b, spec.CLS_CROWDING), 4.0)
+
     # --- Distress: an isolated chick calls until someone answers ---
     w(spec.M_CALL_CONTACT, spec.IDX_ISOLATION, 5.0)
     w(spec.M_CALL_CONTACT, spec.IDX_COLD, 2.0)
