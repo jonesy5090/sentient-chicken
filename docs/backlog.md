@@ -221,16 +221,23 @@ not before it: contamination was being silently overwritten every step regardles
 staging (caught by a probe's own negative control), and `viz/web/app.js` hardcoded a
 call-channel stride that would have misaligned rendering once `N_CALLS` grew.
 
-**Stage 1b** (not yet pre-registered): the same population-level check H4's audio
-channel and the personal-space reflex both needed before anyone could trust a headline
-number — full flock, no learning, and specifically: does contamination get discovered
-at a workable rate, is the gakel call actually audible to nearby flockmates (measured,
-not assumed — the E019/E024/E026 lesson), and does the anchor produce real dispersal
-away from a sick hen.
+~~**Stage 1b**: the same population-level check H4's audio channel and the
+personal-space reflex both needed before anyone could trust a headline number — full
+flock, no learning, and specifically: does contamination get discovered at a workable
+rate, is the gakel call actually audible to nearby flockmates (measured, not assumed —
+the E019/E024/E026 lesson), and does the anchor produce real dispersal away from a sick
+hen.~~ **Done ([E061](experiments/E061-t2-population-scaffold-check.md)).** All three
+checks pass at 16 hens: 22.3 discovery events / 20 min, gakel audibility real (11×
+heard\|sick vs. heard\|not), anchor dispersal real (5.44m vs. 2.71m stripped). One
+caveat recorded, not a failure: the sender-shuffle control retains 82% of intact's
+correlation, the same architectural shape E024 found for the alarm channel — the flock
+clumps, so it isn't specific to gakel and doesn't affect T2's claim.
 
 **Stage 1c** (not yet pre-registered): calibrate `contamination_period_s` against the
 band named in §2 above — fast enough to matter, slow enough to propagate — a sweep,
-not a guessed constant.
+not a guessed constant. E061's discovery-rate check (22.3 events/20min at the untuned
+300s default) suggests this may already be in a workable range, but Stage 1c should
+measure across a range rather than assume that.
 
 **Stage 2** (not yet pre-registered): the actual L vs. C? contrast — does the flock,
 with the validated and calibrated scaffold and the H2f-style learning rule, converge
