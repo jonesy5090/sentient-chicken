@@ -424,10 +424,24 @@ new home.
   throughput unaffected (dense-with-mask architecture, density doesn't change compute),
   H2's contrast not broken at 8 seeds (not itself evidence of anything — see E041's own
   caveat about this project's block-variance lesson). **The strongest H2d lever found so
-  far, still not adopted as a default.** Next: a properly powered (24-seed, pooled)
+  far, still not adopted as a default.** ~~Next: a properly powered (24-seed, pooled)
   version of the H2 contrast at full density if this is going to be relied on, and/or
   testing whether it actually unblocks H2c's associative comprehension mechanism — which
-  is the thing H2d was blocking in the first place and hasn't been re-tested since.
+  is the thing H2d was blocking in the first place and hasn't been re-tested since.~~
+
+  **The comprehension check is done (E042): it doesn't, or not by enough to tell.**
+  Comprehension at full density vs default, t=1.17, not significant; absolute
+  comprehension in both conditions (0.005–0.007) is ~1/30th the auditory scaffold's
+  hand-wired 0.19. `\|W_pred\|` grew to under 1% of its cap in every condition — at 20
+  minutes' rearing and H4-standard predator density, the rule barely updated at all,
+  which is at least as plausible a bottleneck as remaining separability. **New owed
+  item**: isolate exposure/duration from separability before pushing density further —
+  e.g. a longer rearing window or higher predator density (E009 needed up to 90× to get
+  comparable co-occurrence with a single seed) on the *existing* default-density
+  connectome, to see whether `\|W_pred\|` ever moves meaningfully given enough exposure.
+  Cheap diagnostic first, properly powered rearing run only if that's promising — the
+  same two-tier discipline as everything else this session. **The 24-seed H2-contrast
+  replication is still separately owed**, unaffected by this.
 
 - ~~**Is the learning rule the wrong *kind*?** (E017, open — no node yet.)~~ **Has a
   node now: H2f**, opened by E036's falsifier firing. One correction to this item's own

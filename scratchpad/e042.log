@@ -1,0 +1,17 @@
+E042 -- comprehension after the E041 density fix, 8 seeds, 20 min rearing, hawk every 20s
+
+condition                                   comp before  comp after  |W_pred|
+no assoc, default density                       -0.0001     -0.0005   0.00000
+assoc, default density (E009 replication)       -0.0001      0.0047   0.00058
+assoc, full density (E041 fix)                  -0.0001      0.0069   0.00047
+
+PRIMARY -- comprehension after rearing, full density vs default density (both assoc):
+  +0.0023 +/- 0.0019  t=1.17  threshold(df=7)=2.365  -> not significant
+
+SECONDARY -- does full-density association exceed the no-association control:
+  +0.0074 +/- 0.0027  t=2.73  threshold(df=7)=2.365  -> SIGNIFICANT
+
+SECONDARY -- default-density association vs no-association (E009 replication check):
+  +0.0052 +/- 0.0026  t=2.01  threshold(df=7)=2.365  -> not significant
+
+wall clock: 670 s
