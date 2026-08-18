@@ -953,6 +953,29 @@ routing change, not a missing precondition, but potentially the entire *class* o
 That is a larger claim than anything else currently `UNDER TEST` and needs its own
 falsifiable test before anything downstream assumes it.
 
+**First attempt at the falsifier's rule, and it broke before it could be tested**
+([E055](experiments/E055-hebbian-readout.md)). A non-reward-gated ("Hebbian") variant
+of the readout update (`hen/plasticity.py`'s `hebbian_readout`) produced a numerically
+significant audience effect (+0.096, t=2.63) — but the mandatory diagnostic this
+project's own discipline requires before trusting a surprising positive found it was an
+artifact: cortical drive reached 2.0–2.7× reflex magnitude (the documented "behaviour
+gets worse" regime), hunger nearly doubled, and every calling channel rose regardless of
+audience condition. Cause identified: `W_out` has no synaptic-scaling correction, unlike
+`W` — the reward-modulated rule's zero-mean-over-time property had been incidentally
+keeping growth bounded, and removing the reward gate removed that too.
+
+**Second attempt, with the missing stabiliser added, is more targeted but still does not
+clear the falsifier as specified** ([E056](experiments/E056-hebbian-readout-scaled.md)).
+`readout_scaling_strength` (unit-tested to actually bound growth) fixed the cortical/
+reflex ratio (now 0.75–0.9×, not 2–3×) and roughly halved the hunger cost — but
+`alarm_alone` still rose 30–40% from baseline instead of staying flat, mixed with a
+larger, genuinely disproportionate rise in `alarm_audience`. Applying the pre-registered
+sanity checks literally rather than generously: one of three fails, so the falsifier
+does not clear. **Status stays `UNDER TEST`** — neither confirmed (not clean) nor
+refuted (not simply broken, unlike E055) — with a specific next diagnostic identified:
+separate the audience-specific component from the general-elevation component directly,
+rather than re-running with adjusted constants.
+
 ---
 
 ## H4 — an intact channel beats a shuffled one on a task requiring private information
@@ -1233,6 +1256,8 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E056 | **Bounded Hebbian readout: more targeted than E055, still doesn't clear the falsifier as specified.** `readout_scaling_strength=0.3` fixed E055's runaway (cortical/reflex ratio 2-2.7x -> 0.75-0.9x, hunger 0.728 -> 0.546). Audience effect **+0.2324 ± 0.0051, t=45.59** — but the mandatory diagnostic found `alarm_alone` rose 30-40% from baseline (should stay flat per the pre-registered check) alongside a larger, genuinely disproportionate rise in `alarm_audience`. One of three sanity checks fails, applied literally. H2f stays `UNDER TEST`: not confirmed (not clean), not refuted (not simply broken like E055). Next step identified: separate the audience-specific component from the general-elevation one directly, not another constant sweep. |
+| E055 | **First attempt at H2f's own falsifier — broke before it could be tested.** A non-reward-gated ("Hebbian") `W_out` update produced a "significant" audience effect (+0.096, t=2.63) that the mandatory diagnostic (this project's own discipline: a surprising positive gets checked before trusted) found was an artifact: cortical drive 2.0-2.7x reflex magnitude (the documented "behaviour gets worse" regime from `eta_out`'s own docstring), hunger nearly doubled (0.39->0.73), every calling channel elevated regardless of audience. Cause: `W_out` has no synaptic-scaling correction, unlike `W` — the reward-modulated rule's zero-mean property had been incidentally bounding growth, and removing the reward gate removed that too. Fixed in E056. |
 | E054 | **Food-call saturation was not crowding out pallium capacity for the alarm channel — a clean null, not a repeat of an old one.** Same instrument as E042 (comprehension after rearing), density held at E041's fix throughout, only `legacy_food_call` varied: discovery pulse (E053) vs. recreated pre-fix continuous calling. **−0.0005 ± 0.0007, t=0.70**, not significant, wrong sign if anything. First test of a *competing-channel capacity* account rather than the alarm channel's own representation (unlike E042–E044); it fails the same way. H2c stays `NOT STARTED`; strengthens the case for H2f (rule-kind) over any remaining representational precondition. Single 8-seed block, not independently replicated — a null consistent with four prior experiments' worth of the same pattern, judged not to need the ~490s a second block would cost. |
 | E053 | **Food call fixed to fire on discovery, not continuous sight — closes a long-standing backlog item.** Added `IDX_FOOD_ARRIVAL`: a rising-edge pulse on newly arriving at a food patch (same idiom as `strike_event`), decaying over 4s regardless of dwell time, replacing raw `CLS_FOOD` sight-gating on `M_CALL_FOOD`. `OBS_DIM` 73 → 74. Flock-wide food-calling fraction dropped **42.8% → 4.2%**, no hen left above 50% of steps calling (was 4/16). New probe and unit test both pass; full ethogram (8/8) and test suite (62/62) unaffected. Production stays innate and audience-blind, matching the project's existing design — only the temporal trigger changed. Sets up [E054](experiments/E054-food-call-saturation-and-pallium-capacity.md): does removing this saturation change anything for the rarer alarm channel's representation (H2c/H2d)? |
 | E051 | **Wall avoidance: `IDX_WALL` was sensed but never wired to a reflex — nothing turned a hen away from a boundary once some other drive carried her there.** Found via the offline-replay viewer (`viz/`, PR #16): a hen visibly stuck at the edge. Added `IDX_WALL_ESCAPE_L/R`, two directional channels derived from the existing wall-proximity signal and the nearest wall's outward normal, wired to turn the hen away (weight 3.0, no forward suppression — the kinematics let turning happen independent of forward drive, avoiding a deadlock an undirected suppression would cause). `OBS_DIM` 71 → 73. Ablation (3 seeds, 10-min, matching a typical `run.record` session): mean hen-steps near a wall 0.50% → 0.11%, longest single continuous dwell **22.6s → 2.3s** — a ~10× cut in worst-case pinning, the number that determines visibility in a recording. Isolated single-hen check confirms the mechanism directly (180°→0° turn, back out to 0.43 m in ~3.6s). Exposed (not caused) a pre-existing marginal-seed test fragility, fixed by trying a short seed list instead of one. |

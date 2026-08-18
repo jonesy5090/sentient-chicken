@@ -129,6 +129,33 @@ class PlasticConfig(NamedTuple):
     tau_lag: float = 1.5            # seconds; bridges cue to outcome
     pred_max: float = 0.05          # per-synapse cap on the top-down projection
 
+    # Readout rule kind (H2f, E055). `W_pred` above is already non-reward-gated, but it
+    # only ever augments *perception* (it writes onto the observation the reflex arc
+    # reads) -- it has no route to a motor decision like "call more when someone is
+    # listening", which only `W_out` can produce. H2f's falsifier calls for a rule
+    # "closer to Pavlovian association" tested on the same task the reward-modulated
+    # one failed; this is that rule applied to the one pathway that could actually
+    # move the needle on it. When True, `consolidate()` drops the reward-modulation
+    # factor `m` from the readout update entirely (replaced with a constant), turning
+    # it into unsupervised Hebbian/covariance learning: whatever motor pattern
+    # reliably co-occurs with a cortical state gets wired in, regardless of whether it
+    # helped. Off by default -- the instrumental rule is the one every other
+    # experiment in this tree assumes.
+    hebbian_readout: bool = False
+
+    # Readout stability (E055 follow-up). `W` gets a synaptic-scaling correction
+    # pulling its row sums back toward the innate connectome (below); `W_out` never
+    # has. Under the reward-modulated rule this went unexercised in practice -- a
+    # reward-prediction error averages toward zero over time, which happened to keep
+    # readout growth bounded without anyone relying on it. `hebbian_readout` removes
+    # that incidental check and nothing replaces it: E055 measured cortical drive
+    # reaching 2-2.7x reflex magnitude, the documented "behaviour gets worse" regime,
+    # with every calling channel elevated regardless of condition -- a broken readout,
+    # not a targeted policy. This applies the same correction `W` already has to
+    # `W_out`. Off by default (0.0), so it changes nothing for any existing result;
+    # opt in alongside `hebbian_readout` to actually test H2f's falsifier cleanly.
+    readout_scaling_strength: float = 0.0
+
     # Structural growth
     growth_enabled: bool = True
     growth_interval: int = 10_000   # steps (100 s of chicken time)
@@ -152,12 +179,14 @@ class PlasticState(NamedTuple):
     baseline: jax.Array    # (H,) running expectation of reward
     age_s: jax.Array       # scalar, seconds since hatch
     innate_row_sum: jax.Array   # (H, N) reference total input weight per neuron
+    innate_row_sum_out: jax.Array  # (H, MOTOR_DIM) same, for W_out (E055 follow-up)
     budget: jax.Array      # scalar, maximum live synapses per hen
 
 
 def initial_state(p: BrainParams, n_hens: int, pc: PlasticConfig) -> PlasticState:
     n = p.b.shape[0]
     row_sum = jnp.sum(jnp.abs(p.W), axis=2)
+    row_sum_out = jnp.sum(jnp.abs(p.W_out), axis=2)
     return PlasticState(
         z_fast=jnp.zeros((n_hens, n)),
         z_slow=jnp.zeros((n_hens, n)),
@@ -170,6 +199,7 @@ def initial_state(p: BrainParams, n_hens: int, pc: PlasticConfig) -> PlasticStat
         baseline=jnp.zeros((n_hens,)),
         age_s=jnp.array(0.0),
         innate_row_sum=row_sum,
+        innate_row_sum_out=row_sum_out,
         budget=jnp.sum(p.mask) * pc.synapse_budget,
     )
 
@@ -336,15 +366,35 @@ def consolidate(p: BrainParams, ps: PlasticState, m: jax.Array,
     # Motor readout: this is how the pallium earns influence over behaviour. Without
     # it the cortical pathway stays near-silent forever and nothing it learns can
     # reach a muscle.
+    #
+    # `m_out` is where H2f's alternative rule lives (E055): with `hebbian_readout`,
+    # the reward-modulation factor is replaced by a constant, so the update no longer
+    # asks "did this help" -- only "did this pre/post pair deviate from its own mean
+    # together". The covariance form (dz_motor, dz_slow are both already deviations
+    # from their slow means) still lets the update go negative for anti-correlated
+    # pairs; what changes is that helpfulness no longer gates it either way.
     n_motor = p.W_out.shape[-1]
-    dw_out = (eta_out * m[:, None, None]
+    m_out = jnp.ones_like(m) if pc.hebbian_readout else m
+    dw_out = (eta_out * m_out[:, None, None]
               * dz_motor[:, :, None] * dz_slow[:, None, -n_motor:])
+    # Readout scaling (E055 follow-up), the same correction `W` gets above, applied
+    # to `W_out`. Off by default: only relevant once something removes the reward
+    # gate's incidental stabilising effect, and changing this pathway's dynamics for
+    # every existing reward-modulated result is exactly the silent-comparison-basis
+    # change this project's conventions exist to avoid.
+    w_out_raw = p.W_out + dw_out
+    if pc.readout_scaling_strength > 0.0:
+        row_sum_out = jnp.sum(jnp.abs(w_out_raw), axis=2)
+        correction_out = 1.0 + pc.readout_scaling_strength * (
+            ps.innate_row_sum_out / (row_sum_out + 1e-6) - 1.0)
+        w_out_raw = w_out_raw * correction_out[:, :, None]
+
     # Dale's law holds here too. This was a symmetric clip until E027, so learning could
     # walk a motor-stub neuron's outgoing weight across zero and turn an inhibitory cell
     # excitatory -- the precise thing the invariant forbids, on the one pathway that
     # reaches a muscle. `_enforce_dale` expects the presynaptic sign per source column,
     # which for the readout is the motor stub's slice of `dale`.
-    w_out = _enforce_dale(p.W_out + dw_out, p.dale[-n_motor:], pc.w_max)
+    w_out = _enforce_dale(w_out_raw, p.dale[-n_motor:], pc.w_max)
 
     w_pred = p.W_pred
     if pc.pred_enabled:
