@@ -6,8 +6,9 @@ vector. Nothing else should hardcode these offsets.
 
 The dimensions here are the whole thesis of the project made literal. A real chicken
 spends ~42M neurons on an optic tectum and ~182M on a cerebellum: 78% of its brain on
-vision and motor control. We replace those with a 59-dimensional observation and an
-11-dimensional motor vector, and spend the savings elsewhere.
+vision and motor control. We replace those with a compact observation (`OBS_DIM`,
+71 as of the E025 personal-space channel; was 59) and an 11-dimensional motor
+vector, and spend the savings elsewhere.
 """
 
 from typing import NamedTuple
@@ -30,7 +31,30 @@ CLS_FOOD = 0
 CLS_WATER = 1
 CLS_FLOCKMATE = 2
 CLS_GROUND_THREAT = 3
-N_VIS_CLASSES = 4
+# Personal space, added in the E025 fix. CLS_FLOCKMATE is proximity-graded with no
+# ceiling -- attraction strengthens monotonically all the way to contact, which is
+# the wiring defect E025 traced the flock's clumping to: "a cohesion force should
+# weaken as birds converge; this model has attraction only, with the gain pointing
+# the wrong way." A single linear reflex weight cannot turn an attractive response
+# into a repulsive one at close range (that needs a sign change as a function of
+# distance, which a linear map of one channel cannot produce) -- hence a second,
+# separate channel rather than a retuned existing one. Zero until a flockmate is
+# well inside `PERSONAL_SPACE_THRESHOLD` of the vision range, then ramps to 1 at
+# contact; the reflex arc wires it to turn *away*, opposing CLS_FLOCKMATE's
+# turn-toward with a larger weight so repulsion wins once triggered.
+CLS_CROWDING = 4
+N_VIS_CLASSES = 5
+
+# Raw CLS_FLOCKMATE proximity above which CLS_CROWDING starts activating (both are
+# `1 - d/vision_range`, so 0.95 is `d < vision_range * 0.05` = 0.5 m at the default
+# 10 m range. Deliberately well *inside* `CoopConfig.huddle_radius` (1.00 m), not at
+# its edge: an earlier version set this to 0.9 (the 1 m boundary itself), which put
+# repulsion exactly where huddling needs to happen and measurably suppressed it --
+# `test_reward_is_not_dominated_by_one_component` caught the consequence, cold's
+# share of reward variance dropping enough to push hunger over the dominance
+# threshold. 0.5 m leaves a band (0.5-1.0 m) where hens can huddle uncontested, and
+# only fires repulsion for genuine crowding closer than that.
+PERSONAL_SPACE_THRESHOLD = 0.95
 
 # ---------------------------------------------------------------------------
 # Observation layout
@@ -53,7 +77,7 @@ IDX_SPEED = INTERO_HI + 1
 AUDIO_LO = IDX_SPEED + 1                           # 4 auditory call channels
 AUDIO_HI = AUDIO_LO + 4
 
-OBS_DIM = AUDIO_HI                                 # 59
+OBS_DIM = AUDIO_HI                                 # 71 (was 59 before E025's CLS_CROWDING)
 
 
 def vis_index(bin_idx: int, cls: int) -> int:

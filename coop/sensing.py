@@ -107,7 +107,7 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     """Build the (H, OBS_DIM) observation for the whole flock."""
     h = cfg.n_hens
 
-    # --- Lateral vision: four classes across twelve bins ---
+    # --- Lateral vision: five classes across twelve bins ---
     food = _bin_proximity(w.pos, w.heading, w.food_pos,
                           (w.food_amount > 0.01)[None, :], cfg)
     water = _bin_proximity(w.pos, w.heading, w.water_pos,
@@ -116,9 +116,16 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
                            1.0 - jnp.eye(h), cfg)
     threat = _bin_proximity(w.pos, w.heading, w.fox_pos[None, :],
                             w.fox_on[None, None], cfg)
+    # Personal space (E025). Derived from `flock`, not a new distance computation --
+    # zero until a flockmate is well inside PERSONAL_SPACE_THRESHOLD of the vision
+    # range, then ramps to 1 at contact. The reflex arc wires this to turn *away*,
+    # opposing CLS_FLOCKMATE's turn-toward with a larger weight.
+    crowding = jnp.clip(
+        (flock - spec.PERSONAL_SPACE_THRESHOLD) / (1.0 - spec.PERSONAL_SPACE_THRESHOLD),
+        0.0, 1.0)
 
-    vis = jnp.stack([food, water, flock, threat], axis=-1)      # (H, N_BINS, 4)
-    vis = vis.reshape(h, spec.N_BINS * spec.N_VIS_CLASSES)      # index = bin*4 + cls
+    vis = jnp.stack([food, water, flock, threat, crowding], axis=-1)  # (H, N_BINS, 5)
+    vis = vis.reshape(h, spec.N_BINS * spec.N_VIS_CLASSES)      # index = bin*5 + cls
 
     # --- Overhead channel, gated by posture ---
     d_hawk = jnp.linalg.norm(w.pos - w.hawk_pos[None, :], axis=-1)

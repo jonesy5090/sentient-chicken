@@ -374,6 +374,7 @@ separate cortical pathway, and a test asserts the two never mix.
 | produce the ground alarm call | sees a fox | fires, not the aerial call |
 | contact call | isolated from the flock | 0.97 alone vs 0.25 in-flock |
 | approach flockmates | cold | measurable leftward bias |
+| turn away from a flockmate | crowded past personal-space range | nn dist 0.14 → 0.38 m (E048) |
 
 All four call *types* — contact, food, aerial alarm, ground alarm — are produced this
 way: hardwired, graded correctly to the threat, and functionally referential exactly as
@@ -514,7 +515,7 @@ never touched by learning.
 ```
 coop/    spec.py       the sensory/motor contract everything keys off
          world.py      state, dynamics, predators
-         sensing.py    world -> 59-dim observation (the eyes), and the channel modes
+         sensing.py    world -> OBS_DIM observation (the eyes), and the channel modes
          actuation.py  11 motor channels -> movement (the body)
 hen/     regions.py    region sizes, time constants, wiring priors
          connectome.py the innate brain, Dale's law, initialisation

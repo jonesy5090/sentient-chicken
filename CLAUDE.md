@@ -308,7 +308,7 @@ Two facts that shape the architecture and are easy to get wrong:
 ```
 coop/    spec.py        sensory/motor contract -- the interface everything keys off
          world.py       state, dynamics, predators
-         sensing.py     world -> 59-dim observation (tectum analogue)
+         sensing.py     world -> OBS_DIM observation (tectum analogue)
          actuation.py   11 motor channels -> movement (cerebellum analogue)
 hen/     regions.py     region sizes, time constants, connectivity priors
          connectome.py  innate mask, Dale's law, weight init

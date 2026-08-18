@@ -347,7 +347,14 @@ new home.
   either; gregariousness's attraction-only wiring is the actual cause, still unfixed,
   still needs a crowding/individual-distance channel. Depletion stayed on regardless and
   turned out to have a large, previously unmeasured side effect on foraging baselines at
-  20+ minutes (E037) — see the new item below.
+  20+ minutes (E037) — see the new item below. **The crowding channel itself is now
+  built and measured (E048)**: a new `CLS_CROWDING` vision class, zero until a
+  flockmate is well inside personal-space range then ramping to 1 at contact, wired to
+  turn the hen *away* at a weight that beats attraction. Nearest-neighbour distance
+  roughly triples (0.14 → 0.38 m on the current, E023-corrected connectome) and
+  strike-radius overlap drops (26.8% → 21.8%) without the huddling/feeding collapse
+  full removal of gregariousness causes. `OBS_DIM` moves 59 → 71 as a result —
+  everything using the vision layout re-baselines from here, the same way E023 did.
 - ~~**Audit `food_deplete_rate`'s effect on other tree results.**~~ **Closed — all four
   highest-stakes results checked directly.** H2 (E037): confound real, number corrected.
   H2e/E032/E033 (E038): confound real, sign reversed, status reverted `REFUTED` →
@@ -482,8 +489,12 @@ new home.
   E005's one promising lead (`food_effect` +0.032, t=0.64) does not replicate. Combined
   with E036/E040, H3 has failed both ways this project could imagine it working. Not a
   live next-direction candidate anymore — it converges on the same open question as
-  H2c/H2f, not a separate one. **T1/T2 task design and the E025-adjacent world-model
-  gaps remain the live candidates from this list.**
+  H2c/H2f, not a separate one.
+
+  ~~The E025-adjacent world-model gap: gregariousness's attraction-only wiring~~ **Done
+  (E048): the crowding channel is built.** See above — measured dispersal without
+  breaking huddling. **T1/T2 task design remains the live candidate from this list**,
+  and now sits on a flock that actually spreads out, which both tasks assume.
 
 - ~~**Is the learning rule the wrong *kind*?** (E017, open — no node yet.)~~ **Has a
   node now: H2f**, opened by E036's falsifier firing. One correction to this item's own
