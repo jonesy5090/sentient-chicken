@@ -565,10 +565,20 @@ the auditory scaffold's hand-wired 0.19 — not a working mechanism at either de
 `|W_pred|` grew to under 1% of its cap in every condition, which is at least as likely
 an explanation as insufficient separability: the rule may simply not have had enough
 exposure in 20 minutes at this predator density to move meaningfully, independent of
-whether the representation is now good enough. **Status stays `NOT STARTED` as a working
-mechanism** — H2d's fix was necessary progress, evidently not sufficient on its own, and
-which of exposure/duration/gain/remaining-separability-gap is the next blocker is
-unresolved.
+whether the representation is now good enough.
+
+**Exposure escalated directly, and the answer is genuinely mixed**
+([E043](experiments/E043-exposure-escalation.md)). Doubling predator density (hawk every
+10 s instead of 20) left *mean* `|W_pred|` completely unchanged from E042 — the
+registered falsifier fires as written. But the *single largest* `W_pred` entry grew to
+30–40% of its cap, up from near-zero, an unregistered but striking observation:
+something is learning, concentrated rather than diffuse, and averaged away by the metric
+that was supposed to detect it. Comprehension itself still barely moved (0.006–0.008,
+still ~1/25th the scaffold). **Status stays `NOT STARTED`.** The open question is no
+longer "is it separability or exposure" — it's whether the concentrated growth in
+`W_pred` is a real, targeted association (the right pallial neurons predicting the right
+channel) or noise drifting in a large mostly-irrelevant matrix, which needs a structural
+read of *which* entries moved, not another rearing run at more exposure.
 
 ---
 
@@ -1081,6 +1091,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E043 | **Exposure escalation: registered falsifier fires, but an unregistered number complicates it.** Doubling predator density (hawk every 10s vs E042's 20s): mean `\|W_pred\|` unchanged (0.00057 vs E042's 0.00058) — falsifier fires as written. But max `\|W_pred\|` reached 30–40% of cap, up from near-zero — concentrated growth an average obscures. Comprehension ticks up slightly (0.006–0.008) but density contrast stays non-significant (t=0.66). H2c stays `NOT STARTED`; next step is a structural read of *which* `W_pred` entries moved, not more exposure. |
 | E042 | **H2c re-tested at E041's density fix — still null, and by a lot.** Comprehension after 20-min rearing: full density vs default, **+0.0023 ± 0.0019, t=1.17**, not significant. Both conditions' absolute comprehension (0.005–0.007) is ~1/30th the auditory scaffold's 0.19 — nowhere near a working mechanism. `\|W_pred\|` grew to under 1% of its cap everywhere, at least as plausible a bottleneck as remaining separability gap. H2c stays `NOT STARTED`; H2d's fix was necessary, evidently not sufficient. |
 | E041 | **H2d: "fan-in dilution" reframed — sparser connectivity makes separability *worse*, not better.** Paired 12-genome sweep, `sensory_pallium_density` {0.30→0.02}: significant decline at every step (t=4.08–5.37). Post-hoc addendum going the other way (0.30→1.00): separability rises monotonically throughout, no optimum found, full connectivity ~2× the default. Mechanism reframed: not too much noise diluting signal, but too few pallial units getting *any* connection to the 1–2 informative channels at random-sparse density. Regression check, same session: throughput unaffected (dense-with-mask architecture means density doesn't change compute), H2's contrast not broken at n=8 (though not treated as evidence either way, per E037's own demonstrated block-to-block variance on this exact metric). Promising, still not adopted as a default. |
 | E040 | **H2f checked against the same confound and found robust, closing the audit trail.** Clean re-measurement of E036's 2×2 (`food_deplete_rate=0`, same seeds): `S+L − S` = **−0.005 ± 0.003, t=1.53** — identical mean to E036's depleted-world −0.005 ± 0.002, t=2.25, same sign, comprehension manipulation check unchanged (0.1921 both). Falsifier does not fire. Final tally across all four checks: confound real and status-changing for H2 (E037) and H2e (E038); present but not consequential for H4 (E039) and H2f (E040). |

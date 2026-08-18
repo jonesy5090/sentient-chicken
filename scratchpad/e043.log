@@ -1,0 +1,14 @@
+E043 -- exposure escalation, 8 seeds, 20 min rearing, hawk every 10s (E042 used 20s)
+
+condition                     comp before  comp after mean|W_pred| max|W_pred|
+assoc, default density            -0.0001      0.0064      0.00057     0.02020
+assoc, full density               -0.0001      0.0080      0.00045     0.01482
+
+PRIMARY -- |W_pred| growth vs E042's hawk_period=20 baseline (reported, not a live contrast):
+  assoc, default density: mean|W_pred|=0.00057 vs E042's 0.00058
+  assoc, full density: mean|W_pred|=0.00045 vs E042's 0.00047
+
+SECONDARY -- comprehension after rearing, full density vs default density:
+  +0.0016 +/- 0.0024  t=0.66  threshold(df=7)=2.365  -> not significant
+
+wall clock: 374 s
