@@ -34,6 +34,11 @@ def main() -> None:
                     help="enable phase 1 learning (default: a fixed, innate hen)")
     ap.add_argument("--no-growth", action="store_true",
                     help="learning without structural growth")
+    ap.add_argument("--record", action="store_true",
+                    help="also write a viz/ trajectory of this run to runs/ "
+                         "(same seed, same config -- off by default: it's a second "
+                         "rollout, so only pay for it when you want to watch)")
+    ap.add_argument("--record-fps", type=float, default=15.0)
     args = ap.parse_args()
 
     seconds = args.days * 86400.0 if args.days else args.minutes * 60.0
@@ -84,6 +89,11 @@ def main() -> None:
     print(f"one chicken-day : {86400.0 / (seconds / wall) / 3600.0:.2f} h")
     print(f"finite state    : {bool(jnp.all(jnp.isfinite(x_end)))}, "
           f"|x| max {float(jnp.max(jnp.abs(x_end))):.1f}")
+
+    if args.record:
+        from run import record
+        record.record_and_save(key, cfg, pc, seconds / 60.0, args.record_fps,
+                               args.seed, desc=f"run.lifetime --minutes {seconds/60:.0f}")
 
 
 if __name__ == "__main__":

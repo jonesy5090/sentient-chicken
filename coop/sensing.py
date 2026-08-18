@@ -141,7 +141,23 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     # --- Somatic ---
     d_wall = jnp.min(jnp.minimum(w.pos, cfg.size - w.pos), axis=-1)
     wall = jnp.clip(1.0 - d_wall / 1.0, 0.0, 1.0)
-    somatic = jnp.stack([wall, w.speed / cfg.flee_speed], axis=-1)
+
+    # Directional wall-escape (wall-avoidance fix). `wall` has no direction, so pick the
+    # nearest wall's outward normal as the escape heading, express it relative to the
+    # hen's own heading (the same frame `_bin_proximity` uses for everything else), and
+    # split into two non-negative "turn this way" magnitudes.
+    margins = jnp.stack([w.pos[:, 0], cfg.size - w.pos[:, 0],
+                         w.pos[:, 1], cfg.size - w.pos[:, 1]], axis=-1)   # (H,4): L,R,B,T
+    nearest = jnp.argmin(margins, axis=-1)
+    normals = jnp.array([[1.0, 0.0], [-1.0, 0.0], [0.0, 1.0], [0.0, -1.0]])
+    escape_dir = normals[nearest]                                        # (H, 2)
+    escape_ang = jnp.arctan2(escape_dir[:, 1], escape_dir[:, 0]) - w.heading
+    escape_ang = (escape_ang + jnp.pi) % (2 * jnp.pi) - jnp.pi
+    wall_escape_l = wall * jnp.clip(jnp.sign(escape_ang), 0.0, 1.0)
+    wall_escape_r = wall * jnp.clip(-jnp.sign(escape_ang), 0.0, 1.0)
+
+    somatic = jnp.stack([wall, w.speed / cfg.flee_speed,
+                         wall_escape_l, wall_escape_r], axis=-1)
 
     # --- Audition: flockmates' calls, attenuated by distance ---
     #

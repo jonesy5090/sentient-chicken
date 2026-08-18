@@ -56,6 +56,82 @@ def _record(w, x, p, ps, key, cfg, pc, n_frames: int, steps_per_frame: int):
     return carry, frames
 
 
+def record_and_save(key, cfg, pc, minutes: float, fps: float = 15.0, seed: int = 0,
+                    name: str | None = None, desc: str = "") -> Path:
+    """Roll out a recording and write it to `runs/`. Returns the output directory.
+
+    Shared by `main()` below and by other entry points' `--record` flag (`run.lifetime`
+    and similar) -- callers that already built a `key`/`cfg`/`pc` for their own run pass
+    the same ones here so the recording matches exactly what they reported, rather than
+    duplicating the capture-and-write logic per caller.
+    """
+    plastic = bool(pc.enabled)
+    seconds = minutes * 60.0
+    steps_per_frame = max(1, round(1.0 / (cfg.dt * fps)))
+    n_frames = max(1, round(seconds / (steps_per_frame * cfg.dt)))
+    frame_dt = steps_per_frame * cfg.dt
+
+    w = world.reset(key, cfg)
+    p = connectome.build(jax.random.fold_in(key, 1), regions.DEFAULT_REGIONS,
+                         n_hens=cfg.n_hens)
+    x = brain.initial_state(p, cfg.n_hens)
+    ps = plasticity.initial_state(p, cfg.n_hens, pc)
+    food_pos, water_pos = w.food_pos, w.water_pos
+
+    print(f"recording {cfg.n_hens} hens, {seconds / 60:.1f} min "
+          f"({n_frames} frames @ {1 / frame_dt:.1f} fps)"
+          f"{' [plastic]' if plastic else ''}")
+
+    t0 = time.perf_counter()
+    (w, x, p, ps, key), frames = _record(
+        w, x, p, ps, jax.random.fold_in(key, 2), cfg, pc if plastic else NO_PLASTICITY,
+        n_frames, steps_per_frame)
+    jax.block_until_ready(frames[0])
+    wall = time.perf_counter() - t0
+    print(f"wall clock: {wall:.1f}s ({seconds / wall:.0f}x real time)")
+
+    ts = time.strftime("%Y%m%d-%H%M%S")
+    slug = name.strip().lower().replace(" ", "-") if name else \
+        ("plastic" if plastic else "innate")
+    run_id = f"{ts}_{slug}"
+    out_dir = RUNS_DIR / run_id
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    arrays = {n: np.asarray(a, dtype=np.float32) for n, a in zip(_FIELDS, frames)}
+    layout = {}
+    buf = bytearray()
+    offset = 0
+    for n in _FIELDS:
+        a = arrays[n]
+        layout[n] = {"offset": offset, "shape": list(a.shape)}
+        b = a.tobytes()
+        buf += b
+        offset += len(b)
+    (out_dir / "trajectory.bin").write_bytes(bytes(buf))
+
+    meta = {
+        "id": run_id,
+        "name": name or run_id,
+        "description": desc,
+        "created_at": ts,
+        "seed": seed,
+        "hens": cfg.n_hens,
+        "plastic": plastic,
+        "minutes": minutes,
+        "n_frames": n_frames,
+        "frame_dt": frame_dt,
+        "coop_size": cfg.size,
+        "n_food": cfg.n_food,
+        "n_water": cfg.n_water,
+        "food_pos": np.asarray(food_pos, dtype=np.float32).tolist(),
+        "water_pos": np.asarray(water_pos, dtype=np.float32).tolist(),
+        "layout": layout,
+    }
+    (out_dir / "meta.json").write_text(json.dumps(meta, indent=2))
+    print(f"wrote {out_dir}")
+    return out_dir
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--minutes", type=float, default=10.0)
@@ -77,70 +153,10 @@ def main() -> None:
     if args.hawk_period is not None:
         cfg = cfg._replace(hawk_period_s=args.hawk_period)
     pc = plasticity.PlasticConfig(enabled=args.plastic)
-    seconds = args.minutes * 60.0
-    steps_per_frame = max(1, round(1.0 / (cfg.dt * args.fps)))
-    n_frames = max(1, round(seconds / (steps_per_frame * cfg.dt)))
-    frame_dt = steps_per_frame * cfg.dt
-
     key = jax.random.key(args.seed)
-    w = world.reset(key, cfg)
-    p = connectome.build(jax.random.fold_in(key, 1), regions.DEFAULT_REGIONS,
-                         n_hens=cfg.n_hens)
-    x = brain.initial_state(p, cfg.n_hens)
-    ps = plasticity.initial_state(p, cfg.n_hens, pc)
-    food_pos, water_pos = w.food_pos, w.water_pos
 
-    print(f"recording {cfg.n_hens} hens, {seconds / 60:.1f} min "
-          f"({n_frames} frames @ {1 / frame_dt:.1f} fps)"
-          f"{' [plastic]' if args.plastic else ''}")
-
-    t0 = time.perf_counter()
-    (w, x, p, ps, key), frames = _record(
-        w, x, p, ps, jax.random.fold_in(key, 2), cfg, pc if pc.enabled else NO_PLASTICITY,
-        n_frames, steps_per_frame)
-    jax.block_until_ready(frames[0])
-    wall = time.perf_counter() - t0
-    print(f"wall clock: {wall:.1f}s ({seconds / wall:.0f}x real time)")
-
-    ts = time.strftime("%Y%m%d-%H%M%S")
-    slug = args.name.strip().lower().replace(" ", "-") if args.name else \
-        ("plastic" if args.plastic else "innate")
-    run_id = f"{ts}_{slug}"
-    out_dir = RUNS_DIR / run_id
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    arrays = {name: np.asarray(a, dtype=np.float32) for name, a in zip(_FIELDS, frames)}
-    layout = {}
-    buf = bytearray()
-    offset = 0
-    for name in _FIELDS:
-        a = arrays[name]
-        layout[name] = {"offset": offset, "shape": list(a.shape)}
-        b = a.tobytes()
-        buf += b
-        offset += len(b)
-    (out_dir / "trajectory.bin").write_bytes(bytes(buf))
-
-    meta = {
-        "id": run_id,
-        "name": args.name or run_id,
-        "description": args.desc,
-        "created_at": ts,
-        "seed": args.seed,
-        "hens": cfg.n_hens,
-        "plastic": bool(args.plastic),
-        "minutes": args.minutes,
-        "n_frames": n_frames,
-        "frame_dt": frame_dt,
-        "coop_size": cfg.size,
-        "n_food": cfg.n_food,
-        "n_water": cfg.n_water,
-        "food_pos": np.asarray(food_pos, dtype=np.float32).tolist(),
-        "water_pos": np.asarray(water_pos, dtype=np.float32).tolist(),
-        "layout": layout,
-    }
-    (out_dir / "meta.json").write_text(json.dumps(meta, indent=2))
-    print(f"wrote {out_dir}")
+    record_and_save(key, cfg, pc, args.minutes, args.fps, args.seed,
+                    args.name, args.desc)
 
 
 if __name__ == "__main__":

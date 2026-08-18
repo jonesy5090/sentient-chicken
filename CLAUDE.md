@@ -320,7 +320,10 @@ run/     simulate.py    the closed loop
          probes.py      neonatal ethogram assays
          lifetime.py    developmental runs
          experiment.py  matched-seed condition contrasts
+         record.py      snapshot a run to a trajectory file for the offline viewer
 bench/   envelope.py    measure the machine, size the brain
+viz/     server.py      stdlib-only server for the offline 3D viewer
+         web/           vendored-Three.js scene, browses recorded runs
 docs/    hypothesis.md  the tree -- start here
          backlog.md     proposed, not started
          ethics.md      moral standing, tripwires
@@ -335,6 +338,9 @@ python -m run.probes                     # neonatal ethogram
 python -m run.lifetime --minutes 60 --plastic
 python -m run.experiment --minutes 30 --seeds 4
 python -m pytest tests/ -q
+
+python -m run.record --minutes 10 --hawk-period 30  # trajectory -> runs/
+python -m viz.server                                 # browse it in 3D
 ```
 
 ## Conventions

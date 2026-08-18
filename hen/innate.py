@@ -125,6 +125,21 @@ def reflex_matrix(auditory_scaffold: bool = False,
     for b in _RIGHT:
         w(spec.M_TURN_L, spec.vis_index(b, spec.CLS_CROWDING), 4.0)
 
+    # --- Wall avoidance. IDX_WALL was sensed but never wired to anything: nothing
+    # stopped a hen from being carried into the boundary by some other drive (foraging,
+    # cold, personal space) and sitting there, heading unchanged, forever -- the
+    # position clip in `actuation.py` stops her physically but does not turn her.
+    # No forward suppression here, deliberately: turning is independent of forward
+    # speed in the kinematics (`heading += turn * turn_rate * dt`, no `speed` term), so
+    # a hen rotates away from the wall under this reflex alone, then her existing
+    # forward drive (tonic, hunger, thirst, whichever else is active) carries her out
+    # once she is facing clear. Suppressing forward on the undirected `IDX_WALL` signal
+    # instead would deadlock: turning doesn't move her, so the suppression would never
+    # release. Weight matches the ground-threat turn-away reflex above -- the closest
+    # existing analogue, a turn purely away from something.
+    w(spec.M_TURN_L, spec.IDX_WALL_ESCAPE_L, 3.0)
+    w(spec.M_TURN_R, spec.IDX_WALL_ESCAPE_R, 3.0)
+
     # --- Distress: an isolated chick calls until someone answers ---
     w(spec.M_CALL_CONTACT, spec.IDX_ISOLATION, 5.0)
     w(spec.M_CALL_CONTACT, spec.IDX_COLD, 2.0)
