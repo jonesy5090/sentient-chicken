@@ -550,12 +550,14 @@ new home.
   diagnostic (built in this time, not added after a surprise) caught it immediately.
   H2c stays `NOT STARTED`. Narrows H2f's mechanism: it amplifies an existing anchor
   (the scaffold), it does not build one from nothing.
-- **New item, opened by E058's own consequence section**: does comprehension emerge via
-  the readout rule with a longer rearing duration or higher hawk rate (more
-  co-occurrence events for the correlation to accumulate on), the same escalation E043
-  already ran for the `W_pred` pathway, not yet tried for the readout pathway. Genuinely
-  open — E058 does not distinguish "not enough exposure yet" from "H2d's bottleneck
-  blocks this route too."
+- ~~**Does comprehension emerge via the readout rule with a longer rearing duration or
+  higher hawk rate**~~ **Closed (E059): no, mechanistically.** Doubled exposure
+  reproduced E058's numbers almost exactly; `\|W_out\|` drift measured directly at
+  0.054 regardless of exposure level — `readout_scaling_strength` reaches a dynamic
+  equilibrium independent of how much co-occurrence data rearing supplies, unlike
+  `W_pred`'s hard clip (which does respond to exposure, per E043). Not an exposure
+  problem; any future attempt on this specific pathway needs a different stabiliser,
+  not more rearing time.
 - ~~**Predator exposure as a metric.**~~ Retired. Uninformative in both E003 and E004
   (SEs of 1460-2469 on means of 13-44). E001's apparent 43% difference was noise, as
   it was flagged at the time.

@@ -639,9 +639,22 @@ nominally significantly (t=2.58) — but so did three unrelated control channels
 scratch, flee), at matched magnitudes (~0.004, two orders of magnitude below H2f's
 effect and the scaffold's own comprehension). General excitability, not a targeted
 association — the same diagnostic discipline that validated H2f's positive rules this
-one out cleanly, the other direction. **Status stays `NOT STARTED`.** Narrows what
-H2f's mechanism generalises to: amplifying an existing anchor, not building one from
-nothing — at least not at this rearing duration and hawk rate.
+one out cleanly, the other direction.
+
+**Exposure escalation, the same check E043 ran for `W_pred`, closes the "not enough
+data yet" possibility for a stated, checked reason** ([E059](experiments/E059-h2c-readout-exposure-escalation.md)).
+Doubling predator exposure (`hawk_period_s` 20 → 10, matching E042→E043's escalation)
+reproduced E058's numbers almost exactly (crouch 0.0036 vs 0.0036, controls equally
+matched) — no movement at all, unlike `W_pred`, where the equivalent escalation moved
+the weights substantially even without producing comprehension (E043). Checked directly:
+mean `|W_out|` drift after rearing was **0.054 at both exposure levels** (3 seeds,
+0.051–0.057 spread either way) — the readout's `readout_scaling_strength` correction
+reaches a dynamic *equilibrium* independent of how much co-occurrence data rearing
+supplies, unlike `W_pred`'s hard per-synapse clip, which has real headroom until
+saturation. **Status stays `NOT STARTED`.** Narrows what H2f's mechanism generalises to,
+now for a mechanistic rather than merely empirical reason: it amplifies an existing
+anchor, and no amount of exposure alone will make it build one from nothing, given how
+its own stabiliser works.
 
 ---
 
@@ -1294,6 +1307,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E059 | **Exposure escalation closes E058's open question, mechanistically.** Doubled predator exposure (`hawk_period_s` 20 -> 10, matching E042->E043) reproduced E058's numbers almost exactly — no movement. Checked directly: mean `\|W_out\|` drift **0.054 at both exposure levels** (3 seeds) — `readout_scaling_strength` reaches a dynamic equilibrium independent of exposure, unlike `W_pred`'s hard clip (which E043 found *does* respond to exposure). H2c stays `NOT STARTED`, now for a checked mechanistic reason rather than "maybe more data would help." |
 | E058 | **H2f's validated rule tried on H2c, and it fails cleanly — general excitability, not comprehension.** Same `hebbian_readout`+`readout_scaling_strength` config, crouch-on-hearing-a-call, no scaffold (build from nothing, unlike H2f's wired-anchor task), `pred_gain=0.0`. Crouch nominally significant (t=2.58) but so are three unrelated control channels — peck (t=3.58), scratch (t=3.29), flee (t=2.74) — at matched tiny magnitudes (~0.004, two orders below H2f's effect). The mandatory diagnostic (pre-registered before running) catches this cleanly: uniform elevation across every channel tested, not a targeted crouch association. H2c stays `NOT STARTED`. Narrows H2f's mechanism to *amplifying an existing anchor*, not building one from nothing. |
 | E057 | **H2f's falsifier clears — replicated. First genuine positive result in this project's learning-rule history.** Separated E056's mixed effect via difference-in-differences against the `S` baseline's own alone/audience gap, full 8-seed sample: general elevation **+0.123, t=8.81**, audience-specific **+0.232, t=45.59** (significantly larger than general, t=10.39). Food-channel control (no mechanistic audience route) null on both components, ruling out indiscriminate dysregulation. **Replicated on a fresh 8-seed block** (general +0.121 t=11.37, audience-specific +0.232 t=21.90, food null) — both blocks agree to three decimal places. **H2f -> `SUPPORTED`, narrower than a clean audience-only ideal**: a real, context-specific (not indiscriminate) general component rides alongside the larger targeted one. Opens a fresh, direct pass at H2c under the same scrutiny. |
 | E056 | **Bounded Hebbian readout: more targeted than E055, still doesn't clear the falsifier as specified.** `readout_scaling_strength=0.3` fixed E055's runaway (cortical/reflex ratio 2-2.7x -> 0.75-0.9x, hunger 0.728 -> 0.546). Audience effect **+0.2324 ± 0.0051, t=45.59** — but the mandatory diagnostic found `alarm_alone` rose 30-40% from baseline (should stay flat per the pre-registered check) alongside a larger, genuinely disproportionate rise in `alarm_audience`. One of three sanity checks fails, applied literally. H2f stays `UNDER TEST`: not confirmed (not clean), not refuted (not simply broken like E055). Next step identified: separate the audience-specific component from the general-elevation one directly, not another constant sweep. |
