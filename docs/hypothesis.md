@@ -580,6 +580,21 @@ longer "is it separability or exposure" — it's whether the concentrated growth
 channel) or noise drifting in a large mostly-irrelevant matrix, which needs a structural
 read of *which* entries moved, not another rearing run at more exposure.
 
+**The structural read is done, and the two metrics disagree with each other**
+([E044](experiments/E044-structural-read.md)). `IDX_AERIAL` — the channel a correct
+association should predict — ranks an unremarkable 30th of 59 target channels by raw
+weight, below average: whatever `W_pred` is mostly doing, it isn't concentrating on the
+hawk percept. But *within* the aerial-channel-specific weights, which pallial neurons
+get weighted correlates significantly with which neurons actually respond to the call
+(mean r=+0.304 across 6 seeds, t=2.61, barely clears 2.571) — real structure, not pure
+noise, though inconsistent (2 of 6 seeds near zero). **Status stays `NOT STARTED`.**
+Reading: a narrow, real trace of the correct association exists, buried inside a matrix
+whose largest-scale behaviour is about something else entirely — what that something
+else is has not been identified. Three experiments (E042–E044) have now converged on
+"something real but small and partial" without finding a lever that moves it; the
+project is stepping back to the wider backlog rather than continuing to escalate this
+specific mechanism.
+
 ---
 
 ## H2d — the pallium does not form separable representations of distinct stimuli
@@ -1091,6 +1106,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E044 | **Structural read of `W_pred`: the two metrics disagree, and the honest reading is a narrow real signal inside mostly-unrelated growth.** `IDX_AERIAL` ranks 30th of 59 target channels by weight (below average) — not concentrated on the hawk percept overall. But within the aerial-channel weights, correlation with call-responsiveness is significantly positive across 6 seeds (r=+0.304, t=2.61, barely clears 2.571), though inconsistent (2/6 seeds near zero). H2c stays `NOT STARTED`. Three experiments (E042–E044) now converge on "real but small and partial" without a lever to move it further — stepping back to the wider backlog. |
 | E043 | **Exposure escalation: registered falsifier fires, but an unregistered number complicates it.** Doubling predator density (hawk every 10s vs E042's 20s): mean `\|W_pred\|` unchanged (0.00057 vs E042's 0.00058) — falsifier fires as written. But max `\|W_pred\|` reached 30–40% of cap, up from near-zero — concentrated growth an average obscures. Comprehension ticks up slightly (0.006–0.008) but density contrast stays non-significant (t=0.66). H2c stays `NOT STARTED`; next step is a structural read of *which* `W_pred` entries moved, not more exposure. |
 | E042 | **H2c re-tested at E041's density fix — still null, and by a lot.** Comprehension after 20-min rearing: full density vs default, **+0.0023 ± 0.0019, t=1.17**, not significant. Both conditions' absolute comprehension (0.005–0.007) is ~1/30th the auditory scaffold's 0.19 — nowhere near a working mechanism. `\|W_pred\|` grew to under 1% of its cap everywhere, at least as plausible a bottleneck as remaining separability gap. H2c stays `NOT STARTED`; H2d's fix was necessary, evidently not sufficient. |
 | E041 | **H2d: "fan-in dilution" reframed — sparser connectivity makes separability *worse*, not better.** Paired 12-genome sweep, `sensory_pallium_density` {0.30→0.02}: significant decline at every step (t=4.08–5.37). Post-hoc addendum going the other way (0.30→1.00): separability rises monotonically throughout, no optimum found, full connectivity ~2× the default. Mechanism reframed: not too much noise diluting signal, but too few pallial units getting *any* connection to the 1–2 informative channels at random-sparse density. Regression check, same session: throughput unaffected (dense-with-mask architecture means density doesn't change compute), H2's contrast not broken at n=8 (though not treated as evidence either way, per E037's own demonstrated block-to-block variance on this exact metric). Promising, still not adopted as a default. |

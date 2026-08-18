@@ -446,15 +446,26 @@ new home.
   primary metric, reported as exploratory rather than promoted past that. Comprehension
   itself barely moved either way (still ~1/25th the scaffold).
 
-  **New, better-specified owed item**: a structural read of `W_pred` — which specific
-  rows/columns carry the growth, and are they the pallial-neuron-to-aerial-channel
-  entries a correct association *should* strengthen, or diffuse across the matrix with
-  no relation to the alarm-call/hawk distinction? This is a static analysis on cached
-  end-state connectomes, not a new rearing run, and should settle whether the
-  concentrated growth E043 found is a real (if tiny) targeted association or a random
-  walk in a large mostly-irrelevant weight matrix. Cheaper than another exposure
-  escalation and more likely to actually answer the question. **The 24-seed H2-contrast
-  replication (from E041) is still separately owed**, unaffected by any of this.
+  ~~**New, better-specified owed item**: a structural read of `W_pred`...~~ **Done
+  (E044): genuinely mixed, and the mixture is the answer.** `IDX_AERIAL` ranks 30th of
+  59 target channels by weight (below average — not the dominant thing `W_pred` is
+  learning), but *within* the aerial-specific weights, correlation with
+  call-responsiveness is significantly positive across 6 seeds (r=+0.304, t=2.61,
+  barely clears threshold), inconsistent in 2 of 6. **Reading: a narrow, real trace of
+  the correct association exists, buried inside a matrix whose largest-scale behaviour
+  is about something else** — what that something else is remains unidentified (would
+  need the same rank/correlation analysis repeated for whichever channels *do* dominate
+  `W_pred`'s weight, not assumed).
+
+  **This closes out the H2c/H2d/W_pred thread for now, by design.** Three experiments
+  (E042, E043, E044) converged on "something real but small and partial" without
+  surfacing a lever that moves it further — pushing density further, exposure further,
+  or reading the weights more closely all found the same story. Continuing to escalate
+  this one mechanism is not obviously the best use of the next round of work; stepping
+  back to the wider queue (T1/T2 task design, H3's audience effect, or the E025-adjacent
+  world-model gaps) is more likely to be productive than a fourth pass at `W_pred`.
+  **The 24-seed H2-contrast replication (from E041) is still separately owed**,
+  unaffected by any of this.
 
 - ~~**Is the learning rule the wrong *kind*?** (E017, open — no node yet.)~~ **Has a
   node now: H2f**, opened by E036's falsifier firing. One correction to this item's own

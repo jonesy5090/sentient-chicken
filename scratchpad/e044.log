@@ -1,0 +1,31 @@
+seed 0 done (29s)
+seed 1 done (51s)
+seed 2 done (74s)
+seed 3 done (98s)
+seed 4 done (120s)
+seed 5 done (142s)
+
+E044 -- structural read, 6 seeds, density=1.0, hawk_period=10.0s
+
+top 8 target channels by mean|W_pred| (averaged over pallial sources):
+  channel  50  mean|W_pred|=0.003525  
+  channel  22  mean|W_pred|=0.003320  
+  channel  26  mean|W_pred|=0.003233  
+  channel  49  mean|W_pred|=0.002782  
+  channel  30  mean|W_pred|=0.002719  
+  channel  18  mean|W_pred|=0.002702  
+  channel  46  mean|W_pred|=0.002293  
+  channel   2  mean|W_pred|=0.002147  
+
+IDX_AERIAL rank: 30 of 59  (mean|W_pred|=0.000679, overall mean=0.000905, at/below average)
+
+correlation, per seed, between |W_pred[->IDX_AERIAL]| and call-responsiveness:
+  seed 0: r=+0.505
+  seed 1: r=+0.451
+  seed 2: r=+0.279
+  seed 3: r=-0.056
+  seed 4: r=-0.004
+  seed 5: r=+0.651
+  mean r = +0.304 +/- 0.260
+  positive & consistent -> targeted association (call-responsive neurons drive
+  the aerial prediction). near zero / inconsistent -> unstructured growth.
