@@ -656,6 +656,20 @@ Modality segregation is not an established partial fix for H2d — it is unteste
 this time by a test that actually controls for the confound (segregation was never
 separated from "less total input drive to the segregated slice" in either prior number).
 
+**A third candidate tested (E041): sparser sensory→pallium connectivity, on the theory
+that fewer inputs means less dilution of the informative signal.** Falsified, clearly,
+in the opposite direction — separability gets *worse* as density falls (t=4.08 to 5.37
+across four density reductions, 12 paired genomes), and *better* as density rises, with
+no optimum found all the way to full connectivity (density 1.0, ~2× the default's
+separability). The mechanism is not dilution — it's that random sparse sampling gives
+too few pallial units a chance to connect to the 1–2 informative channels at all. More
+connections is simply better, everywhere tested. **A promising direction, checked and
+not yet adopted**: throughput is unaffected (the dense-with-mask architecture means
+density doesn't change compute at all) and an 8-seed check found H2's contrast is not
+broken — but that check is not itself evidence of anything, per E037's own demonstrated
+block-to-block swings on this exact metric, and full connectivity is still not the
+default until something more decisive says so.
+
 **Occurrence is no longer hypothetical, and this is the important part.** A 5-minute live
 rollout at H4's standard config (16 hens, hawk every 20 s, fixed hen, 480,000 hen-steps)
 found the auditory aerial channel spans its full range (std 0.37, not remotely constant —
@@ -1053,6 +1067,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E041 | **H2d: "fan-in dilution" reframed — sparser connectivity makes separability *worse*, not better.** Paired 12-genome sweep, `sensory_pallium_density` {0.30→0.02}: significant decline at every step (t=4.08–5.37). Post-hoc addendum going the other way (0.30→1.00): separability rises monotonically throughout, no optimum found, full connectivity ~2× the default. Mechanism reframed: not too much noise diluting signal, but too few pallial units getting *any* connection to the 1–2 informative channels at random-sparse density. Regression check, same session: throughput unaffected (dense-with-mask architecture means density doesn't change compute), H2's contrast not broken at n=8 (though not treated as evidence either way, per E037's own demonstrated block-to-block variance on this exact metric). Promising, still not adopted as a default. |
 | E040 | **H2f checked against the same confound and found robust, closing the audit trail.** Clean re-measurement of E036's 2×2 (`food_deplete_rate=0`, same seeds): `S+L − S` = **−0.005 ± 0.003, t=1.53** — identical mean to E036's depleted-world −0.005 ± 0.002, t=2.25, same sign, comprehension manipulation check unchanged (0.1921 both). Falsifier does not fire. Final tally across all four checks: confound real and status-changing for H2 (E037) and H2e (E038); present but not consequential for H4 (E039) and H2f (E040). |
 | E039 | **H4 checked against the same `food_deplete_rate` confound that broke H2e — and found robust.** 8-seed clean re-measurement (depletion off, 10 min, hawk every 20s, matching E030's block-C seeds 60–67): L vs C? on `caught/dive` **−0.077 ± 0.014, t=5.52, SIGNIFICANT** — same sign as E030's pooled −0.044, comparable magnitude, significant even at reduced n. `dives` denominator unmoved (288.0 across all conditions). Falsifier did not fire; H4's `SUPPORTED` status stands unmodified. Two audits of the same confound, two different outcomes — real for H2/H2e, not consequential here. |
 | E038 | **H2e's `REFUTED` verdict does not survive a clean world — reverts to `UNDER TEST`.** E032/E033 shared the same undocumented `food_deplete_rate` confound E037 found for H2. Full 24-seed clean re-measurement (`food_deplete_rate=0`, matching E033's exact design and block structure): interaction **−0.890 ± 0.556, t=1.60, NOT significant** — opposite sign from E033's +0.390, t=2.55, and not replicating it. An interim 8-seed check found the same sign reversal first (−0.954, t=1.36); the full run confirms it rather than being an artefact of the smaller sample. E032 and E033 corrected in place with pointers here, per this project's convention. |

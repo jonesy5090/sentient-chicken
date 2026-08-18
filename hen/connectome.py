@@ -82,7 +82,8 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           auditory_scaffold: bool = False,
           scaffold_gain: float = 1.0,
           modality_segregated: bool = False,
-          aud_fraction: float = regions.AUD_FRACTION) -> BrainParams:
+          aud_fraction: float = regions.AUD_FRACTION,
+          sensory_pallium_density: float | None = None) -> BrainParams:
     """Sample a newly hatched flock.
 
     `readout_scale` is small on purpose: at hatch the cortical pathway is near-silent
@@ -99,9 +100,11 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     L kept apart from nucleus rotundus -> entopallium, two separate thalamic relays).
     `aud_fraction` sets how much of each region that slice gets (default 1/6, matching
     the hand-cut probe this replaces). Off by default, same reason as
-    `auditory_scaffold`. Measured in E017/E034/E035: recovers 1.45x pallial
-    separability of "saw hawk" vs "heard alarm" at the default fraction -- real, and
-    well short of closing a ~14-17x loss on its own.
+    `auditory_scaffold`. **Does not help separability** -- E017/E034's 2.06x/1.45x
+    figures were unpaired ratio-of-means on a quantity with ~6x genome-to-genome spread;
+    a paired, properly fan-in-normalised re-measurement (E035) found no effect
+    (t=0.04). Kept for anatomical realism and because the implementation is what caught
+    the error, not because it is a working fix for H2d.
 
     `gain` has been re-baselined twice. It was 0.9 through E009, dropped to 0.70 in
     E010 when the pallium was found saturated, and set to **0.95** in E023 after E022
@@ -142,6 +145,17 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     Separability still varies a lot between genomes, which is individual variation in
     how well a given hen's wiring separates her world. It means per-seed results are
     noisy and contrasts need replicates.
+
+    `sensory_pallium_density`, if given, overrides `REGION_CONNECTIVITY`'s sensory
+    (row 0) -> pallium (column 1) entry (default 0.30) for this connectome only.
+    E017/E034 localised H2d's representational loss to fan-in dilution at exactly this
+    projection: each pallial unit sums ~19 stub inputs, of which one or two carry any
+    given distinction, so a real difference lands as a small perturbation on a large
+    common-mode drive. Lower density means fewer, less diluted inputs per pallial unit;
+    `fan_in` below is computed from the actual sampled mask, so weights are
+    automatically re-normalised for whatever density results -- same mechanism
+    `modality_segregated` relies on, applied to density instead of a partition. None of
+    the numbers in the table above hold once this is changed; re-measure, don't assume.
     """
     k_mask, k_w, k_in = jax.random.split(key, 3)
     n = reg.total
@@ -149,6 +163,9 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
 
     # --- Genetic mask: P[source region, target region], W[i, j] is j -> i ---
     p = np.asarray(regions.REGION_CONNECTIVITY, dtype=np.float32)
+    if sensory_pallium_density is not None:
+        p = p.copy()
+        p[regions.SENSORY, regions.PALLIUM] = sensory_pallium_density
     p_ij = p[rid[None, :], rid[:, None]]                     # (N, N)
     mask = jax.random.uniform(k_mask, (n, n)) < jnp.asarray(p_ij)
     mask = mask & ~jnp.eye(n, dtype=bool)                    # no autapses

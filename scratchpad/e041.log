@@ -1,0 +1,14 @@
+E041 -- sensory->pallium density sweep, 12 genomes, paired per genome
+
+density      mean rate    separability   vs 0.30
+0.30            0.2724    0.0872+-0.0492     1.00x
+0.15            0.2648    0.0576+-0.0266     0.66x
+0.08            0.2618    0.0419+-0.0188     0.48x
+0.04            0.2602    0.0313+-0.0138     0.36x
+0.02            0.2595    0.0240+-0.0116     0.28x
+
+paired contrast vs density=0.30 (matched genomes, threshold at df=N-1):
+  0.15 - 0.30: -0.0296 +/- 0.0073  t=4.08  threshold=2.201  -> SIGNIFICANT
+  0.08 - 0.30: -0.0453 +/- 0.0096  t=4.72  threshold=2.201  -> SIGNIFICANT
+  0.04 - 0.30: -0.0559 +/- 0.0112  t=4.98  threshold=2.201  -> SIGNIFICANT
+  0.02 - 0.30: -0.0631 +/- 0.0118  t=5.37  threshold=2.201  -> SIGNIFICANT

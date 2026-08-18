@@ -417,14 +417,29 @@ new home.
   Not a live candidate fix for H2d until/unless a properly powered test finds
   otherwise.**
 
-- **Is the learning rule the wrong *kind*?** (E017, open — no node yet.) `plasticity.py`
-  is reward-modulated three-factor, i.e. instrumental conditioning: act, get rewarded,
-  strengthen. The mechanism the biology points at for alarm-call comprehension is
-  Pavlovian — Curio's mobbing work has naive birds acquiring enemy recognition by
-  *observation*, with no reward and no action of their own, transmitted along a chain
-  of six individuals. `W_pred` is much closer to that machinery than `W_out` is. This
-  may be why every attempt to route learning (E002, E007, E008, E009) has failed:
-  right routing, wrong learning rule. Needs a hypothesis node before anything is built.
+- **Sensory→pallium connectivity density.** (E041) Naive prediction was that *lowering*
+  density would reduce dilution of the informative signal and improve H2d's separability.
+  Falsified — separability rises monotonically with density instead, all the way to full
+  connectivity (density 1.0, ~2× the default). Regression-checked same session:
+  throughput unaffected (dense-with-mask architecture, density doesn't change compute),
+  H2's contrast not broken at 8 seeds (not itself evidence of anything — see E041's own
+  caveat about this project's block-variance lesson). **The strongest H2d lever found so
+  far, still not adopted as a default.** Next: a properly powered (24-seed, pooled)
+  version of the H2 contrast at full density if this is going to be relied on, and/or
+  testing whether it actually unblocks H2c's associative comprehension mechanism — which
+  is the thing H2d was blocking in the first place and hasn't been re-tested since.
+
+- ~~**Is the learning rule the wrong *kind*?** (E017, open — no node yet.)~~ **Has a
+  node now: H2f**, opened by E036's falsifier firing. One correction to this item's own
+  framing, found while investigating: `W_pred`'s existing rule (`hen/plasticity.py`) is
+  **already** a Pavlovian-style delta rule — no reward term touches it — so "wrong
+  routing, wrong rule" was half right for the wrong half. E008/E009 tested this exact
+  rule via `W_pred` and found it null, but for a *representational* reason (H2d), not a
+  rule-kind reason. H2f's own evidence (E036/E040) is about the *other* pathway (`W_out`,
+  genuinely reward-modulated, tested via learned audience-sensitive calling). The two
+  questions are related but distinct and should not be conflated: H2d blocks `W_pred`
+  from having anything to associate; H2f is about whether `W_out`'s instrumental rule can
+  build contingent behaviour at all, even with a foothold supplied.
 - ~~**Does the learning effect grow over a realistic rearing?**~~ Moot until a
   non-destructive rule exists. Running longer with the current rule strips more of
   the connectome, not less.

@@ -600,6 +600,44 @@ def test_modality_segregation_afferents_do_not_cross():
     assert float(jnp.max(jnp.abs(p.W_in[s_split:s_hi, non_audio_vis]))) > 0.0
 
 
+def test_sensory_pallium_density_is_off_by_default():
+    """The default connectome is the one E001-E040 were run on: density 0.30."""
+    p0 = connectome.build(jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=2)
+    p1 = connectome.build(jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=2,
+                          sensory_pallium_density=None)
+    assert jnp.array_equal(p0.mask, p1.mask)
+    p2 = connectome.build(jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=2,
+                          sensory_pallium_density=0.30)
+    assert jnp.array_equal(p0.mask, p2.mask), "0.30 must reproduce the hardcoded default"
+
+
+def test_sensory_pallium_density_moves_only_that_block():
+    """Lowering density must touch the sensory->pallium block and nothing else, and
+    the resulting fan-in must genuinely be lower (not just fewer synapses drawn and
+    silently compensated somewhere else)."""
+    s_lo, s_hi = regions.DEFAULT_REGIONS.bounds(regions.SENSORY)
+    p_lo, p_hi = regions.DEFAULT_REGIONS.bounds(regions.PALLIUM)
+    key = jax.random.key(0)
+    p_default = connectome.build(key, regions.DEFAULT_REGIONS, n_hens=2)
+    p_sparse = connectome.build(key, regions.DEFAULT_REGIONS, n_hens=2,
+                                sensory_pallium_density=0.05)
+
+    block_default = p_default.mask[p_lo:p_hi, s_lo:s_hi]
+    block_sparse = p_sparse.mask[p_lo:p_hi, s_lo:s_hi]
+    assert float(block_sparse.mean()) < float(block_default.mean())
+
+    for r_id in range(regions.N_REGIONS):
+        if r_id in (regions.SENSORY, regions.PALLIUM):
+            continue
+        lo, hi = regions.DEFAULT_REGIONS.bounds(r_id)
+        assert jnp.array_equal(p_default.mask[lo:hi], p_sparse.mask[lo:hi]), \
+            regions.REGION_NAMES[r_id]
+
+    fan_in_default = jnp.sum(p_default.mask, axis=1)[p_lo:p_hi].mean()
+    fan_in_sparse = jnp.sum(p_sparse.mask, axis=1)[p_lo:p_hi].mean()
+    assert float(fan_in_sparse) < float(fan_in_default)
+
+
 def test_reward_components_are_commensurate(flock):
     """No single reward component may dwarf the others.
 
