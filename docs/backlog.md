@@ -84,9 +84,18 @@ for** instead of the four single-point mean comparisons that preceded it (E026, 
 E028b, plus a zero-compute re-analysis). **The intake prediction is not supported** —
 null at every capacity across a 0.5×–4.0× sweep, nine checks total now agreeing. **What
 is supported**: a real, capacity-robust safety benefit (L safer than C? at all five
-capacities), which is genuine Pareto improvement even without the intake side. Per-hen
-vigilance falling with flock size was never tested — still open, lower priority now that
-the headline half of the prediction has a settled answer. Full result in the T1 node.
+capacities), which is genuine Pareto improvement even without the intake side.
+
+~~Per-hen vigilance falling with flock size was never tested — still open, lower
+priority~~ **Done (E046): falsified, and the reason corrects the mechanism.** `head_down`
+falls with flock size for *both* L and C? at similar rates — no channel-specific
+vigilance relaxation. Most likely a chorus effect (power-summed audio gets louder with
+more hens, triggering call-suppression on loudness regardless of content), not a
+strategy the reflex arc is structurally capable of having. The safety advantage itself
+turned out to be flock-size-dependent (null at 4–8 hens, significant at 32) — a
+population-statistics story (more independent chances of a true warning), not a
+behavioural one. **Both of T1's original predictions are now settled.** Full results in
+the T1 node.
 
 ### T2 — The rotating poisoned feeder (the headline experiment)
 

@@ -1084,6 +1084,35 @@ claim` rather than `REFUTED`, because the mechanism it was built to detect (a re
 Pareto-relevant consequence of the channel) is present — just on the risk axis, not the
 intake axis the original design emphasised.
 
+**T1's second prediction — per-hen vigilance falls as flock size rises — is falsified
+too, and the reason corrects the mechanism, not just the data point**
+([E046](experiments/E046-t1-flock-size.md)). `head_down` (the vigilance proxy) *falls*
+with flock size — hens forage *less*, not more, as the flock grows — at similar rates
+for L and C? (−0.0017 vs −0.0025 per hen), with no channel-specific effect. Most likely
+cause: this codebase's auditory channel combines in power, so more hens means a louder,
+busier acoustic environment regardless of whether calls carry information, and the
+innate call-suppression reflex fires on loudness, not content — a chorus effect
+symmetric across L and C?, not a vigilance strategy responding to trust in the channel.
+
+**Structural reading: "shared vigilance" in the classic sense — individuals actively
+relaxing their own watchfulness — is not something this architecture can produce, and
+there is a principled reason why not.** The reflex arc has no adaptive policy to relax;
+behaviour is a fixed function of instantaneous input, not a strategy conditioned on
+flock size or trust in flockmates. What the E045 safety result more likely reflects is
+a passive, statistical version of many-eyes: more hens means more independent chances
+someone sees the hawk in time, a property of the population rather than any individual's
+behaviour. Consistent with this: E046 found the safety advantage itself is **not
+flock-size-uniform** — indistinguishable from zero at `n_hens=4` and `8` (t=0.03, 0.32),
+and only clearly significant at `n_hens=32` (t=4.02) — a threshold-like pattern across
+4 points, not the smooth scaling E045 (fixed at `n_hens=16`) could not have revealed.
+
+**Both of T1's original predictions are now settled**, replacing the informal open
+status they carried through four scattered checks: no intake benefit at any capacity
+(E045), no vigilance-relaxation mechanism at any flock size (E046), and a real,
+flock-size-dependent safety benefit whose likely origin is statistical (more
+independent chances for a true warning to exist) rather than behavioural (individuals
+changing what they do).
+
 **Relationship to H2c/H2d/H2f**: none. T1, like H4, runs entirely on the innate route —
 hardwired call production plus the E018 comprehension scaffold, no plasticity anywhere.
 It says nothing about whether *learning* ever contributes to this or any other channel
@@ -1150,6 +1179,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E046 | **T1's vigilance prediction falsified — flock-size sweep, n_hens {4,8,16,32}.** `head_down` *falls* with flock size for both L and C? (slopes −0.0017 vs −0.0025/hen), no channel-specific effect — likely a chorus effect (power-summed audio, louder with more hens, triggers call-suppression regardless of content) rather than a vigilance strategy. Safety advantage itself is flock-size-dependent, not uniform: null at n=4,8 (t=0.03, 0.32), significant at n=32 (t=4.02) — consistent with a passive, statistical many-eyes mechanism (more independent chances of a true warning) rather than individual behavioural change. Both of T1's original predictions now settled. |
 | E045 | **T1 finally given the Pareto treatment `docs/backlog.md` always specified, instead of a fourth single-point mean comparison.** 5-capacity sweep (`pallium_scale` 0.5×–4.0×), `food_deplete_rate=0`. Intake: null at every capacity (max t=0.56) — nine total checks across four experiments now agree. Risk: L safer than C? at all 5 capacities, same sign throughout (t=4.59 at 1.0×). **T1 → `SUPPORTED as a narrower claim`**: no intake benefit, but a real, capacity-robust safety benefit — genuine if partial Pareto improvement. Non-monotonic fed% pattern (negative/positive/positive/positive/negative across the sweep) reported, not established at n=8/point. |
 | E044 | **Structural read of `W_pred`: the two metrics disagree, and the honest reading is a narrow real signal inside mostly-unrelated growth.** `IDX_AERIAL` ranks 30th of 59 target channels by weight (below average) — not concentrated on the hawk percept overall. But within the aerial-channel weights, correlation with call-responsiveness is significantly positive across 6 seeds (r=+0.304, t=2.61, barely clears 2.571), though inconsistent (2/6 seeds near zero). H2c stays `NOT STARTED`. Three experiments (E042–E044) now converge on "real but small and partial" without a lever to move it further — stepping back to the wider backlog. |
 | E043 | **Exposure escalation: registered falsifier fires, but an unregistered number complicates it.** Doubling predator density (hawk every 10s vs E042's 20s): mean `\|W_pred\|` unchanged (0.00057 vs E042's 0.00058) — falsifier fires as written. But max `\|W_pred\|` reached 30–40% of cap, up from near-zero — concentrated growth an average obscures. Comprehension ticks up slightly (0.006–0.008) but density contrast stays non-significant (t=0.66). H2c stays `NOT STARTED`; next step is a structural read of *which* `W_pred` entries moved, not more exposure. |
