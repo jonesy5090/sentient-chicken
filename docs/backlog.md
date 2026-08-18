@@ -527,19 +527,27 @@ new home.
 - ~~**Does the learning effect grow over a realistic rearing?**~~ Moot until a
   non-destructive rule exists. Running longer with the current rule strips more of
   the connectome, not less.
-- **H2f's falsifier, attempted twice, not yet decisively resolved either way**
-  ([E055](experiments/E055-hebbian-readout.md),
-  [E056](experiments/E056-hebbian-readout-scaled.md)). A non-reward-gated readout rule
-  (`hebbian_readout`) first broke (unbounded growth, cortical overwhelming reflex,
-  general dysregulation misread as a huge "significant" audience effect at t=45.59 in
-  the second attempt too, before the mandatory diagnostic caught it), then, once bounded
-  (`readout_scaling_strength`), produced a real but mixed signal: a genuinely
-  disproportionate audience-specific rise sitting on top of a smaller general-elevation
-  rise, failing one of three pre-registered sanity checks. **Next diagnostic, not a
-  third constant sweep**: separate the two components directly — e.g. audience effect
-  measured as a per-seed ratio to that seed's own alone-condition rate (normalizing out
-  general excitability), or a structural read of what the trained `W_out` actually
-  correlates with, the same kind of analysis E044 did for `W_pred`.
+- ~~**H2f's falsifier, attempted twice, not yet decisively resolved either way**~~
+  **Resolved (E057): the falsifier clears, replicated.** A non-reward-gated readout rule
+  (`hebbian_readout`, stabilised with `readout_scaling_strength`) produces a real,
+  twice-replicated, predominantly audience-conditional effect (+0.232, t=40.90 pooled)
+  significantly larger than a smaller, context-specific (not indiscriminate — a
+  food-channel control ruled that out) general-elevation component (+0.122, t=14.38
+  pooled). H2f -> `SUPPORTED`, narrower than a clean audience-only ideal. See
+  [E055](experiments/E055-hebbian-readout.md),
+  [E056](experiments/E056-hebbian-readout-scaled.md),
+  [E057](experiments/E057-separating-audience-from-elevation.md) for the full arc.
+- **New item, opened by E057's own consequence section**: a structural read of what the
+  trained `W_out` potentiates when a real hawk is present (audience or not) — is the
+  general-elevation component a sensible "threat salience" association, or something
+  less interpretable? Not required for E057's result to stand; a follow-up explanation,
+  the same kind of analysis E044 did for `W_pred`.
+- **New item, opened by E057's own consequence section**: a fresh, direct pass at H2c
+  (comprehension) using the same non-reward-gated-and-bounded rule family and the same
+  mandatory-diagnostic-before-trusting discipline that got H2f's result right on the
+  third attempt. H2c was last tested (E042-E044, E054) exclusively via the instrumental
+  or unbounded-`W_pred` route; it has not been re-tried since a *working* non-instrumental
+  mechanism was demonstrated to be possible at all on this architecture.
 - ~~**Predator exposure as a metric.**~~ Retired. Uninformative in both E003 and E004
   (SEs of 1460-2469 on means of 13-44). E001's apparent 43% difference was noise, as
   it was flagged at the time.
