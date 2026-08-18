@@ -99,6 +99,13 @@ the T1 node.
 
 ### T2 — The rotating poisoned feeder (the headline experiment)
 
+> **Extended and fully specified** following a design review that found two real gaps
+> in the sketch below: no call in this project (real or built) is specific to bad
+> food, and no contamination mechanic exists anywhere in the world model. Both are
+> designed here rather than assumed. First formal pre-registration:
+> [E060](experiments/E060-t2-contamination-scaffold.md) (Stage 1: build and validate
+> the innate scaffold — the learning test is a later, separate experiment).
+
 Several feeders; one is contaminated; which one rotates on a period tuned to the band
 above. Eating from it is costly but survivable. Contamination is invisible until
 tasted, so the information is genuinely private and genuinely transferable.
@@ -109,6 +116,107 @@ tasted, so the information is genuinely private and genuinely transferable.
 - **Why this one**: it tests *reference* -- the signal must carry **which** feeder,
   not merely that something is wrong. And it extends a behaviour chickens genuinely
   have, since their food calls are already functionally referential.
+
+#### What was missing, and the fix for each
+
+**1. No signal for "this is bad."** Every existing call is either positive (food) or
+about a predator (aerial/ground). Rather than invent a bespoke "danger: bad food" call
+with no real-world counterpart, this uses a real, documented chicken vocalisation: the
+**gakel-call** ("gackering"), a frustration / negative-expectation call given when an
+anticipated good outcome turns out bad — described in the welfare literature as a
+candidate indicator of negative affect, and (like the calls already built) it comes
+with its own audience-sensitivity findings to eventually check the model against.
+Production is innate, wired to fire once, on the rising edge of a sickness event —
+architecturally identical to `IDX_FOOD_ARRIVAL` → `M_CALL_FOOD` (E053): a discovery
+pulse, not continuous nagging for the whole sick period.
+
+**2. No contamination mechanic.** New `World` state: which feeders are currently bad
+(invisible — `food_amount`'s appearance is unaffected), rotating on a period. Eating
+from a contaminated feeder (the existing `fed` rising edge, gated on contamination)
+triggers a sickness event.
+
+**3. Sickness needs a real, embodied consequence, not just a number.** Per direct
+instruction: the hen who eats bad food should be **visibly slow and still for a
+duration, then recover** — not an instant, invisible reward penalty. Modelled as a
+timed state (`sick_t`, same idiom as `hawk_t`/`fox_t`'s dive/dwell timers), set on the
+sickness rising edge and decaying to zero. While sick, a mobility multiplier
+(mechanical, in `actuation.py`, the same way `crouch` mechanically zeroes locomotion —
+this is a physiological constraint happening *to* her, not a decision the reflex arc
+or learning ever gets to make) cuts her speed sharply, not to zero: **slowed**, not
+frozen solid, matching "visibly slow / still" rather than a hard freeze. The gakel call
+fires at the *onset* of this state (the discovery-pulse pattern above); recovery is
+silent — she is simply moving normally again once `sick_t` reaches zero.
+
+**4. The location problem** (flagged when T2 first came up: the food call — and by the
+same logic, the gakel call — cannot carry *which* feeder acoustically; a receiver would
+need to see the caller). **Fixed with a new vision class, not a new acoustic
+dimension**: `CLS_SICK`, a flockmate-proximity signal (same `_bin_proximity` mechanism
+as `CLS_FLOCKMATE`) gated to only the currently-sick hen(s). A flockmate now has a
+directly perceivable, *located* cue — a hen slowed and visible at a specific bearing
+and distance — for as long as the sickness lasts, which is exactly the duration a
+receiver needs to notice her, orient toward her, and register where she is. The gakel
+call and the visual cue play complementary, not redundant, roles: audio broadcasts
+"something bad just happened" past visual range and gives the pathway a learnable
+*stimulus* to condition on; vision supplies *where*. Neither alone would solve the
+reference problem; together they do, the same two-channel structure (a call plus a
+visual referent) real referential alarm calling already uses in this model (a hawk
+call plus the sight of the hawk once you look up).
+
+**5. Innate anchor, or learning has nothing to amplify.** H2f (E055–E057) established
+directly, this session, that this project's only working non-instrumental learning
+mechanism *amplifies an existing innate anchor into a targeted policy* — it does not
+build an association from nothing (E058, E059 both confirmed this cleanly, the second
+with a mechanistic explanation). T2's learned claim ("avoid *this* feeder, even once
+the sick hen has recovered and left") is exactly the "build a new, durable,
+location-bound contingency" kind of claim that formula cannot do unaided. So T2 needs
+its own anchor, the same way the audience-effect task had one: an innate reflex that
+turns a hen **away** from `CLS_SICK` — a hardwired, momentary avoidance of a visibly
+sick flockmate's immediate vicinity, mirroring `CLS_CROWDING`'s personal-space
+mechanism exactly (same wiring pattern, opposite turn channel, weight chosen the same
+way). This is not invented from nothing either: avoidance of sick-looking conspecifics
+is a broadly documented cross-species phenomenon (a "behavioural immune system"), not
+chicken-specific literature this project can cite with the same precision as the
+alarm-call work, but a real, plausible basis rather than an assumption. **The anchor
+gives immediate, momentary spatial avoidance while the cue is visible; what learning
+would have to add is durability — continuing to avoid the location after the hen has
+recovered and the visual cue is gone.** That gap between the innate anchor and the
+durable, referential claim is precisely what T2 tests.
+
+#### Innate vs. learned, stated plainly (the question asked directly)
+
+**Innate, all of it, matching this project's consistent split between wired
+production/physiology and learned usage/durable association:**
+- Contamination existing and rotating — a fact about the world, not a behaviour.
+- The sickness event and its physiological consequence (slowed movement) — mechanical,
+  like `crouch`, not mediated by any learned weight.
+- Gakel-call production, firing on the sickness-onset pulse — call production is
+  innate throughout this entire project (Konishi's finding), and this is no exception.
+- The `CLS_SICK` visual channel — a sensory fact, like any other vision class.
+- The proposed turn-away-from-`CLS_SICK` reflex — the anchor, hardwired like every
+  other reflex in `hen/innate.py`.
+
+**Learned — this is the actual hypothesis, the reason to build any of the above:**
+whether a flock, using the same non-reward-gated readout rule validated for H2f
+(`hebbian_readout` + `readout_scaling_strength` — the only mechanism this project has
+ever gotten to build a targeted contingency), can turn the innate anchor's momentary
+reaction into a durable, location-specific avoidance that persists after the sick hen
+and her visual cue are gone. **Both, exactly as before** — an innate scaffold precise
+enough to give the flock a fighting chance, wrapped around a learned claim the scaffold
+does not itself satisfy. Whether the plain instrumental rule (H2's own, separately
+null on general foraging) does anything here either is a natural secondary condition
+to run alongside it, not the primary hypothesis.
+
+#### Staging, following this project's own rule about testing the instrument first
+
+**Stage 1** ([E060](experiments/E060-t2-contamination-scaffold.md)): build the world
+mechanic, the gakel call, the visual channel and the innate anchor; validate all four
+against the ethogram the same way every other innate behaviour in this project has been
+validated (`run/probes.py`), with no learning involved. Confirms the scaffold does what
+it is supposed to before any hypothesis is tested on top of it.
+
+**Stage 2** (not yet pre-registered): the actual L vs. C? contrast — does the flock,
+with the validated scaffold and the H2f-style learning rule, converge toward one hen's
+mistake per rotation, as the original prediction states.
 
 ### T3 — The safe corridor (stretch)
 
