@@ -413,30 +413,44 @@ def test_being_caught_does_not_dominate_the_reward_where_hawks_are_common():
     one the project keeps getting wrong: the strike term must be small, *and* strikes
     must actually have happened. A 30 s window at this predator rate still contains no
     strike, so it would pass for exactly the vacuous reason the 900 s config does. 100 s
-    is the shortest window measured to contain one.
+    is the shortest window measured to contain one -- which makes a single hardcoded
+    seed fragile to any change that shifts the RNG stream (e.g. `OBS_DIM` growing, which
+    changes what a fixed connectome-build key draws even though nothing about predation
+    changed): seed 0 went from >=1 strike to a closest approach of 1.549 m against a
+    1.5 m strike radius, a miss by seconds of simulated proximity, after E048's
+    personal-space channel was added. A sweep of 8 seeds found strikes in 6 of them
+    (0 and 3 miss), confirming this is seed sensitivity, not a behavioural regression --
+    so this test tries a short, fixed list of seeds rather than trusting one.
     """
     from coop import sensing
     pc = PlasticConfig()
     CFG = E019_CFG._replace(hawk_period_s=20.0)
-    w = world.reset(jax.random.key(0), CFG)
-    p = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS, n_hens=CFG.n_hens)
-    x = brain.initial_state(p, CFG.n_hens)
 
-    strike_contrib, other, events = [], [], 0.0
-    for t in range(10_000):
-        obs = sensing.observe(w, CFG)
-        x, motor, _ = brain.step(x, obs, p, CFG.dt)
-        wn = world.step(w, motor, jax.random.fold_in(jax.random.key(4), t), CFG)
-        r = plasticity.reward(w, wn, CFG, pc)
-        frozen = wn._replace(n_strike_events=w.n_strike_events)
-        strike_contrib.append(jnp.mean(r - plasticity.reward(w, frozen, CFG, pc)))
-        other.append(jnp.mean(r))
-        events += float(jnp.sum(wn.n_strike_events - w.n_strike_events))
-        w = wn
+    for seed in (0, 1, 2):
+        w = world.reset(jax.random.key(seed), CFG)
+        p = connectome.build(jax.random.key(seed + 1), regions.DEFAULT_REGIONS,
+                             n_hens=CFG.n_hens)
+        x = brain.initial_state(p, CFG.n_hens)
+
+        strike_contrib, other, events = [], [], 0.0
+        for t in range(10_000):
+            obs = sensing.observe(w, CFG)
+            x, motor, _ = brain.step(x, obs, p, CFG.dt)
+            wn = world.step(w, motor, jax.random.fold_in(jax.random.key(4), t), CFG)
+            r = plasticity.reward(w, wn, CFG, pc)
+            frozen = wn._replace(n_strike_events=w.n_strike_events)
+            strike_contrib.append(jnp.mean(r - plasticity.reward(w, frozen, CFG, pc)))
+            other.append(jnp.mean(r))
+            events += float(jnp.sum(wn.n_strike_events - w.n_strike_events))
+            w = wn
+
+        if events > 0:
+            break
 
     assert events > 0, (
-        "no hen was struck in the whole window, so this guard proves nothing -- the "
-        "same vacuous pass that let the defect survive at hawk_period_s=900")
+        "no hen was struck in the whole window at any of 3 tried seeds, so this guard "
+        "proves nothing -- the same vacuous pass that let the defect survive at "
+        "hawk_period_s=900")
 
     v_strike = float(jnp.var(jnp.array(strike_contrib)))
     v_total = float(jnp.var(jnp.array(other)))
