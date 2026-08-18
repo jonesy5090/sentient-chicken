@@ -23,17 +23,20 @@ Status values: `SUPPORTED` · `UNDER TEST` · `NOT STARTED` · `REFUTED` · `ABA
 > different and weaker claim. Statuses are retained rather than reset, and each should
 > be read as "established on the pre-E023 brain" until re-run. The queue is in E023 §6.
 
-> ## ⚠ OBS_DIM moved 59 → 71 at E048 — narrower than E023, still worth flagging
+> ## ⚠ OBS_DIM moved 59 → 71 → 72 at E048/E053 — narrower than E023, still worth flagging
 >
 > [E048](experiments/E048-personal-space-fix.md) added `CLS_CROWDING`, a fifth vision
 > class giving the reflex arc a personal-space signal (E025's diagnosed fix for flock
-> clumping). Unlike E023, this does not touch neuron identity or any existing channel's
-> values — the observation layout is symbolic and offset-based (`coop/spec.py`), so
-> every prior channel keeps its old index and meaning, just at a new absolute position.
-> What it does change: the connectome's sensory fan-in size, and therefore anything
+> clumping): 59 → 71. [E053](experiments/E053-food-call-discovery-pulse.md) added
+> `IDX_FOOD_ARRIVAL`, replacing the food-call reflex's continuous sight-gating with a
+> discovery pulse: 71 → 72. Unlike E023, neither touches neuron identity or any existing
+> channel's values — the observation layout is symbolic and offset-based (`coop/spec.py`),
+> so every prior channel keeps its old index and meaning, just at a new absolute position.
+> What they do change: the connectome's sensory fan-in size, and therefore anything
 > sensitive to `OBS_DIM` as a raw number (e.g. `sensory_pallium_density`'s fan-in-dilution
-> math, E041). Behavioural endpoints (fed %, caught %, comprehension) are not expected to
-> shift from this alone. Statuses are retained, not reset; treat this as a smaller,
+> math, E041) and any fixed-seed test whose connectome-build RNG stream shifts as a
+> result. Behavioural endpoints (fed %, caught %, comprehension) are not expected to
+> shift from `OBS_DIM` alone. Statuses are retained, not reset; treat this as a smaller,
 > scoped version of the E023 caveat rather than a second full re-baseline.
 
 ---
@@ -1212,6 +1215,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E053 | **Food call fixed to fire on discovery, not continuous sight — closes a long-standing backlog item.** Added `IDX_FOOD_ARRIVAL`: a rising-edge pulse on newly arriving at a food patch (same idiom as `strike_event`), decaying over 4s regardless of dwell time, replacing raw `CLS_FOOD` sight-gating on `M_CALL_FOOD`. `OBS_DIM` 71 → 72. Flock-wide food-calling fraction dropped **42.8% → 4.2%**, no hen left above 50% of steps calling (was 4/16). New probe and unit test both pass; full ethogram (8/8) and test suite (62/62) unaffected. Production stays innate and audience-blind, matching the project's existing design — only the temporal trigger changed. Sets up [E054](experiments/E054-food-call-saturation-and-pallium-capacity.md): does removing this saturation change anything for the rarer alarm channel's representation (H2c/H2d)? |
 | E048 | **The E025 flock-clumping fix, built and measured: a personal-space vision channel (`CLS_CROWDING`).** Zero until a flockmate is well inside personal-space range, ramping to 1 at contact; wired to turn the hen *away*, at a weight (4.0) that mathematically must and does exceed `CLS_FLOCKMATE`'s attraction weight (1.2) for repulsion to win rather than merely damp. `OBS_DIM` 59 → 71. Diagnostic (3 seeds, 6-min, matching E025's own methodology, run on the current E023-corrected connectome so only compares against itself): nearest-neighbour distance 0.14 → 0.38 m, strike-radius overlap 26.8% → 21.8%, with cold and fed/hen essentially unchanged — real, measured dispersal, well short of stripping gregariousness entirely (nn 1.70, but cold and fed/hen both distorted there). A `test_reward_is_not_dominated_by_one_component` regression during implementation (repulsion at the exact huddle-radius boundary was suppressing huddling, shifting reward composition toward hunger) led to tightening the activation threshold from the huddle radius itself to well inside it — caught by the test suite, not the diagnostic. |
 | E047 | **H3's original design (E005/E006) re-run on the fully corrected system — closes the last "was it measurement" explanation.** Without a scaffold: comprehension exactly zero (H2b's diagnosis confirmed as architectural, not an E019-era artefact), both `alarm_effect` and `food_effect` null across every condition, 8 seeds, `food_deplete_rate=0`. **E005's promising `food_effect` trend (+0.032, t=0.64) does not replicate.** Combined with E036/E040 (scaffold supplies comprehension, audience-sensitivity still doesn't emerge on top), H3 has now failed both ways this project could imagine it working. "Blocked by H2b" retired as the operative explanation — same underlying limitation as H2c. |
 | E046 | **T1's vigilance prediction falsified — flock-size sweep, n_hens {4,8,16,32}.** `head_down` *falls* with flock size for both L and C? (slopes −0.0017 vs −0.0025/hen), no channel-specific effect — likely a chorus effect (power-summed audio, louder with more hens, triggers call-suppression regardless of content) rather than a vigilance strategy. Safety advantage itself is flock-size-dependent, not uniform: null at n=4,8 (t=0.03, 0.32), significant at n=32 (t=4.02) — consistent with a passive, statistical many-eyes mechanism (more independent chances of a true warning) rather than individual behavioural change. Both of T1's original predictions now settled. |

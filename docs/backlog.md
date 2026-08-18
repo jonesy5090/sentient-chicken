@@ -334,11 +334,16 @@ new home.
 - ~~**Re-run E018**, unchanged in design — only its instrument was broken.~~ **Done
   (E036).** Falsifier fired: `S+L − S = -0.005, t=2.25`, wrong-signed. New node H2f.
 - ~~**Re-measure H2d** against a call channel that now varies.~~ **Done (E034).**
-- **The innate food call fires on sight, out to 10 m.** Twelve of sixteen hens
+- ~~**The innate food call fires on sight, out to 10 m.** Twelve of sixteen hens
   food-call continuously, so that channel is saturated by *genuine* calling and carries
   no information. Real cockerels food-call on *finding* food, and are audience-sensitive
   about it. This is a reflex-arc change and needs its own hypothesis node — it is not a
-  bug fix and should not be done as one.
+  bug fix and should not be done as one.~~ **Done ([E053](experiments/E053-food-call-discovery-pulse.md)).**
+  Replaced continuous `CLS_FOOD` sight-gating with a discovery pulse (`IDX_FOOD_ARRIVAL`):
+  fires on the rising edge of arriving at a patch, decays over 4s regardless of how long
+  she stays. Flock-wide calling fraction dropped 42.8% → 4.2%, no hen left above 50%
+  (was 4/16). Production stays innate and audience-blind, unchanged — only the temporal
+  trigger changed. `OBS_DIM` 71 → 72.
 - ~~**The flock clumps** — nearest-neighbour 0.23 m in a 20 × 20 m run. Flagged by the
   same review. T1 (divided vigilance) and T2 (which feeder is poisoned) both assume
   hens are somewhere different from each other. Nothing disperses them: food never

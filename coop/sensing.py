@@ -136,7 +136,8 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     d_hens = jnp.linalg.norm(w.pos[:, None, :] - w.pos[None, :, :], axis=-1)
     d_hens = d_hens + jnp.eye(h) * 1e6
     isolation = jnp.clip(jnp.min(d_hens, axis=-1) / 3.0, 0.0, 1.0)
-    intero = jnp.stack([w.hunger, w.thirst, w.cold, isolation], axis=-1)
+    intero = jnp.stack([w.hunger, w.thirst, w.cold, isolation, w.food_call_drive],
+                       axis=-1)
 
     # --- Somatic ---
     d_wall = jnp.min(jnp.minimum(w.pos, cfg.size - w.pos), axis=-1)

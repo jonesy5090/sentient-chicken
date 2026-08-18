@@ -372,6 +372,7 @@ separate cortical pathway, and a test asserts the two never mix.
 | go blind while foraging | pecking | aerial channel 0.01 (vs 0.87 head-up) |
 | produce the aerial alarm call | sees a hawk | fires, not the ground call |
 | produce the ground alarm call | sees a fox | fires, not the aerial call |
+| produce the food call | newly arrives at food (not continuous sight) | calling fraction 42.8% → 4.2% (E053) |
 | contact call | isolated from the flock | 0.97 alone vs 0.25 in-flock |
 | approach flockmates | cold | measurable leftward bias |
 | turn away from a flockmate | crowded past personal-space range | nn dist 0.14 → 0.38 m (E048) |

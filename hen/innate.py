@@ -129,10 +129,13 @@ def reflex_matrix(auditory_scaffold: bool = False,
     w(spec.M_CALL_CONTACT, spec.IDX_ISOLATION, 5.0)
     w(spec.M_CALL_CONTACT, spec.IDX_COLD, 2.0)
 
-    # --- Food call on finding food. Innate in production; the audience modulation
-    # that a real cockerel shows is left for plasticity to discover.
-    for b in _FRONT:
-        w(spec.M_CALL_FOOD, spec.vis_index(b, spec.CLS_FOOD), 4.0)
+    # --- Food call on finding food (E053). Fires on the discovery pulse
+    # (IDX_FOOD_ARRIVAL, world.py) -- a rising edge on newly arriving at a patch, not
+    # raw CLS_FOOD sight, which stayed high for as long as a hen stood there and had
+    # roughly a quarter of the flock calling on over half of all steps. Production is
+    # still innate and audience-blind by design; the modulation a real cockerel shows
+    # is left for plasticity to discover, unchanged from before this fix.
+    w(spec.M_CALL_FOOD, spec.IDX_FOOD_ARRIVAL, 4.0)
 
     if auditory_scaffold:
         _add_auditory_scaffold(w, scaffold_gain)
