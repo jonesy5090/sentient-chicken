@@ -1,0 +1,13 @@
+E039 -- H4 depletion audit, 8 seeds (60-67), 10 min, hawk every 20s, food_deplete_rate=0.0
+
+C? yoked       caught/dive=0.1444  dives=288.0  fed%=4.15
+L  language    caught/dive=0.0677  dives=288.0  fed%=3.69
+Lx lesioned    caught/dive=0.0914  dives=288.0  fed%=3.53
+
+PRIMARY -- L vs C?, caught/dive:
+  -0.0767 +/- 0.0139  t=5.52  threshold(df=7)=2.365  -> SIGNIFICANT
+
+SECONDARY -- L vs Lx, caught/dive (the standing brain check):
+  -0.0237 +/- 0.0260  t=0.91  threshold(df=7)=2.365  -> not significant
+
+wall clock: 340 s
