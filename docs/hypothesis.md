@@ -172,8 +172,13 @@ seed block's *variance* is representative. Seeds 0–11 were homogeneous, which 
 small difference look decisive.
 
 **Standing rule, from this:** no result changes a status in this tree on one seed block.
-See `CLAUDE.md`. E004's t=3.93 and E016's staging result are both single-block and both
-still cited — they need re-checking.
+See `CLAUDE.md`. ~~E004's t=3.93 and E016's staging result are both single-block and both
+still cited — they need re-checking.~~ **Closed out.** E016 was marked superseded by
+E020 at the time (§ below). E004's t=3.93 turned out to be the most re-checked number in
+the tree, just never explicitly retired: E010 re-ran it unchanged except for gain and it
+vanished (t=3.93 → t=0.08); the fully corrected connectome and world were re-tested
+independently by E013→E020→E021→E023→E037, landing on today's authoritative
++0.0003 ± 0.0156, t=0.02. Both are superseded, not merely "still cited."
 
 ~~**The smoking gun is the synapse count.** Learning ends with 19,088 of 36,373
 innate synapses, destroying 48% of the connectome. The reward prediction error hovers
@@ -454,6 +459,14 @@ some small optimum.
 **Falsifier:** a growth-rate sweep showing a flat or rising relationship, which would
 make the three-run ordering a coincidence of the on/off contrast.
 
+**Stale evidentiary basis, flagged rather than re-run.** All three supporting runs
+(E001, E003, E004) predate E013–E023's fixes. On the current architecture the ordering
+doesn't obviously hold either way: E037's clean rebaseline found `learning + growth` vs
+fixed at +0.0052 ± 0.0133, t=0.39 — also a null, not distinguished from `learning, no
+growth`'s own null. This node's status stays `NOT STARTED` because the growth-rate sweep
+itself has never been run, on any architecture; the three-run ordering that opened it is
+old evidence for a question nobody has directly tested since.
+
 **Note:** the default stays `growth_enabled=True` until this is settled. Three runs
 of a binary contrast is not enough to overturn a default with a biological
 justification behind it.
@@ -586,10 +599,14 @@ problem where there is also a missing scaffold.
 **E002, E007, E008 and E009 were all attempts to fix the routing of learning.** The
 blocker is upstream of routing: there is not enough in the pallial state to route.
 
-**Caveat this raises for an existing result.** H2's supported finding (E004, t=3.93)
+~~**Caveat this raises for an existing result.** H2's supported finding (E004, t=3.93)
 was obtained in the saturated regime. Drive regulation evidently only needs coarse
 modulation, which a saturated network can still supply — but it should be re-run once
-the operating point is fixed, and may well get stronger.
+the operating point is fixed, and may well get stronger.~~ **It was re-run, repeatedly,
+and did not get stronger — it vanished.** E010 first (same design, corrected gain,
+t=3.93 → t=0.08); the fully corrected connectome and world independently by E037
+(+0.0003 ± 0.0156, t=0.02). H2 is a clean null on every operating point this has been
+checked at, not a supported finding waiting on saturation to clear.
 
 ~~**Not yet changed.** The gain default stays 0.9~~ — **stale**. The re-baselining
 happened; `hen/connectome.py:48` has `gain = 0.70`. Flagged by external review as a doc
@@ -781,7 +798,11 @@ a change to the core architecture and has not been made.
 
 **Status: UNDER TEST** — opened by [E017](experiments/E017-where-separability-is-lost.md)
 as an unnamed possibility, promoted to a node by
-[E036](experiments/E036-e018-rerun.md)'s pre-committed falsifier firing.
+[E036](experiments/E036-e018-rerun.md)'s pre-committed falsifier firing. **Checked
+against the `food_deplete_rate` confound that broke H2e and found robust**
+([E040](experiments/E040-h2f-depletion-audit.md)): a clean re-measurement reproduced
+E036's result to three decimal places (−0.005 both), same sign, not significant in
+either world.
 
 **Claim:** `hen/plasticity.py` implements reward-modulated three-factor plasticity —
 instrumental conditioning: act, get rewarded, strengthen whatever was active. The
@@ -1032,6 +1053,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E040 | **H2f checked against the same confound and found robust, closing the audit trail.** Clean re-measurement of E036's 2×2 (`food_deplete_rate=0`, same seeds): `S+L − S` = **−0.005 ± 0.003, t=1.53** — identical mean to E036's depleted-world −0.005 ± 0.002, t=2.25, same sign, comprehension manipulation check unchanged (0.1921 both). Falsifier does not fire. Final tally across all four checks: confound real and status-changing for H2 (E037) and H2e (E038); present but not consequential for H4 (E039) and H2f (E040). |
 | E039 | **H4 checked against the same `food_deplete_rate` confound that broke H2e — and found robust.** 8-seed clean re-measurement (depletion off, 10 min, hawk every 20s, matching E030's block-C seeds 60–67): L vs C? on `caught/dive` **−0.077 ± 0.014, t=5.52, SIGNIFICANT** — same sign as E030's pooled −0.044, comparable magnitude, significant even at reduced n. `dives` denominator unmoved (288.0 across all conditions). Falsifier did not fire; H4's `SUPPORTED` status stands unmodified. Two audits of the same confound, two different outcomes — real for H2/H2e, not consequential here. |
 | E038 | **H2e's `REFUTED` verdict does not survive a clean world — reverts to `UNDER TEST`.** E032/E033 shared the same undocumented `food_deplete_rate` confound E037 found for H2. Full 24-seed clean re-measurement (`food_deplete_rate=0`, matching E033's exact design and block structure): interaction **−0.890 ± 0.556, t=1.60, NOT significant** — opposite sign from E033's +0.390, t=2.55, and not replicating it. An interim 8-seed check found the same sign reversal first (−0.954, t=1.36); the full run confirms it rather than being an artefact of the smaller sample. E032 and E033 corrected in place with pointers here, per this project's convention. |
 | E037 | **H2's null re-confirmed on the corrected connectome — and a second, undocumented confound found and controlled for.** First pass (today's defaults) gave `fed %` 2.6 against E020's 6.6, hunger change 40× larger — traced to `food_deplete_rate` (added by E025 for H4's dispersal question, never checked against H2's 20-minute/16-hen harness; one feeder ends at 0.97% remaining). Gain/readout ruled out directly (lesioning `W_out` at both gains changes nothing). Re-run with `food_deplete_rate=0`, matching E020's world: **+0.0003 ± 0.0156, t=0.02**, 24 seeds — an even cleaner null. The two 12-seed blocks alone were **individually significant in opposite directions** (t=2.96, t=2.19) — only pooling reveals the null, the E021 lesson recurring inside the experiment meant to move past it. |

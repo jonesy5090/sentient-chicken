@@ -306,7 +306,7 @@ Then she learns. Except she doesn't.
 |---|---|
 | **E001** | Nothing. Twelve thousand synapses rewiring themselves, zero effect on behaviour. |
 | **E002** | Found out why: the path from the "thinking" brain to the muscles was frozen. Also found a ceiling — too much learned control makes behaviour **worse**. |
-| **E003–E004** | Fixed it, and an effect appeared. ~~Learning works.~~ Later reinterpreted, and it rests on a single batch of seeds that has never been replicated. |
+| **E003–E004** | Fixed it, and an effect appeared — t=3.93, the strongest number the project ever produced. **It was the most re-checked number in the project and it did not survive: re-run unchanged except for one gain parameter, it vanished (t=0.08).** |
 | **E005–E009** | Five attempts to get one hen to *understand* another's alarm call. All null. All of them run on a channel we later discovered was silent. |
 | **E010–E012** | Three wrong diagnoses before the right one: a cost added for a *different* experiment was being charged to hunger, tripling it and destroying the metric. |
 | **E013** | **The first clean test: learning makes hens significantly worse.** |
@@ -315,27 +315,115 @@ Then she learns. Except she doesn't.
 | **E020–E021** | Re-ran the clean test with those fixed. **The harm is gone.** So is the confidence: a result that looked decisive on one batch of seeds was worth nothing on the next. |
 | **E022–E023** | Second outside review. The pallium had **no inhibitory neurons at all**. Fixed, and everything measured before it became un-comparable. |
 | **E024–E026** | The control failed, the risk metric was confounded three ways, and the world had no warning interval. All three fixed → **H4 supported.** |
+| **E025** | A mechanic added so hens would compete for food and spread out. It didn't disperse them — something else does — but it stayed in the world by default, and its side effect on every *other* experiment went unchecked for **twelve more experiments.** |
+| **E032–E033** | Tested whether a *trained* connection to the muscles does anything a random one doesn't. Looked like yes, significantly — for two months of project time. |
+| **E037** | Re-ran the clean test one more time, on the fully corrected brain. **Learning still neither helps nor harms**, and along the way found E025's food-competition mechanic was quietly starving every flock in every H2-family experiment for the last twelve. |
+| **E038** | Re-ran E032/E033 with that fixed. **The "trained connection does something" result was the confound, not a finding** — it flips sign and disappears on a clean, equally-sized measurement. Corrected in place. |
+| **E039** | Checked whether H4's headline (above) had the same problem. **It didn't** — same effect, same size, holds up clean. Two audits of the identical bug, two different answers; the only way to know which is to check each one. |
 
-**The honest state: a clean null.** A hen who learns forages indistinguishably from one
-who cannot — **+0.0003 ± 0.0156** across 24 seeds, re-measured on the connectome E022–E023
-fixed (`docs/experiments/E037-h2-rebaseline.md`; this is a later number than the rest of
-this table — the tree, not this file, is authoritative for anything more current).
-Learning does not hurt her. It does not help her either. The earlier headline that it
-*harmed* her has been withdrawn, and the withdrawal sits in the record next to the claim
-it replaced.
+**The honest state today: a clean null, on the most corrected version of the brain and
+world this project has produced.** A hen who learns forages indistinguishably from one
+who cannot — **+0.0003 ± 0.0156** across 24 seeds
+(`docs/experiments/E037-h2-rebaseline.md`). Learning does not hurt her. It does not
+help her either.
 
-Nothing is deleted here. E013's refutation, E015's decomposition of the harm, E016's
-staging result and E020's finding that exploration had become costly have all been
-superseded or struck through. **The route is the record**, and given how much of it was
-wrong, the route is worth more than any single claim on it.
+Nothing is deleted here. E004's headline, E013's refutation, E015's decomposition of the
+harm, E016's staging result, E020's finding that exploration had become costly, and
+E033's causal-efficacy result have all been superseded or struck through in place, with a
+pointer to whatever replaced them. **The route is the record**, and given how much of it
+was wrong, the route is worth more than any single claim on it.
+
+Underneath that one clean number sit four narrower questions, each with its own current
+answer:
+
+| question | answer |
+|---|---|
+| Can the rule learn a genuinely **new** behaviour — one the reflex arc doesn't already produce? | **No.** She can only re-time something she already does. To learn "crouch at a call" she would first have to crouch at one, even once, and nothing built in ever makes that happen. |
+| Can she even **represent the difference** between hearing a call and seeing a hawk? | **Barely.** The two brain states differ by about 7% of resting activity — enough to measure, not enough to obviously learn from. |
+| Does a **trained** connection to the muscles do anything at all, once those two problems are set aside? | **Open again.** It looked settled — removing a trained connection cost more than removing a random one — until E025's food-competition bug turned out to be driving the result. Clean measurement: no detectable effect either way (E038). |
+| Is the learning rule even the **right kind** for this job? | **Open, and the live question.** Wiring in by hand the one piece she was missing — a reflex to *hearing* an alarm, not just seeing the danger — still didn't produce learned, audience-sensitive calling on top of it (E018/E036). The rule rewards actions after the fact; the biology this project is chasing (naive birds learning what to fear by *watching*, no reward involved) looks more like learning by observation. |
 
 An unplanned finding along the way that still stands: the hens that **grow** new
 connections do *worse* than the ones that only prune. That inverts the obvious
 expectation and has its own open question.
 
-**Not yet built:** memory of places, a dominance hierarchy, generational turnover, and
-the thing the whole project is named for — a channel on which a hen can invent a word
-that was never wired into her.
+---
+
+## What's built, what's a stand-in, and what's still to learn
+
+"Innate" gets used for three different things in this codebase, and the difference
+matters a lot for what "wire up the learning channel" means next. Something a hen does
+from birth and never revises is not the same kind of built as something bolted on
+temporarily to test a downstream idea, and neither is the same as something the project
+expects a working learning rule to eventually produce on its own.
+
+### Permanent, real biology — never touched by learning, ever
+
+This is the reflex arc (`hen/innate.py`): senses straight to muscles, fixed for life, the
+same in every condition this project has ever run. It is enforced in code, not just by
+convention — the reflex weights are a constant matrix, learning only ever touches the
+separate cortical pathway, and a test asserts the two never mix.
+
+| behaviour | trigger | measured |
+|---|---|---|
+| peck at food | sees food | 0.99 |
+| crouch / freeze | sees an aerial threat | 0.85–1.00 |
+| flee | sees a ground threat | 0.96 |
+| go blind while foraging | pecking | aerial channel 0.01 (vs 0.87 head-up) |
+| produce the aerial alarm call | sees a hawk | fires, not the ground call |
+| produce the ground alarm call | sees a fox | fires, not the aerial call |
+| contact call | isolated from the flock | 0.97 alone vs 0.25 in-flock |
+| approach flockmates | cold | measurable leftward bias |
+
+All four call *types* — contact, food, aerial alarm, ground alarm — are produced this
+way: hardwired, graded correctly to the threat, and functionally referential exactly as
+Evans & Marler found in real chickens. This is deliberate and biologically grounded, not
+a shortcut: Konishi's deafened chicks grew up making the same calls with no model to
+copy, so **production is not supposed to be learned**, in the model or the animal.
+
+### A scaffold — stands in for learning that doesn't work yet, off by default
+
+One piece of the reflex arc is not real biology, it's a deliberate placeholder:
+`hen/innate.py`'s `auditory_scaffold` wires a weak, fixed crouch to **hearing** an
+alarm call (not just seeing the danger), at about a fifth the strength of actually
+seeing a hawk. It exists because naive chicks really do show some innate response to a
+conspecific's fear call before any learning happens — so it isn't invented from nothing
+— but the graded, context-sensitive refinement on top of that (does she trust it, does
+she call more when it would help someone) is exactly the part meant to be learned, not
+hand-set.
+
+**Off by default.** It only switches on inside specific tests built to ask "if
+comprehension existed, would anything downstream work" — most importantly E018/E036,
+which used it to show that supplying comprehension by hand still didn't produce learned,
+audience-sensitive calling (see the table above). It is a diagnostic tool, not a claim
+about the finished bird, and every result that doesn't explicitly say the scaffold was on
+was measured without it.
+
+### Attempted, and not working — what a real learning rule is supposed to produce
+
+- **Comprehension** — associating a heard call with the danger it refers to, so a hen
+  who cannot see a hawk herself can still learn what a flockmate's call means. Blocked
+  by a representational bottleneck (the brain state for "heard a call" and "saw a hawk"
+  barely differ) and by the learning rule only being able to re-time existing behaviour,
+  never invent a new stimulus-response pairing from scratch.
+- **Audience-sensitive calling** — calling more when a flockmate can hear it, which real
+  cockerels do and this project was never told to reproduce. Three separate nulls now,
+  including one where comprehension was supplied by hand specifically to remove the
+  excuse that nothing responds to calls (see above).
+- **Foraging improving with experience** — the cleanest, most-tested claim in the
+  project, and currently a null: a hen who learns forages indistinguishably from one who
+  cannot.
+- **A trained connection doing something distinctive** — whether the specific weights a
+  hen learns matter, independent of whether they help her forage. Currently open.
+
+### Not built at all
+
+Spatial memory, a dominance hierarchy, generational turnover (chicks replacing adults —
+needed for anything like compositional structure to emerge rather than one arbitrary
+symbol per situation), and the thing the project is named for: **a channel on which a
+hen can produce a signal that was never wired into her.** Every call a simulated hen can
+make today is one of the same four fixed types real chickens are born with. Nothing yet
+lets her invent a fifth.
 
 ---
 
@@ -456,7 +544,7 @@ python -m run.probes                              # the newly-hatched behaviour 
 python -m run.lifetime --minutes 60 --plastic     # rear a flock
 python -m run.experiment --minutes 20 --seeds 12  # matched-seed A/B
 python -m run.h4 --minutes 10 --seeds 12          # the channel ladder
-python -m pytest tests/ -q                        # 51 tests
+python -m pytest tests/ -q                        # 56 tests
 ```
 
 </details>
@@ -516,18 +604,23 @@ But deleting the pallium's entire route to the muscles changes nothing, twice ov
 what is supported is a statement about a *channel*; the sentence at the top of this file
 is about a *chicken*, and the thinking part of her brain is not yet involved in anything.
 
-**The reward signal was the blocker and it is fixed.** The plan was to switch learning on
-in the world where the channel works — where **87% of the teaching signal turned out to be
-"was I just caught"**, because being caught was counted every hundredth of a second rather
-than once per event. The test written to forbid exactly that ran at a setting where a hawk
-never arrives during the measurement window: the third time a guard has been checked in
-the one place its defect cannot appear. Both are repaired, and the new guard fails if no
-hawk turns up.
+**The reward signal was a blocker and it got fixed** — **87% of the teaching signal
+turned out to be "was I just caught,"** because being caught was counted every
+hundredth of a second rather than once per event. Fixed, and learning has since been
+switched on and tested repeatedly in the corrected world. It still produces a clean
+null on foraging.
 
-**The two halves of the thesis have come apart, and neither is finished.** The bird does
-not yet learn. The channel helps a reflex agent. Joining them up — a flock that *learns*
-what a call means, and then invents one nature never gave it — is the rest of the
-project, and it is further away than it looked yesterday.
+**The two halves of the thesis have come apart, and neither is finished, for reasons
+that are now specific rather than vague.** The bird does not yet learn — not because
+nobody has tried, but because the rule can only re-time behaviour she already has, and
+the brain state it would need to condition on barely distinguishes the relevant stimuli.
+The channel helps a reflex agent, and that part has now also been checked against the
+world-config bug that broke the trained-connection result above, and held. Joining the
+two halves — a
+flock that *learns* what a call means, and then invents one nature never gave it — is
+the rest of the project. `docs/hypothesis.md`'s H2f is the current best guess at why the
+first half hasn't worked yet: the learning rule may be the wrong *kind*, not just wired
+to the wrong place.
 
 Full detail in [`docs/hypothesis.md`](docs/hypothesis.md), which is the authority when
 this file and it disagree.
