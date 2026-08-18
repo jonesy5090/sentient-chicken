@@ -6,9 +6,9 @@ vector. Nothing else should hardcode these offsets.
 
 The dimensions here are the whole thesis of the project made literal. A real chicken
 spends ~42M neurons on an optic tectum and ~182M on a cerebellum: 78% of its brain on
-vision and motor control. We replace those with a compact observation (`OBS_DIM`,
-71 as of the E025 personal-space channel; was 59) and an 11-dimensional motor
-vector, and spend the savings elsewhere.
+vision and motor control. We replace those with a compact observation (`OBS_DIM`, see
+below for its history) and an 11-dimensional motor vector, and spend the savings
+elsewhere.
 """
 
 from typing import NamedTuple
@@ -82,13 +82,24 @@ IDX_ISOLATION = INTERO_LO + 3
 IDX_FOOD_ARRIVAL = INTERO_LO + 4
 INTERO_HI = INTERO_LO + 5
 
-IDX_WALL = INTERO_HI + 0                           # 2 somatic channels
+IDX_WALL = INTERO_HI + 0                           # 4 somatic channels
 IDX_SPEED = INTERO_HI + 1
+# Directional wall-escape signal. IDX_WALL alone has no direction -- it's the distance
+# to the nearest wall, a scalar that doesn't change when a hen turns, only when she
+# moves. A reflex that suppressed forward drive on IDX_WALL directly would deadlock:
+# turning away from the wall wouldn't lower IDX_WALL (she hasn't moved yet), so forward
+# would stay suppressed and she could never actually walk out. These two channels carry
+# which way to turn instead -- proximity-gated, and gated to fire on only one side, so
+# a linear reflex can wire each straight to its matching turn motor with no sign
+# reversal needed, the same design as CLS_CROWDING above but for a boundary rather than
+# a flockmate.
+IDX_WALL_ESCAPE_L = INTERO_HI + 2
+IDX_WALL_ESCAPE_R = INTERO_HI + 3
 
-AUDIO_LO = IDX_SPEED + 1                           # 4 auditory call channels
+AUDIO_LO = INTERO_HI + 4                           # 4 auditory call channels
 AUDIO_HI = AUDIO_LO + 4
 
-OBS_DIM = AUDIO_HI                                 # 72 (59 pre-E025, 71 pre-E053)
+OBS_DIM = AUDIO_HI                                 # 74 (59 pre-E025, 71 pre-E051, 73 pre-E053)
 
 
 def vis_index(bin_idx: int, cls: int) -> int:

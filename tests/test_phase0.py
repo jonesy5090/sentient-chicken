@@ -189,6 +189,52 @@ def test_food_call_drive_spikes_on_arrival_and_decays():
     assert float(obs[0, spec.IDX_FOOD_ARRIVAL]) == pytest.approx(1.0, abs=1e-6)
 
 
+# --- Wall avoidance ---------------------------------------------------------
+
+def test_wall_escape_channels_point_away_from_the_nearest_wall(flock):
+    """IDX_WALL_ESCAPE_L/R must fire on the side that turns the hen away from
+    whichever wall she is nearest, and stay zero away from all walls.
+    """
+    w, _, _ = flock
+
+    def escape(pos, heading):
+        p = w.pos.at[0].set(jnp.array(pos))
+        h = w.heading.at[0].set(heading)
+        obs = sensing.observe(w._replace(pos=p, heading=h), CFG)
+        return float(obs[0, spec.IDX_WALL_ESCAPE_L]), float(obs[0, spec.IDX_WALL_ESCAPE_R])
+
+    # Near the left wall (x=0); escaping means heading 0 (+x). Facing +y (heading
+    # pi/2), escape is a right turn (clockwise, south of due-east); facing -y
+    # (heading -pi/2), it's a left turn. Facing exactly 0 or pi is the boundary case
+    # (already escaping, or a coin flip) and deliberately not tested here.
+    l, r = escape([0.1, 10.0], jnp.pi / 2)
+    assert r > 0.5 and l == pytest.approx(0.0, abs=1e-6)
+
+    l, r = escape([0.1, 10.0], -jnp.pi / 2)
+    assert l > 0.5 and r == pytest.approx(0.0, abs=1e-6)
+
+    # Middle of the arena, far from every wall: both channels off.
+    l, r = escape([10.0, 10.0], 0.0)
+    assert l == pytest.approx(0.0, abs=1e-6) and r == pytest.approx(0.0, abs=1e-6)
+
+
+def test_wall_escape_reflex_turns_a_cornered_hen_away(flock):
+    """End-to-end: a hen 0.1 m from a wall, facing straight into it, must be
+    measurably further from it a few seconds later -- the reflex, not just the
+    channel, has to work. No food/water/flockmates/predators to confound it.
+    """
+    w, x, p = flock
+    cfg = CFG._replace(hawk_period_s=1e9, ground_pred_period_s=1e9)
+    far = jnp.array([cfg.size - 1, cfg.size - 1])
+    w0 = w._replace(
+        pos=w.pos.at[0].set(jnp.array([0.1, cfg.size / 2])),
+        heading=w.heading.at[0].set(jnp.pi),
+        food_pos=jnp.tile(far, (cfg.n_food, 1)),
+        water_pos=jnp.tile(far, (cfg.n_water, 1)))
+    w1, *_ = simulate.rollout_quiet(w0, x, p, jax.random.key(6), cfg, 4_000)
+    assert float(w1.pos[0, 0]) > 0.3   # started at 0.1 m
+
+
 # --- Null control ---------------------------------------------------------
 
 def test_blind_hen_does_nothing_purposeful(flock):

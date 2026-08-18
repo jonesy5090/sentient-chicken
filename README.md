@@ -376,6 +376,7 @@ separate cortical pathway, and a test asserts the two never mix.
 | contact call | isolated from the flock | 0.97 alone vs 0.25 in-flock |
 | approach flockmates | cold | measurable leftward bias |
 | turn away from a flockmate | crowded past personal-space range | nn dist 0.14 → 0.38 m (E048) |
+| turn away from a wall | close to the boundary | longest dwell 22.6s → 2.3s (E051) |
 
 All four call *types* — contact, food, aerial alarm, ground alarm — are produced this
 way: hardwired, graded correctly to the threat, and functionally referential exactly as
@@ -531,7 +532,10 @@ run/     simulate.py   the closed loop
          h4.py         the channel ladder: deaf / yoked / intact / no-comprehension
          audience.py   playback and comprehension assays
          diagnose.py   is the learned pathway reaching the muscles?
+         record.py     snapshot a run to a trajectory file for the offline viewer
 bench/   envelope.py   measure the machine, size the brain
+viz/     server.py     stdlib-only static+API server, no pip install needed
+         web/          vendored-Three.js scene: pick a run, scrub/play it back
 docs/    hypothesis.md the tree of claims -- start here
          backlog.md    what is proposed but not started, and why
          ethics.md     moral standing, tripwires, review log
@@ -546,7 +550,13 @@ python -m run.probes                              # the newly-hatched behaviour 
 python -m run.lifetime --minutes 60 --plastic     # rear a flock
 python -m run.experiment --minutes 20 --seeds 12  # matched-seed A/B
 python -m run.h4 --minutes 10 --seeds 12          # the channel ladder
-python -m pytest tests/ -q                        # 56 tests
+python -m pytest tests/ -q                        # 62 tests
+
+# watch a run in 3D: record a trajectory, then serve the viewer
+python -m run.record --minutes 10 --hawk-period 30  # writes to runs/
+python -m viz.server                                 # browse recorded runs at localhost
+# or add --record to an existing run instead of a separate one:
+python -m run.lifetime --minutes 60 --plastic --record
 ```
 
 </details>

@@ -92,6 +92,13 @@ PYTHONPATH=. .venv/bin/python scratchpad/e048_personal_space_fix.py
 
 ## 6. Result
 
+> **⚠ Corrected by [E050](E050-shuffle-info-recheck.md).** The "in strike radius" column
+> below is a 3-seed reading of the same statistic E050 later measured on two independent
+> 8-seed blocks (38.4%, replicated exactly, matching E024's original pre-fix baseline of
+> 38.8%) — the 3-seed number here does not hold up and should not be read as showing the
+> fix meaningfully reduced hawk-targeted clustering. Struck through, not deleted; the nn
+> distance / cold / fed figures were not re-checked at higher power and are not disputed.
+
 ```
 condition                     nn dist   spread  in strike radius    cold  fed/hen
 pre-fix (E025 baseline)          0.14     2.57             26.8%   0.146     1034
@@ -99,13 +106,14 @@ fixed (E025 personal space)      0.38     5.46             21.8%   0.164      98
 no gregariousness (ref.)         1.70    18.15              8.2%   0.278     1247
 ```
 
-**The fix disperses the flock.** Nearest-neighbour distance nearly triples (0.14 → 0.38
+~~**The fix disperses the flock.** Nearest-neighbour distance nearly triples (0.14 → 0.38
 m), strike-radius overlap drops five points (26.8% → 21.8%), matching the falsifier's
-"no movement" condition failing to occur. Cold moves modestly (0.146 → 0.164, still far
-below the no-gregariousness row's 0.278) and fed/hen is essentially flat (1034 → 984,
-nowhere near the no-gregariousness row's 1247, which reflects hens no longer competing
-for the same patches at all). The prediction in §3 — real dispersal, smaller than full
-removal, cold and feeding held close to baseline — holds on all four counts.
+"no movement" condition failing to occur.~~ **The strike-radius claim above is a 3-seed
+artefact — see the E050 banner.** Nearest-neighbour distance and cold/fed/hen were not
+re-measured at higher power and stand as reported. Cold moves modestly (0.146 → 0.164,
+still far below the no-gregariousness row's 0.278) and fed/hen is essentially flat
+(1034 → 984, nowhere near the no-gregariousness row's 1247, which reflects hens no
+longer competing for the same patches at all).
 
 **Pre-fix numbers do not match E025's own baseline row** (0.14/26.8% here vs. 0.39/21.9%
 recorded there) — expected and flagged in §5: E025 predates the E023 E/I fix, so the two
@@ -114,21 +122,21 @@ both on the current codebase) is a valid comparison.
 
 ## 7. Interpretation
 
-**The wiring defect E025 diagnosed was real and the targeted fix addresses it,
-partially and safely.** A single new observation channel, wired with an
-algebraically-derived weight, produces measurable dispersal without the collateral
-damage (broken huddling, distorted feeding) that fully removing gregariousness causes.
-This is consistent with E025's own reading: gregariousness is not the wrong behaviour,
-it is missing the repulsive half real fowl have (documented individual distance), and
-supplying just that half is enough to move the numbers without removing the behaviour's
-function.
+**The wiring defect E025 diagnosed was real and the targeted fix does something —
+a new channel, wired with an algebraically-derived weight, without the collateral
+damage (broken huddling, distorted feeding) that fully removing gregariousness causes.**
+~~produces measurable dispersal~~ **How much it disperses the hawk-targeted clustering
+that actually mattered for H4's control is now measured, in E050, at close to zero —
+see the banner on §6.** What survives from this paragraph: gregariousness is not the
+wrong behaviour, it is missing the repulsive half real fowl have, and supplying just
+that half does not visibly cost huddling or feeding. Whether it buys anything beyond
+that is now the open question, not a settled partial win.
 
-**The dispersal is partial, not complete**, and this experiment does not establish
-whether it is *enough* — enough for what H4's control needed, or what T1/T2 will need,
-was not measured here (E025 itself made this decision against H4's shuffled-channel
-information-retention metric, not the strike-radius proxy; that metric has not been
-re-run against this fix). That is the natural next check before either task assumes the
-dispersal problem is closed.
+~~**The dispersal is partial, not complete**, and this experiment does not establish
+whether it is *enough*~~ — **E050 answers this directly: not enough, on the specific
+metric H4's control needed.** Whether the *general* dispersal this file's nn-distance
+number reports is itself real (rather than also a 3-seed artefact) was not re-checked
+and remains open.
 
 **Confound not fully ruled out**: `PERSONAL_SPACE_THRESHOLD`'s retuning (0.9 → 0.95) was
 driven by a test failure, not by this diagnostic — the diagnostic above was only run
@@ -151,7 +159,10 @@ disperse, does it preserve huddling) were not independently varied.
   `CLAUDE.md` and `README.md`'s layout diagrams, `coop/world.py`'s module docstring —
   none were load-bearing (the codebase reads `spec.OBS_DIM` symbolically throughout,
   confirmed before editing), all were stale comments.
-- **Not yet done, flagged rather than silently skipped**: re-running H4's own
-  information-retention metric (E026's measure) against this fix, to check whether the
-  dispersal achieved here is enough to matter for the shuffled-channel control it was
-  originally motivated by.
+- ~~**Not yet done, flagged rather than silently skipped**: re-running H4's own
+  information-retention metric (E026's measure) against this fix~~ **Done
+  ([E050](E050-shuffle-info-recheck.md)): not enough.** Hawk-targeted clustering
+  replicates E024's original pre-fix baseline almost exactly (38.4% vs. 38.8%) on two
+  independent 8-seed blocks; the shuffled control's retained correlation (89–100% across
+  the two blocks) is not distinguishable from E024/E026's original 90–98%. This file's
+  own §6/§7 are corrected in place above rather than left standing uncontradicted.

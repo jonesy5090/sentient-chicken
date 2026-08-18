@@ -353,12 +353,15 @@ new home.
   still needs a crowding/individual-distance channel. Depletion stayed on regardless and
   turned out to have a large, previously unmeasured side effect on foraging baselines at
   20+ minutes (E037) — see the new item below. **The crowding channel itself is now
-  built and measured (E048)**: a new `CLS_CROWDING` vision class, zero until a
-  flockmate is well inside personal-space range then ramping to 1 at contact, wired to
-  turn the hen *away* at a weight that beats attraction. Nearest-neighbour distance
-  roughly triples (0.14 → 0.38 m on the current, E023-corrected connectome) and
-  strike-radius overlap drops (26.8% → 21.8%) without the huddling/feeding collapse
-  full removal of gregariousness causes. `OBS_DIM` moves 59 → 71 as a result —
+  built (E048)**: a new `CLS_CROWDING` vision class, zero until a flockmate is well
+  inside personal-space range then ramping to 1 at contact, wired to turn the hen
+  *away* at a weight that beats attraction, without the huddling/feeding collapse full
+  removal of gregariousness causes. **Whether it disperses the flock enough to matter
+  is a separate, now-answered question: [E050](experiments/E050-shuffle-info-recheck.md)
+  found the hawk-targeted clustering H4's control depends on unchanged from before the
+  fix** (38.4%, replicated on two 8-seed blocks, vs. E024's original 38.8%) —
+  E048's own 3-seed reading of an improvement there does not replicate. `OBS_DIM` moves
+  59 → 71 regardless of that finding —
   everything using the vision layout re-baselines from here, the same way E023 did.
 - ~~**Audit `food_deplete_rate`'s effect on other tree results.**~~ **Closed — all four
   highest-stakes results checked directly.** H2 (E037): confound real, number corrected.
@@ -505,8 +508,9 @@ new home.
   H2c/H2f, not a separate one.
 
   ~~The E025-adjacent world-model gap: gregariousness's attraction-only wiring~~ **Done
-  (E048): the crowding channel is built.** See above — measured dispersal without
-  breaking huddling. **T1/T2 task design remains the live candidate from this list**,
+  (E048): the crowding channel is built, without breaking huddling or feeding — but
+  E050 found it does not disperse the hens a hawk actually targets.** See above.
+  **T1/T2 task design remains the live candidate from this list**,
   and now sits on a flock that actually spreads out, which both tasks assume.
 
 - ~~**Is the learning rule the wrong *kind*?** (E017, open — no node yet.)~~ **Has a
