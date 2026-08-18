@@ -102,6 +102,71 @@ def test_dale_law_holds_on_the_readout(flock):
                     "an inhibitory cell is excitatory on the pathway to the muscles")
 
 
+def test_hebbian_readout_ignores_reward_sign():
+    """H2f/E055: `hebbian_readout` must genuinely remove reward-gating from the
+    readout update, not merely rename it. With the flag on, identical traces under
+    opposite-signed `m` (reward vs. punishment) must produce an identical `W_out`
+    update; with it off (default), they must differ -- otherwise the flag does
+    nothing and the H2f test built on it would not be testing what it claims to.
+    """
+    p = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS, n_hens=CFG.n_hens)
+
+    def w_out_after(hebbian, m_sign):
+        pc = PlasticConfig(enabled=True, hebbian_readout=hebbian)
+        ps = plasticity.initial_state(p, CFG.n_hens, pc)
+        k1, k2 = jax.random.split(jax.random.key(0))
+        # bar stays at its initial 0, so dz_slow/dz_motor equal these traces directly.
+        ps = ps._replace(z_slow=jax.random.normal(k1, ps.z_slow.shape) * 0.1,
+                         z_motor=jax.random.normal(k2, ps.z_motor.shape) * 0.1)
+        m = jnp.full((CFG.n_hens,), m_sign * 5.0)
+        return plasticity.consolidate(p, ps, m, pc).W_out
+
+    assert jnp.array_equal(w_out_after(True, +1.0), w_out_after(True, -1.0)), (
+        "hebbian_readout=True still depends on the sign of m -- reward-gating was "
+        "not actually removed")
+    assert not jnp.array_equal(w_out_after(False, +1.0), w_out_after(False, -1.0)), (
+        "sanity check failed: the default (instrumental) rule should still depend "
+        "on m's sign")
+
+
+def test_readout_scaling_bounds_hebbian_growth():
+    """E055 follow-up: `readout_scaling_strength` must actually keep `W_out`'s row
+    sums bounded near the innate baseline under sustained one-directional growth --
+    otherwise it does not fix the runaway E055 measured (cortical drive 2-2.7x
+    reflex magnitude under `hebbian_readout` with no scaling).
+
+    Repeats `consolidate()` with a fixed, persistently-correlated trace pattern
+    (the worst case for an unbounded rule) and compares final row sums with scaling
+    on vs. off.
+    """
+    p = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS, n_hens=CFG.n_hens)
+    innate_row_sum_out = jnp.sum(jnp.abs(p.W_out), axis=2)
+
+    def final_row_sum(scaling_strength):
+        pc = PlasticConfig(enabled=True, hebbian_readout=True,
+                           readout_scaling_strength=scaling_strength)
+        ps = plasticity.initial_state(p, CFG.n_hens, pc)
+        k1, k2 = jax.random.split(jax.random.key(2))
+        z_slow = jnp.abs(jax.random.normal(k1, ps.z_slow.shape)) * 0.2
+        z_motor = jnp.abs(jax.random.normal(k2, ps.z_motor.shape)) * 0.2
+        ps = ps._replace(z_slow=z_slow, z_motor=z_motor)   # bar=0 -> persistent, same-sign
+        p_cur = p
+        m = jnp.ones((CFG.n_hens,))
+        for _ in range(200):
+            p_cur = plasticity.consolidate(p_cur, ps, m, pc)
+        return jnp.sum(jnp.abs(p_cur.W_out), axis=2)
+
+    unscaled = final_row_sum(0.0)
+    scaled = final_row_sum(0.3)
+
+    assert float(jnp.mean(unscaled)) > float(jnp.mean(innate_row_sum_out)) * 1.5, (
+        "test setup is not actually stressing growth -- unscaled row sums did not "
+        "grow well past the innate baseline")
+    assert float(jnp.mean(scaled)) < float(jnp.mean(unscaled)), (
+        "readout_scaling_strength did not reduce growth relative to the unscaled case"
+    )
+
+
 def test_weights_stay_bounded(flock):
     _w, _x, p1, *_ = _run(flock, LEARN)
     assert bool(jnp.all(jnp.isfinite(p1.W)))
