@@ -79,9 +79,13 @@ of the time.
 ~~**Status: UNDER TEST — and the null is now UNINFORMATIVE** —
 [E031](experiments/E031-the-credit-window-is-not-the-blocker.md).~~
 
-**Status: UNDER TEST — the null is informative again** —
-[E033](experiments/E033-e032-second-block-pooled.md) refuted H2e, the claim that the
-cortical pathway cannot reach behaviour at all. See H2e below.
+**Status: UNDER TEST — the null's informativeness is open again** —
+[E033](experiments/E033-e032-second-block-pooled.md) had appeared to refute H2e (the
+claim that the cortical pathway cannot reach behaviour at all), but
+[E038](experiments/E038-h2e-depletion-audit.md)'s clean, equally-powered re-measurement
+found that result did not survive controlling for `food_deplete_rate`
+(+0.390, t=2.55 → −0.890, t=1.60, not significant). H2e reverts to `UNDER TEST`. See H2e
+below for the full correction.
 
 **The pathway learning acts through cannot move the metric H2 is measured on.** Deleting
 `W_out` entirely and multiplying it tenfold both leave feeding unchanged, while the same
@@ -362,15 +366,24 @@ that outlived it.
 ~~**Status: UNDER TEST** — opened by
 [E031](experiments/E031-the-credit-window-is-not-the-blocker.md).~~
 
-**Status: REFUTED** —
+~~**Status: REFUTED** —
 [E033](experiments/E033-e032-second-block-pooled.md), a pre-registered pooled test
-across two independent 12-seed blocks.
+across two independent 12-seed blocks.~~
 
-**Claim, now refuted:** the route from pallium to muscle contributes so little to
+**Status: UNDER TEST — E033's `REFUTED` finding did not survive a clean re-measurement**
+— [E038](experiments/E038-h2e-depletion-audit.md). E032/E033 ran with the same
+undocumented `food_deplete_rate` confound E037 found for H2 (added by E025 for an
+unrelated question, never controlled for here). A properly powered, equally-sized
+(24-seed) re-measurement with it removed found the interaction at **−0.890 ± 0.556,
+t=1.60, NOT significant** — opposite sign from E033's +0.390, t=2.55. Neither result
+confirms the other; the clean one is the one to trust, and it is a null. See below for
+what stands from E032/E033 and what does not.
+
+**Claim, still open:** the route from pallium to muscle contributes so little to
 behaviour that no change in `W_out`, learned or otherwise, can register on H2's metric.
 If true, H2 as constructed could not be falsified and every null it produced would be a
-fact about the architecture rather than the learning rule. **A trained readout does
-register** — see below.
+fact about the architecture rather than the learning rule. E032/E033 appeared to refute
+this; that appearance did not survive a clean world — see below.
 
 **Evidence that motivated the claim:** an untrained `W_out` at 0×, 1× and 10× gain is
 indistinguishable on `fed %` (t=0.68, t=0.54) on a metric that detects a halved reflex at
@@ -381,56 +394,45 @@ readout; it never separated "the rule learns nothing" from "nothing learned ther
 reach behaviour," which is exactly the ambiguity E032/E033 were built to resolve.
 
 **[E032](experiments/E032-causal-efficacy.md) tested a trained readout directly and
-missed by 0.07 in t, on one block:**
-
-| rearing | intact | lesioned | drop on lesion |
-|---|---|---|---|
-| trained | 13.782 | 13.555 | **+0.227** |
-| fixed | 13.591 | 13.905 | **−0.314** |
-| **interaction (block one)** | | | **+0.541 ± 0.254, t=2.13** (threshold 2.201) |
-
-**[E033](experiments/E033-e032-second-block-pooled.md) ran a second, pre-registered
-12-seed block (seeds 12–23) and pooled, per the E029/E030 template declared in advance:**
+missed by 0.07 in t, on one block; [E033](experiments/E033-e032-second-block-pooled.md)
+ran a second block and pooled, clearing threshold — both in a world later found to have
+an uncontrolled confound:**
 
 | block | interaction | t |
 |---|---|---|
-| one (0–11), E032 | +0.541 ± 0.254 | 2.13 |
-| two (12–23), E033 | +0.240 ± 0.172 | 1.39 |
-| **pooled (24 seeds)** | **+0.390 ± 0.153** | **2.55** (threshold 2.069) |
+| one (0–11), E032, depleted world | +0.541 ± 0.254 | 2.13 |
+| two (12–23), E033, depleted world | +0.240 ± 0.172 | 1.39 |
+| ~~pooled (24 seeds), depleted world~~ | ~~+0.390 ± 0.153~~ | ~~2.55~~ (threshold 2.069) |
+| **pooled (24 seeds), clean world — [E038](experiments/E038-h2e-depletion-audit.md)** | **−0.890 ± 0.556** | **1.60** (not significant) |
 
-Both blocks positive, same sign, smaller magnitude in block two as expected from
-block-to-block variance seen elsewhere in this project (E029/E030). Manipulation check
-clean in both blocks: rearing moves `W_out` by 9.6% and 9.6%, fixed flocks by exactly 0
-in both.
+**The depleted-world pooled result does not replicate.** E032/E033 ran with
+`food_deplete_rate` at its default (added by E025 for H4's unrelated dispersal question,
+never controlled for here) — the same confound E037 found substantially affects H2's own
+contrast at this exact duration and flock size. A clean, equally-powered re-measurement
+(E038) found the opposite sign and no significant effect. **Do not cite the depleted-
+world numbers going forward; the clean 24-seed result is the one that stands, and it is
+a null.**
 
-**Lesioning a *trained* readout costs something a random one does not, and this time it
-clears its pre-registered threshold.** Training converts a mildly harmful readout
-(untrained lesion helps: −0.314) into one that costs something to remove
-(trained lesion hurts: +0.227, +0.188 across the two blocks) — the interaction between
-them is real, not noise.
-
-**H2's own question stays null, pooled**: trained vs fixed, both intact,
-+0.153 ± 0.388, t=0.39 (block one +0.191, t=0.43; block two +0.114, t=0.17). A trained
-readout costs something to remove without making its flock forage measurably better —
-the two findings describe different comparisons (within-subject lesion vs. between-flock
-outcome) and are not in tension.
+**H2's own question, in the depleted world E032/E033 ran in**, had also read null —
+trained vs fixed, both intact, +0.153 ± 0.388, t=0.39 — and this part is **not
+contradicted** by the correction: H2's clean null was independently re-confirmed on a
+controlled world by E037 (+0.0003 ± 0.0156, t=0.02), for reasons unrelated to E032/E033.
+What does not survive is the *causal-efficacy* story built on top of it — that a trained
+readout costs something specific to remove where an untrained one does not.
 
 **What this changes for H2.** E031 had withdrawn H2's null to "uninformative" because an
-untrained pathway couldn't be shown to reach behaviour at all. E033 shows the route is
-not closed for a *trained* readout, so H2's clean null
-([E020](experiments/E020-h2-after-the-e019-fixes.md)/[E021](experiments/E021-the-cost-of-exploration.md),
-re-measured on the corrected connectome by
-[E037](experiments/E037-h2-rebaseline.md) at +0.0003 ± 0.0156, t=0.02) regains
-standing as a fact about **what the rule learns**, not about whether learning can reach
-behaviour at all. The credit window remains ruled out
-([E031](experiments/E031-the-credit-window-is-not-the-blocker.md) §3). What is open is
-the rule's *magnitude* or what it actually optimizes: it changes `W_out` in a way that
-costs something to remove, but not in a way that improves feeding.
+untrained pathway couldn't be shown to reach behaviour at all. ~~E033 shows the route is
+not closed for a *trained* readout~~ — **E038 shows E033 did not, in fact, show that.**
+Whether the cortical pathway can carry a trained signal to behaviour at all is **open
+again**, exactly where E031 left it. The credit window remains ruled out
+([E031](experiments/E031-the-credit-window-is-not-the-blocker.md) §3) independent of any
+of this.
 
-**E007's multiplicative-gating question is not promoted by this result.** It was
-motivated by H2e being *true* — the two pathways summing into one motor drive with no
-room for a trained signal to matter. H2e is refuted, so that architectural explanation
-loses its motivation rather than gaining it.
+**E007's multiplicative-gating question stays open, neither promoted nor demoted.** It
+was motivated by H2e being *true* — the two pathways summing into one motor drive with
+no room for a trained signal to matter. E032/E033 appeared to rule it out; that appearance
+is now known to rest on a confounded measurement, so the question returns to genuinely
+undecided rather than settled in either direction.
 
 ---
 
@@ -1026,6 +1028,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E038 | **H2e's `REFUTED` verdict does not survive a clean world — reverts to `UNDER TEST`.** E032/E033 shared the same undocumented `food_deplete_rate` confound E037 found for H2. Full 24-seed clean re-measurement (`food_deplete_rate=0`, matching E033's exact design and block structure): interaction **−0.890 ± 0.556, t=1.60, NOT significant** — opposite sign from E033's +0.390, t=2.55, and not replicating it. An interim 8-seed check found the same sign reversal first (−0.954, t=1.36); the full run confirms it rather than being an artefact of the smaller sample. E032 and E033 corrected in place with pointers here, per this project's convention. |
 | E037 | **H2's null re-confirmed on the corrected connectome — and a second, undocumented confound found and controlled for.** First pass (today's defaults) gave `fed %` 2.6 against E020's 6.6, hunger change 40× larger — traced to `food_deplete_rate` (added by E025 for H4's dispersal question, never checked against H2's 20-minute/16-hen harness; one feeder ends at 0.97% remaining). Gain/readout ruled out directly (lesioning `W_out` at both gains changes nothing). Re-run with `food_deplete_rate=0`, matching E020's world: **+0.0003 ± 0.0156, t=0.02**, 24 seeds — an even cleaner null. The two 12-seed blocks alone were **individually significant in opposite directions** (t=2.96, t=2.19) — only pooling reveals the null, the E021 lesson recurring inside the experiment meant to move past it. |
 | E036 | **E018's aborted 2×2 re-run: the falsifier fires, H2f opened.** An innate crouch-on-hearing scaffold (wired, not learned) supplies the precondition H2b said H3 was missing. Learning still does not add a contingent audience effect on top of it: **S+L − S = −0.005 ± 0.002, t=2.25**, wrong-signed, short of threshold 2.37 at 8 seeds. Manipulation check clean (0.19, matching E018's addendum). Innate floor (`S` vs `N`, zero learning) replicates a third time at +0.066. **New node H2f**: the rule may be the wrong *kind* — instrumental where the biology is closer to Pavlovian. Secondary "strikes/hen" flagged uninterpretable: it reads the pre-E027 `n_struck` exposure-step count, not the event-anchored metric H4's lineage moved to. |
 | E035 | **E017/E034's Field-L segregation numbers (2.06×, 1.45×) do not replicate — corrected in both files rather than quietly edited.** Moved modality segregation into `connectome.build(modality_segregated=...)`, properly fan-in-renormalised, instead of the ad hoc probe's post-hoc zeroing. On a **paired** 12-genome sample: structural vs. intact **t=0.04** against threshold 2.201 — no effect. The prior numbers were unpaired ratio-of-means on a quantity with ~6× genome-to-genome spread (0.039–0.221 in this sample) — the same statistical trap E021 caught for seed blocks, uncaught here for genomes across two experiments. Localisation (loss at sensory→pallium, recurrence not the cause) is unaffected — a within-genome comparison, never exposed to the confound. |
