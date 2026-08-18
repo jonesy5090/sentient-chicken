@@ -74,7 +74,14 @@ const HEN_GEOM = new THREE.ConeGeometry(0.22, 0.5, 8);
 HEN_GEOM.rotateX(-Math.PI / 2);  // apex now points along local -Z, which is the axis
                                  // Object3D.lookAt() aims -- so the cone's point faces
                                  // whatever `dummy.lookAt()` is given below.
-HEN_GEOM.translate(0, 0.25, 0);
+// No translate here, deliberately: the geometry stays centred on the object's own
+// origin, which is also the pivot `dummy.rotation.x` (the head-down tilt below)
+// rotates around. Baking a +Y offset into the geometry used to move the visual
+// shape away from that pivot -- rotating a shape around a point well below its own
+// centre swings the far end down, and at up to 0.5 rad tilt (active ~64% of the
+// time, per the project's own head-down measurements) that pushed hens visibly
+// through the floor. The lift now happens at HEN_PIVOT_Y below, applied to the
+// pivot itself, so the tilt rotates the model around its own centre instead.
 let henMesh = null, henCallMesh = null;
 const dummy = new THREE.Object3D();
 let flashUntil = null;   // per-hen wall-clock deadline for a struck flash
@@ -102,6 +109,12 @@ const HEN_COLOR = new THREE.Color(0xd9c9a3);
 const HEN_HEAD_DOWN = new THREE.Color(0x9c8a63);
 const HEN_STRUCK = new THREE.Color(0xff2a2a);
 const HIDDEN = new THREE.Matrix4().makeScale(0, 0, 0);
+// Height of the hen model's rotation pivot above the floor. Must clear the model's
+// own half-extent (radius 0.22) plus how far its length (0.25, half of the 0.5
+// cone height) swings down at the maximum head-down tilt (0.5 rad): 0.22*cos(0.5) +
+// 0.25*sin(0.5) ~= 0.31, so 0.35 leaves a small margin rather than sitting exactly
+// on the boundary.
+const HEN_PIVOT_Y = 0.35;
 
 // ---------------------------------------------------------------------------
 // Food / water: static positions per run, only `food_amount` animates.
@@ -207,9 +220,9 @@ function render(fi) {
   for (let i = 0; i < H; i++) {
     const px = pos[fi * posS + i * 2], pz = pos[fi * posS + i * 2 + 1];
     const hd = heading[fi * H + i];
-    dummy.position.set(px, 0, pz);
+    dummy.position.set(px, HEN_PIVOT_Y, pz);
     dummy.rotation.set(0, 0, 0);
-    dummy.lookAt(px + Math.cos(hd), 0, pz + Math.sin(hd));
+    dummy.lookAt(px + Math.cos(hd), HEN_PIVOT_Y, pz + Math.sin(hd));
     const down = headDown[fi * H + i];
     dummy.rotation.x = -down * 0.5;
     dummy.scale.set(1, 1, 1);
