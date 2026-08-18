@@ -67,9 +67,15 @@ def main() -> None:
     ap.add_argument("--name", type=str, default=None,
                     help="label shown in the run picker (default: auto)")
     ap.add_argument("--desc", type=str, default="")
+    ap.add_argument("--hawk-period", type=float, default=None,
+                    help="seconds between hawk dives (default: DEFAULT_COOP's 900s -- "
+                         "a several-minute recording will often show none at all; "
+                         "try 20-60 for a demo that reliably has predation in it)")
     args = ap.parse_args()
 
     cfg = spec.DEFAULT_COOP._replace(n_hens=args.hens)
+    if args.hawk_period is not None:
+        cfg = cfg._replace(hawk_period_s=args.hawk_period)
     pc = plasticity.PlasticConfig(enabled=args.plastic)
     seconds = args.minutes * 60.0
     steps_per_frame = max(1, round(1.0 / (cfg.dt * args.fps)))
