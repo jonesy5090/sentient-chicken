@@ -77,12 +77,83 @@ python -m run.audience --minutes 30 --seeds 8 --food-deplete-rate 0.0
 
 ## 6. Result
 
-*Pending — filled in after the run, not before.*
+8 seeds, 30 min rearing, 16 hens, `food_deplete_rate=0`. Wall clock 899 s.
+
+```
+condition          when      alarm alone  alarm aud.   effect  food alone  food aud.   effect
+audible kin        hatch           0.320       0.323   +0.003       0.363      0.362   -0.001
+audible kin        reared          0.318       0.320   +0.001       0.365      0.365   +0.000
+flat kin (E005)    hatch           0.320       0.323   +0.003       0.363      0.362   -0.001
+flat kin (E005)    reared          0.319       0.321   +0.002       0.362      0.360   -0.002
+fixed (control)    hatch           0.320       0.323   +0.003       0.363      0.362   -0.001
+fixed (control)    reared          0.320       0.323   +0.003       0.363      0.362   -0.001
+
+comprehension (manipulation check): -0.0001 in every condition, hatch and reared alike.
+
+effect change over rearing:
+  audible kin  alarm  -0.002 +/- 0.001  t=1.22  need 2.37  suggestive (wrong sign)
+  audible kin  food   +0.001 +/- 0.009  t=0.13  noise
+  flat kin     alarm  -0.001 +/- 0.001  t=0.97  noise
+  flat kin     food   -0.001 +/- 0.007  t=0.22  noise
+  fixed        alarm  +0.000            t=0.00  noise (control holds, as required)
+  fixed        food   +0.000            t=0.00  noise (control holds, as required)
+```
+
+**Comprehension is exactly zero, confirming this is now a genuine architectural
+finding rather than a broken-instrument artefact.** E006's original ~0 measurement was
+taken on a connectome where the auditory channel later turned out to be inaudible
+(E019). Here, with audibility fixed, comprehension without the scaffold is *still*
+exactly zero — H2b's diagnosis (no innate response to hearing a call, so nothing for the
+rule to reinforce) is confirmed as a real architectural fact on the corrected system,
+not an artefact of the defect that motivated it.
+
+**Neither audience effect emerges, and the one promising lead does not replicate.**
+Both `alarm_effect` and `food_effect` stay at or near zero across every condition,
+before and after rearing. The one point of live interest registered in §3 — E005's
+`food_effect` trending positive (+0.032, t=0.64, never confirmed) — does not replicate
+on 8 fresh, properly-instrumented seeds; if anything the point estimates here trend
+slightly negative, well within noise. The required fixed control holds flat throughout
+(exactly 0.000 in both channels), confirming the assay itself is sound.
 
 ## 7. Interpretation
 
-*Pending §6.*
+**H3's null is now confirmed on the corrected system, closing the "was it ever a
+measurement problem" question for good.** E005/E006 ran on a connectome with an
+inaudible channel and a saturated call-cost reward; both are fixed, and the same null
+persists, cleanly, on both audience-effect channels.
+
+**Combined with E036/E040, H3 has now been tested both ways this project could imagine
+it working, and both fail.** Without a comprehension scaffold (this file): comprehension
+stays at zero, so there's nothing for audience-conditional learning to be built on — a
+foothold problem, exactly as H2b originally diagnosed. With a comprehension scaffold
+supplying that foothold directly, by construction (E036/E040): comprehension is real
+(0.19) but learned audience-sensitivity still doesn't emerge on top of it. The
+"blocked by H2b" story was correct as far as it went and incomplete: fixing the
+precondition it named did not fix the outcome, the same pattern E042–E044 already
+found for H2c specifically.
+
+**The food-call channel is not a distinct, unexplored angle after all.** It was
+genuinely untested since the audio fix and worth checking (§2), but the result is the
+same null as the alarm-call channel, not a different story — no evidence that food
+calls, despite lacking the "no innate response" problem in the same form, offer an
+easier path to audience-sensitive learning.
 
 ## 8. Consequence
 
-*Pending §6.*
+- **H3 stays `UNDER TEST`, but the blocking explanation is corrected.** Not "blocked by
+  H2b" as a standalone, sufficient explanation — H2b's precondition has now been
+  supplied directly (E036/E040) and the outcome didn't change. H3's null traces to the
+  same underlying limitation E042–E044 diagnosed for H2c: the learning rule, whichever
+  pathway it runs through, does not build the specific new contingency these tasks need,
+  even when every named precondition is met.
+- **E005's `food_effect` citation should not be carried forward as a live, unresolved
+  lead.** It was a real, correctly-flagged uncertainty at the time (t=0.64, genuinely
+  underpowered); on a proper re-test it does not hold up. Recorded as non-replicating,
+  not deleted.
+- **This closes the last open "maybe it's just measurement" explanation for H3.** Every
+  instrument-level defect this project has found and fixed (inaudible channel, saturated
+  reward, E/I bug, food depletion) has now been controlled for in at least one H3 test.
+  What remains is the same architectural question already open for H2c and H2's own
+  clean null: whether the rule, in its current form, can ever build the kind of new,
+  context-conditional behaviour these hypotheses need — not a defect still waiting to
+  be found.

@@ -1,0 +1,34 @@
+H3 -- audience effect after 30 min of rearing, 8 seeds, 16 hens
+
+audience effect = calling with flockmates in earshot minus calling alone
+a real cockerel shows a large positive effect; a hatchling should show ~0
+
+condition          when      alarm alone  alarm aud.   effect  food alone  food aud.   effect
+---------------------------------------------------------------------------------------------
+audible kin        hatch           0.320       0.323   +0.003       0.363      0.362   -0.001
+audible kin        reared          0.318       0.320   +0.001       0.365      0.365   +0.000
+flat kin (E005)    hatch           0.320       0.323   +0.003       0.363      0.362   -0.001
+flat kin (E005)    reared          0.319       0.321   +0.002       0.362      0.360   -0.002
+fixed (control)    hatch           0.320       0.323   +0.003       0.363      0.362   -0.001
+fixed (control)    reared          0.320       0.323   +0.003       0.363      0.362   -0.001
+
+comprehension -- does hearing an alarm call make her crouch, with no
+predator to see? the audience effect cannot emerge without this, since
+a call that nobody responds to can never repay its cost.
+
+condition               hatch     reared     change
+--------------------------------------------------
+audible kin           -0.0001    -0.0001    -0.0001
+flat kin (E005)       -0.0001    -0.0001    -0.0001
+fixed (control)       -0.0001    -0.0001    +0.0000
+
+audible kin        alarm effect change over rearing -0.002 +/- 0.001 SE   suggestive (t=1.22, need 2.37)
+audible kin        food  effect change over rearing +0.001 +/- 0.009 SE   noise (t=0.13)
+flat kin (E005)    alarm effect change over rearing -0.001 +/- 0.001 SE   noise (t=0.97)
+flat kin (E005)    food  effect change over rearing -0.001 +/- 0.007 SE   noise (t=0.22)
+fixed (control)    alarm effect change over rearing +0.000 +/- 0.000 SE   noise (t=0.00)
+fixed (control)    food  effect change over rearing +0.000 +/- 0.000 SE   noise (t=0.00)
+
+positive = the hen learned to call more when someone is listening
+the fixed control must show ~0; if it moves, the assay is measuring something other than learning
+wall clock: 899 s
