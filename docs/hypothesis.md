@@ -172,8 +172,13 @@ seed block's *variance* is representative. Seeds 0–11 were homogeneous, which 
 small difference look decisive.
 
 **Standing rule, from this:** no result changes a status in this tree on one seed block.
-See `CLAUDE.md`. E004's t=3.93 and E016's staging result are both single-block and both
-still cited — they need re-checking.
+See `CLAUDE.md`. ~~E004's t=3.93 and E016's staging result are both single-block and both
+still cited — they need re-checking.~~ **Closed out.** E016 was marked superseded by
+E020 at the time (§ below). E004's t=3.93 turned out to be the most re-checked number in
+the tree, just never explicitly retired: E010 re-ran it unchanged except for gain and it
+vanished (t=3.93 → t=0.08); the fully corrected connectome and world were re-tested
+independently by E013→E020→E021→E023→E037, landing on today's authoritative
++0.0003 ± 0.0156, t=0.02. Both are superseded, not merely "still cited."
 
 ~~**The smoking gun is the synapse count.** Learning ends with 19,088 of 36,373
 innate synapses, destroying 48% of the connectome. The reward prediction error hovers
@@ -454,6 +459,14 @@ some small optimum.
 **Falsifier:** a growth-rate sweep showing a flat or rising relationship, which would
 make the three-run ordering a coincidence of the on/off contrast.
 
+**Stale evidentiary basis, flagged rather than re-run.** All three supporting runs
+(E001, E003, E004) predate E013–E023's fixes. On the current architecture the ordering
+doesn't obviously hold either way: E037's clean rebaseline found `learning + growth` vs
+fixed at +0.0052 ± 0.0133, t=0.39 — also a null, not distinguished from `learning, no
+growth`'s own null. This node's status stays `NOT STARTED` because the growth-rate sweep
+itself has never been run, on any architecture; the three-run ordering that opened it is
+old evidence for a question nobody has directly tested since.
+
 **Note:** the default stays `growth_enabled=True` until this is settled. Three runs
 of a binary contrast is not enough to overturn a default with a biological
 justification behind it.
@@ -586,10 +599,14 @@ problem where there is also a missing scaffold.
 **E002, E007, E008 and E009 were all attempts to fix the routing of learning.** The
 blocker is upstream of routing: there is not enough in the pallial state to route.
 
-**Caveat this raises for an existing result.** H2's supported finding (E004, t=3.93)
+~~**Caveat this raises for an existing result.** H2's supported finding (E004, t=3.93)
 was obtained in the saturated regime. Drive regulation evidently only needs coarse
 modulation, which a saturated network can still supply — but it should be re-run once
-the operating point is fixed, and may well get stronger.
+the operating point is fixed, and may well get stronger.~~ **It was re-run, repeatedly,
+and did not get stronger — it vanished.** E010 first (same design, corrected gain,
+t=3.93 → t=0.08); the fully corrected connectome and world independently by E037
+(+0.0003 ± 0.0156, t=0.02). H2 is a clean null on every operating point this has been
+checked at, not a supported finding waiting on saturation to clear.
 
 ~~**Not yet changed.** The gain default stays 0.9~~ — **stale**. The re-baselining
 happened; `hen/connectome.py:48` has `gain = 0.70`. Flagged by external review as a doc

@@ -310,11 +310,11 @@ new home.
   There is no cost to explain. It did not replicate in either audio regime; the
   current-audio pair went from +0.032 (t=3.84) to −0.000 (t=0.01).
 
-- **Re-check every tree status that rests on a single seed block.** This is now the
-  highest-value statistical item. E021 showed the same contrast can move from t=3.84 to
-  t=0.01 across blocks, with a 4.4× swing in standard error. **E004's t=3.93 and E016's
-  staging result are both single-block and both still cited.** Neither has been
-  replicated on fresh seeds.
+- ~~**Re-check every tree status that rests on a single seed block.**~~ **Closed for
+  E004/E016.** E016 was marked superseded at the time. E004's t=3.93 is the most
+  re-checked number in the tree — E010 first (t=3.93 → t=0.08 on the same design,
+  corrected gain alone), then independently by the full E013→E020→E021→E023→E037 chain,
+  landing on today's +0.0003 ± 0.0156, t=0.02. See `docs/hypothesis.md`'s H2 section.
 
 - **Report per-seed spread in `run/experiment.py`**, not just the mean and SE. A
   homogeneous block should be visible while the run is happening, not two experiments

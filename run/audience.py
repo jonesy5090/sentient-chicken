@@ -317,9 +317,13 @@ def main() -> None:
                     help="growth is off by default: it is the weaker condition (H2a)")
     ap.add_argument("--scaffold-2x2", action="store_true",
                     help="E018: innate auditory reflex x learning, 2x2")
+    ap.add_argument("--food-deplete-rate", type=float, default=spec.DEFAULT_COOP.food_deplete_rate,
+                    help="E037/E038/E039 found this confounds other 16-hen harnesses; "
+                         "pass 0.0 to audit whether E036's 2x2 is exposed too")
     args = ap.parse_args()
 
-    cfg = spec.DEFAULT_COOP._replace(n_hens=args.hens)
+    cfg = spec.DEFAULT_COOP._replace(n_hens=args.hens,
+                                     food_deplete_rate=args.food_deplete_rate)
     seconds = args.minutes * 60.0
     seeds = list(range(args.seeds))
 
