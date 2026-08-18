@@ -1047,6 +1047,50 @@ arrive; and an innate response arithmetically incapable of hiding a hen. See E02
 
 ---
 
+## T1 — shared vigilance: does the channel let the flock forage more, not just survive more
+
+**Status: SUPPORTED as a narrower claim than proposed** —
+[E045](experiments/E045-t1-pareto-frontier.md). `docs/backlog.md` §3's operationalisation
+of the "many eyes" prediction under H4: a working channel should let the flock divide
+vigilance, so a flock that hears real danger (L) forages *more* than one hearing an
+uninformative channel (C?), at matched risk.
+
+**The original prediction — L forages more than C? — is not supported, checked nine
+times.** Three prior single-capacity mean comparisons (E026, E028, E028b), a
+zero-compute depletion-controlled re-analysis of E039's cache this session, and now a
+five-point capacity sweep (`pallium_scale` 0.5×–4.0×, E045) all found fed % statistically
+indistinguishable between L and C?. No point across any of these nine checks came close
+to significance. This is the standing characterisation now, not an unreplicated null
+awaiting a bigger sample.
+
+**What is supported: a narrower, still-real form of the prediction.** L is safer than
+C? at every one of the five capacities tested in E045 — same sign throughout, extending
+H4's single-capacity result across the full range for the first time — while fed % stays
+flat, not worse. A flock with the channel is not eating more, but it is not eating less
+either, and is substantially safer throughout. That is genuine Pareto improvement (better
+on one axis, tied on the other), just not the specific "freed-up foraging time" mechanism
+the many-eyes literature and the original prediction imagined.
+
+**A non-monotonic pattern in fed % across capacity, reported but not established.**
+L−C? fed % is negative at 0.5×, positive at 1.0×–2.0×, negative again at 4.0× — an
+inverted U, not scatter with no structure — but no individual point is significant at
+n=8, so this is a plausible mechanism (interference from an under- or over-capacity
+untrained pallium, per E002's ceiling finding) worth a properly powered follow-up, not a
+confirmed curve.
+
+**Falsifier, as it stood:** fed % indistinguishable from C? at every capacity tested —
+this fired. **What it means for T1**: the hypothesis moves to `SUPPORTED as a narrower
+claim` rather than `REFUTED`, because the mechanism it was built to detect (a real
+Pareto-relevant consequence of the channel) is present — just on the risk axis, not the
+intake axis the original design emphasised.
+
+**Relationship to H2c/H2d/H2f**: none. T1, like H4, runs entirely on the innate route —
+hardwired call production plus the E018 comprehension scaffold, no plasticity anywhere.
+It says nothing about whether *learning* ever contributes to this or any other channel
+consequence, which remains separately open.
+
+---
+
 ## H5 — compositional structure requires a transmission bottleneck
 
 **Status: NOT STARTED** (phase 4+)
@@ -1106,6 +1150,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E045 | **T1 finally given the Pareto treatment `docs/backlog.md` always specified, instead of a fourth single-point mean comparison.** 5-capacity sweep (`pallium_scale` 0.5×–4.0×), `food_deplete_rate=0`. Intake: null at every capacity (max t=0.56) — nine total checks across four experiments now agree. Risk: L safer than C? at all 5 capacities, same sign throughout (t=4.59 at 1.0×). **T1 → `SUPPORTED as a narrower claim`**: no intake benefit, but a real, capacity-robust safety benefit — genuine if partial Pareto improvement. Non-monotonic fed% pattern (negative/positive/positive/positive/negative across the sweep) reported, not established at n=8/point. |
 | E044 | **Structural read of `W_pred`: the two metrics disagree, and the honest reading is a narrow real signal inside mostly-unrelated growth.** `IDX_AERIAL` ranks 30th of 59 target channels by weight (below average) — not concentrated on the hawk percept overall. But within the aerial-channel weights, correlation with call-responsiveness is significantly positive across 6 seeds (r=+0.304, t=2.61, barely clears 2.571), though inconsistent (2/6 seeds near zero). H2c stays `NOT STARTED`. Three experiments (E042–E044) now converge on "real but small and partial" without a lever to move it further — stepping back to the wider backlog. |
 | E043 | **Exposure escalation: registered falsifier fires, but an unregistered number complicates it.** Doubling predator density (hawk every 10s vs E042's 20s): mean `\|W_pred\|` unchanged (0.00057 vs E042's 0.00058) — falsifier fires as written. But max `\|W_pred\|` reached 30–40% of cap, up from near-zero — concentrated growth an average obscures. Comprehension ticks up slightly (0.006–0.008) but density contrast stays non-significant (t=0.66). H2c stays `NOT STARTED`; next step is a structural read of *which* `W_pred` entries moved, not more exposure. |
 | E042 | **H2c re-tested at E041's density fix — still null, and by a lot.** Comprehension after 20-min rearing: full density vs default, **+0.0023 ± 0.0019, t=1.17**, not significant. Both conditions' absolute comprehension (0.005–0.007) is ~1/30th the auditory scaffold's 0.19 — nowhere near a working mechanism. `\|W_pred\|` grew to under 1% of its cap everywhere, at least as plausible a bottleneck as remaining separability gap. H2c stays `NOT STARTED`; H2d's fix was necessary, evidently not sufficient. |
