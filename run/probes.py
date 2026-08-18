@@ -214,8 +214,25 @@ def approach_flockmates(cfg: CoopConfig) -> Probe:
                  f"left-bias={left_bias:+.2f} closed={closed:+.3f} m")
 
 
+def food_call_on_arrival_not_continuous(cfg: CoopConfig) -> Probe:
+    """Real cockerels food-call on *finding* food, not continuously while standing
+    at it (E053). Stage a hen already at a patch: she should call near the start (the
+    discovery pulse, `IDX_FOOD_ARRIVAL`) and fall silent well before 5 s despite
+    remaining at the food the entire run.
+    """
+    cfg = cfg._replace(n_hens=1)
+    w = _staged(cfg, pos=[[10.0, 10.0]], heading=0.0, food=[[10.1, 10.0]], hunger=0.5)
+    _, tr = _run(cfg, w, steps=500)
+    early = float(jnp.max(tr.motor[:50, 0, spec.M_CALL_FOOD]))
+    late = float(jnp.mean(tr.motor[400:, 0, spec.M_CALL_FOOD]))
+    passed = early > 0.5 and late < 0.1
+    return Probe("food call on arrival, not continuous", passed,
+                f"early peak={early:.2f} (want >0.5), late mean={late:.2f} (want <0.1)")
+
+
 ALL = (peck_at_food, crouch_at_hawk, head_down_blindness, flee_from_fox,
-       referential_alarm, contact_call_when_isolated, approach_flockmates)
+       referential_alarm, contact_call_when_isolated, approach_flockmates,
+       food_call_on_arrival_not_continuous)
 
 
 def run_all(cfg: CoopConfig = spec.DEFAULT_COOP):

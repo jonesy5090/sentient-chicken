@@ -23,13 +23,15 @@ Status values: `SUPPORTED` · `UNDER TEST` · `NOT STARTED` · `REFUTED` · `ABA
 > different and weaker claim. Statuses are retained rather than reset, and each should
 > be read as "established on the pre-E023 brain" until re-run. The queue is in E023 §6.
 
-> ## ⚠ OBS_DIM moved 59 → 71 → 73 at E048/E051 — narrower than E023, still worth flagging
+> ## ⚠ OBS_DIM moved 59 → 71 → 73 → 74 at E048/E051/E053 — narrower than E023, still worth flagging
 >
 > [E048](experiments/E048-personal-space-fix.md) added `CLS_CROWDING`, a fifth vision
 > class giving the reflex arc a personal-space signal (E025's diagnosed fix for flock
 > clumping): 59 → 71. [E051](experiments/E051-wall-avoidance.md) added
 > `IDX_WALL_ESCAPE_L/R`, wiring a wall-avoidance reflex that hadn't existed at all: 71 →
-> 73. Unlike E023, neither touches neuron identity or any existing channel's values —
+> 73. [E053](experiments/E053-food-call-discovery-pulse.md) added `IDX_FOOD_ARRIVAL`,
+> replacing the food-call reflex's continuous sight-gating with a discovery pulse: 73 →
+> 74. Unlike E023, none of these touch neuron identity or any existing channel's values —
 > the observation layout is symbolic and offset-based (`coop/spec.py`), so every prior
 > channel keeps its old index and meaning, just at a new absolute position. What they do
 > change: the connectome's sensory fan-in size, and therefore anything sensitive to
@@ -613,6 +615,19 @@ else is has not been identified. Three experiments (E042–E044) have now conver
 "something real but small and partial" without finding a lever that moves it; the
 project is stepping back to the wider backlog rather than continuing to escalate this
 specific mechanism.
+
+**A structurally different candidate — capacity competition from an unrelated
+channel — has now also been tested and failed** ([E054](experiments/E054-food-call-saturation-and-pallium-capacity.md)).
+Unlike E042–E044, which all targeted the alarm channel's own representation, this asked
+whether the food-call channel's near-constant pre-fix activity (E053: 42.8% of hen-steps)
+was crowding out pallium capacity that could otherwise represent the rarer alarm signal.
+Comprehension after rearing, discovery-pulse vs. legacy continuous food call (density
+held at E041's fix throughout): **−0.0005 ± 0.0007, t=0.70**, not significant, wrong
+sign if anything. **Status stays `NOT STARTED`.** With this result, every account this
+project has been able to name and test — representational fidelity, density, exposure,
+structural capacity, and now competing-channel saturation — has failed to produce
+comprehension; the pattern increasingly points toward H2f (the rule may be the wrong
+*kind*) rather than any remaining precondition still to be found.
 
 ---
 
@@ -1218,6 +1233,8 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E054 | **Food-call saturation was not crowding out pallium capacity for the alarm channel — a clean null, not a repeat of an old one.** Same instrument as E042 (comprehension after rearing), density held at E041's fix throughout, only `legacy_food_call` varied: discovery pulse (E053) vs. recreated pre-fix continuous calling. **−0.0005 ± 0.0007, t=0.70**, not significant, wrong sign if anything. First test of a *competing-channel capacity* account rather than the alarm channel's own representation (unlike E042–E044); it fails the same way. H2c stays `NOT STARTED`; strengthens the case for H2f (rule-kind) over any remaining representational precondition. Single 8-seed block, not independently replicated — a null consistent with four prior experiments' worth of the same pattern, judged not to need the ~490s a second block would cost. |
+| E053 | **Food call fixed to fire on discovery, not continuous sight — closes a long-standing backlog item.** Added `IDX_FOOD_ARRIVAL`: a rising-edge pulse on newly arriving at a food patch (same idiom as `strike_event`), decaying over 4s regardless of dwell time, replacing raw `CLS_FOOD` sight-gating on `M_CALL_FOOD`. `OBS_DIM` 73 → 74. Flock-wide food-calling fraction dropped **42.8% → 4.2%**, no hen left above 50% of steps calling (was 4/16). New probe and unit test both pass; full ethogram (8/8) and test suite (62/62) unaffected. Production stays innate and audience-blind, matching the project's existing design — only the temporal trigger changed. Sets up [E054](experiments/E054-food-call-saturation-and-pallium-capacity.md): does removing this saturation change anything for the rarer alarm channel's representation (H2c/H2d)? |
 | E051 | **Wall avoidance: `IDX_WALL` was sensed but never wired to a reflex — nothing turned a hen away from a boundary once some other drive carried her there.** Found via the offline-replay viewer (`viz/`, PR #16): a hen visibly stuck at the edge. Added `IDX_WALL_ESCAPE_L/R`, two directional channels derived from the existing wall-proximity signal and the nearest wall's outward normal, wired to turn the hen away (weight 3.0, no forward suppression — the kinematics let turning happen independent of forward drive, avoiding a deadlock an undirected suppression would cause). `OBS_DIM` 71 → 73. Ablation (3 seeds, 10-min, matching a typical `run.record` session): mean hen-steps near a wall 0.50% → 0.11%, longest single continuous dwell **22.6s → 2.3s** — a ~10× cut in worst-case pinning, the number that determines visibility in a recording. Isolated single-hen check confirms the mechanism directly (180°→0° turn, back out to 0.43 m in ~3.6s). Exposed (not caused) a pre-existing marginal-seed test fragility, fixed by trying a short seed list instead of one. |
 | E050 | **E048's 3-seed strike-radius improvement does not replicate — H4's shuffled control is still not viable, unmoved by the personal-space fix.** Re-ran E024's original instrument (`scratchpad/shuffle_info.py`) unmodified, at 8 seeds instead of 3, on two independent blocks. Hawk-targeted clustering ("% of flock in strike radius when a hawk is live") replicates exactly across both blocks at **38.4%**, matching E024's original pre-E023, pre-fix baseline of **38.8%** almost exactly — the fix has not moved this number. Shuffled-channel retained correlation 89–100% across the two blocks, same range as E024/E026's original 90–98%. **E048 §6/§7 corrected in place** with a forward pointer; does not change H4's status, which already rests on the yoked control, not the shuffled one. Flagged as the second experiment in a row written up after the run rather than before — a process discipline slipping under time pressure, worth tightening. |
 | E048 | **The E025 flock-clumping fix, built and measured: a personal-space vision channel (`CLS_CROWDING`).** Zero until a flockmate is well inside personal-space range, ramping to 1 at contact; wired to turn the hen *away*, at a weight (4.0) that mathematically must and does exceed `CLS_FLOCKMATE`'s attraction weight (1.2) for repulsion to win rather than merely damp. `OBS_DIM` 59 → 71. ~~Diagnostic (3 seeds, 6-min, matching E025's own methodology, run on the current E023-corrected connectome so only compares against itself): nearest-neighbour distance 0.14 → 0.38 m, strike-radius overlap 26.8% → 21.8%, with cold and fed/hen essentially unchanged — real, measured dispersal, well short of stripping gregariousness entirely (nn 1.70, but cold and fed/hen both distorted there).~~ **The strike-radius number above is a 3-seed artefact — see [E050](experiments/E050-shuffle-info-recheck.md), which found no change at 8 seeds (replicated).** Cold and fed/hen stand as reported; the nn-distance figure was not independently re-checked. A `test_reward_is_not_dominated_by_one_component` regression during implementation (repulsion at the exact huddle-radius boundary was suppressing huddling, shifting reward composition toward hunger) led to tightening the activation threshold from the huddle radius itself to well inside it — caught by the test suite, not the diagnostic. |

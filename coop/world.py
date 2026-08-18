@@ -25,6 +25,8 @@ class World(NamedTuple):
     thirst: jax.Array       # (H,)
     cold: jax.Array         # (H,)
     vigour: jax.Array       # (H,) in [0, 1]; vocal energy, 1 = rested
+    food_call_drive: jax.Array  # (H,) in [0,1]; spikes on newly arriving at food, decays
+    at_food_prev: jax.Array     # (H,); was she at a food patch last step? edge detector
     head_down: jax.Array    # (H,) in [0, 1], from the previous motor vector
     speed: jax.Array        # (H,) metres/sec last step
     calls: jax.Array        # (H, N_CALLS) amplitudes emitted last step
@@ -136,6 +138,8 @@ def reset(key: jax.Array, cfg: CoopConfig = spec.DEFAULT_COOP) -> World:
         thirst=jnp.full((h,), 0.2),
         cold=jnp.full((h,), 0.2),
         vigour=jnp.ones((h,)),
+        food_call_drive=jnp.zeros((h,)),
+        at_food_prev=jnp.zeros((h,)),
         head_down=jnp.zeros((h,)),
         speed=jnp.zeros((h,)),
         calls=jnp.zeros((h, spec.N_CALLS)),
@@ -251,12 +255,22 @@ def step(w: World, motor: jax.Array, key: jax.Array,
     # --- Feeding ---
     d_food = jnp.linalg.norm(w.pos[:, None, :] - w.food_pos[None, :, :], axis=-1)
     at_food = (d_food < cfg.peck_radius) & (w.food_amount[None, :] > 0.01)
+    at_food_any = jnp.any(at_food, axis=-1)
     pecking = motor[:, spec.M_PECK] > 0.5
-    fed = jnp.any(at_food, axis=-1) & pecking
+    fed = at_food_any & pecking
     hunger = jnp.clip(
         w.hunger + cfg.dt * (1.0 / cfg.hunger_fill_s
                              - fed * cfg.peck_food_rate * w.hunger),
         0.0, 1.0)
+
+    # --- Food-discovery pulse (E053). Rising edge, the same idiom `strike_event` uses
+    # below: spike on newly arriving, decay otherwise. Not gated on pecking -- real
+    # discovery calling announces a find, it doesn't require already eating.
+    food_arrival = at_food_any & (w.at_food_prev < 0.5)
+    food_call_drive = jnp.where(
+        food_arrival,
+        1.0,
+        jnp.clip(w.food_call_drive - cfg.dt / cfg.food_call_decay_s, 0.0, 1.0))
 
     # Patches deplete under pressure and recover when abandoned. This is the only
     # force in the coop that pushes hens *apart*; without it a patch is infinite, the
@@ -356,6 +370,8 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         thirst=thirst,
         cold=cold,
         vigour=vigour,
+        food_call_drive=food_call_drive,
+        at_food_prev=at_food_any.astype(jnp.float32),
         food_amount=food_amount,
         hawk_pos=hawk_pos, hawk_on=hawk_on, hawk_t=hawk_t,
         fox_pos=fox_pos, fox_on=fox_on, fox_t=fox_t,

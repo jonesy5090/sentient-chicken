@@ -64,12 +64,23 @@ VIS_HI = VIS_LO + N_BINS * N_VIS_CLASSES          # 48 lateral visual channels
 
 IDX_AERIAL = VIS_HI                                # 1 overhead channel
 
-INTERO_LO = IDX_AERIAL + 1                         # 4 interoceptive drives
+INTERO_LO = IDX_AERIAL + 1                         # 5 interoceptive drives
 IDX_HUNGER = INTERO_LO + 0
 IDX_THIRST = INTERO_LO + 1
 IDX_COLD = INTERO_LO + 2
 IDX_ISOLATION = INTERO_LO + 3
-INTERO_HI = INTERO_LO + 4
+# Food-discovery pulse (E053). Spikes to 1 on the rising edge of arriving at a food
+# patch, then decays over `CoopConfig.food_call_decay_s` -- not a continuous read of
+# "food is visible" the way `CLS_FOOD` is. Real cockerels food-call on *finding* food,
+# not continuously while standing at it; the previous reflex read raw sight, which
+# stays high for as long as a hen remains at a patch, and roughly a quarter of the
+# flock was found calling on more than half of all steps (E052 measurement, pre-fix).
+# A feedforward reflex cannot tell "just arrived" from "still here" using the current
+# observation alone -- that needs memory of the previous step, which is why this is
+# world state computed in `world.py` (the same pattern `hunger`/`cold`/`vigour` already
+# use) rather than something `sensing.py` derives fresh each step.
+IDX_FOOD_ARRIVAL = INTERO_LO + 4
+INTERO_HI = INTERO_LO + 5
 
 IDX_WALL = INTERO_HI + 0                           # 4 somatic channels
 IDX_SPEED = INTERO_HI + 1
@@ -88,7 +99,7 @@ IDX_WALL_ESCAPE_R = INTERO_HI + 3
 AUDIO_LO = INTERO_HI + 4                           # 4 auditory call channels
 AUDIO_HI = AUDIO_LO + 4
 
-OBS_DIM = AUDIO_HI                                 # 73 (59 pre-E025, 71 pre-wall-escape)
+OBS_DIM = AUDIO_HI                                 # 74 (59 pre-E025, 71 pre-E051, 73 pre-E053)
 
 
 def vis_index(bin_idx: int, cls: int) -> int:
@@ -221,6 +232,12 @@ class CoopConfig(NamedTuple):
     # arbitrary cap.
     call_vigour_drain: float = 1.5e-2   # per second per unit of call amplitude
     vigour_recovery_s: float = 90.0     # seconds to recover fully from empty
+
+    # Food-discovery pulse decay (E053, IDX_FOOD_ARRIVAL). A call bout, not a level --
+    # much shorter than typical patch dwell time (`food_deplete_rate`'s own comment: "a
+    # patch supports a couple of birds for roughly a minute"), so a hen who stays at a
+    # feeder spends most of that minute silent on this channel, not continuously calling.
+    food_call_decay_s: float = 4.0
 
     # Restores the pre-E019 audio path: emit the raw sigmoid (so a resting hen calls
     # at 0.076 on every channel) and sum voices linearly into a clip. It exists purely

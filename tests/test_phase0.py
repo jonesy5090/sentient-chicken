@@ -161,6 +161,34 @@ def test_personal_space_reflex_dominates_attraction_at_contact():
         assert repel > attract
 
 
+# --- Food-discovery pulse (E053) --------------------------------------------
+
+def test_food_call_drive_spikes_on_arrival_and_decays():
+    """IDX_FOOD_ARRIVAL must fire only on the rising edge of reaching a food patch,
+    not stay high while a hen remains there -- the whole point of the fix.
+    """
+    cfg = CFG._replace(n_hens=1)
+    w = world.reset(jax.random.key(0), cfg)
+    w = w._replace(pos=jnp.array([[10.0, 10.0]]), heading=jnp.array([0.0]),
+                   food_pos=jnp.array([[10.05, 10.0]]))
+
+    # Step 1: she is already at the patch and was not there before (at_food_prev=0
+    # from reset) -- this must be the rising edge.
+    motor = jnp.zeros((1, spec.MOTOR_DIM))
+    w1 = world.step(w, motor, jax.random.key(1), cfg)
+    assert float(w1.food_call_drive[0]) == pytest.approx(1.0, abs=1e-6)
+
+    # Hold her there for well past the decay window; drive must fall close to zero
+    # despite continuous presence.
+    wn = w1
+    for t in range(500):
+        wn = world.step(wn, motor, jax.random.fold_in(jax.random.key(1), t), cfg)
+    assert float(wn.food_call_drive[0]) < 0.05
+
+    obs = sensing.observe(w1, cfg)
+    assert float(obs[0, spec.IDX_FOOD_ARRIVAL]) == pytest.approx(1.0, abs=1e-6)
+
+
 # --- Wall avoidance ---------------------------------------------------------
 
 def test_wall_escape_channels_point_away_from_the_nearest_wall(flock):
