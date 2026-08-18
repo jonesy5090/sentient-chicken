@@ -434,14 +434,27 @@ new home.
   comprehension in both conditions (0.005–0.007) is ~1/30th the auditory scaffold's
   hand-wired 0.19. `\|W_pred\|` grew to under 1% of its cap in every condition — at 20
   minutes' rearing and H4-standard predator density, the rule barely updated at all,
-  which is at least as plausible a bottleneck as remaining separability. **New owed
-  item**: isolate exposure/duration from separability before pushing density further —
-  e.g. a longer rearing window or higher predator density (E009 needed up to 90× to get
-  comparable co-occurrence with a single seed) on the *existing* default-density
-  connectome, to see whether `\|W_pred\|` ever moves meaningfully given enough exposure.
-  Cheap diagnostic first, properly powered rearing run only if that's promising — the
-  same two-tier discipline as everything else this session. **The 24-seed H2-contrast
-  replication is still separately owed**, unaffected by this.
+  which is at least as plausible a bottleneck as remaining separability. ~~**New owed
+  item**: isolate exposure/duration from separability... e.g. a longer rearing window or
+  higher predator density... to see whether `\|W_pred\|` ever moves meaningfully given
+  enough exposure.~~
+
+  **Done (E043): mixed answer, and the mixture is the finding.** Doubling predator
+  density (hawk every 10s) left *mean* `\|W_pred\|` completely flat versus E042 — the
+  registered falsifier for "exposure is the bottleneck" fires exactly as written. But
+  *max* `\|W_pred\|` jumped to 30–40% of cap, from near-zero — not registered as the
+  primary metric, reported as exploratory rather than promoted past that. Comprehension
+  itself barely moved either way (still ~1/25th the scaffold).
+
+  **New, better-specified owed item**: a structural read of `W_pred` — which specific
+  rows/columns carry the growth, and are they the pallial-neuron-to-aerial-channel
+  entries a correct association *should* strengthen, or diffuse across the matrix with
+  no relation to the alarm-call/hawk distinction? This is a static analysis on cached
+  end-state connectomes, not a new rearing run, and should settle whether the
+  concentrated growth E043 found is a real (if tiny) targeted association or a random
+  walk in a large mostly-irrelevant weight matrix. Cheaper than another exposure
+  escalation and more likely to actually answer the question. **The 24-seed H2-contrast
+  replication (from E041) is still separately owed**, unaffected by any of this.
 
 - ~~**Is the learning rule the wrong *kind*?** (E017, open — no node yet.)~~ **Has a
   node now: H2f**, opened by E036's falsifier firing. One correction to this item's own

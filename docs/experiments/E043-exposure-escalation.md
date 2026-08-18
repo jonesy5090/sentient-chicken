@@ -68,12 +68,81 @@ python -m scratchpad.e043_exposure --seeds 8 --minutes 20 --hawk-period 10
 
 ## 6. Result
 
-*Pending — filled in after the run, not before.*
+8 seeds, 20 min rearing, 16 hens, hawk every 10 s, `food_deplete_rate=0`. Wall clock 374 s.
+
+```
+condition                     comp before  comp after mean|W_pred| max|W_pred|
+assoc, default density            -0.0001      0.0064      0.00057     0.02020
+assoc, full density                -0.0001      0.0080      0.00045     0.01482
+
+PRIMARY: mean|W_pred| vs E042's hawk_period=20 baseline (reported, not a live contrast):
+  default density: 0.00057 vs E042's 0.00058  -- unchanged
+  full density:     0.00045 vs E042's 0.00047  -- unchanged
+
+SECONDARY: comprehension, full density vs default density:
+  +0.0016 +/- 0.0024  t=0.66  threshold(df=7)=2.365  -> not significant
+```
+
+**The registered primary comparison — mean `|W_pred|` — does not move, and the falsifier
+fires on it exactly as written.** Despite roughly 2× the hawk frequency and dives now
+overlapping their own gaps, the average magnitude of `W_pred` after rearing is
+indistinguishable from E042's `hawk_period_s=20` result in both density conditions.
+
+**But `max|W_pred|` tells a different story, and this file did not register it as the
+primary metric, which matters.** The single largest-magnitude entry in `W_pred` reached
+**0.020 and 0.015** — 40% and 30% of the 0.05 cap respectively — a large jump from
+whatever near-zero value it presumably held in E042 (not tracked there; only the mean
+was reported, a design gap this file inherited and is flagging rather than silently
+fixing after the fact). **Recorded as an unregistered, exploratory observation, not
+promoted to a finding**, per this project's discipline about not moving the goalposts
+after seeing the data.
+
+Comprehension after rearing ticked up in both conditions relative to E042 (default:
+0.0047→0.0064; full: 0.0069→0.0080), consistent in *direction* with more exposure
+mattering somewhat, but both still roughly 1/25th–1/30th the auditory scaffold's 0.19,
+and the density contrast remains far from significant (t=0.66, even weaker than E042's
+t=1.17).
 
 ## 7. Interpretation
 
-*Pending §6.*
+**Taken at face value, the registered falsifier fires: exposure (at this escalation) is
+not the limiting factor for the metric this file committed to.** The honest reading
+stops there for the primary contrast.
+
+**The max/mean discrepancy is the more informative finding, and it reframes rather than
+resolves the question.** `W_pred` is a large matrix (`OBS_DIM × N`, restricted to
+pallial sources) where the overwhelming majority of entries connect a pallial neuron to
+an observation channel with no reason to be associated at all — predicting most of the
+59 channels from most of the ~256 pallial units is meaningless, and a *mean* over the
+whole matrix is dominated by that majority staying at zero. A handful of entries
+growing toward 30–40% of cap while the mean stays flat is exactly what targeted,
+biologically sensible learning would look like buried inside an uninformative average —
+or it could be a handful of synapses randomly drifting under noise with no more meaning
+than any other coordinate in a high-dimensional walk. **This experiment cannot
+distinguish those two stories, and did not register a metric that could.**
+
+**What this changes about E042's "not enough exposure" hypothesis.** It is not simply
+confirmed (mean growth didn't track exposure) or simply refuted (something clearly is
+different at higher exposure, just not visible in the metric registered to detect it).
+The honest state is that the diagnostic asked the wrong question at the wrong
+granularity.
 
 ## 8. Consequence
 
-*Pending §6.*
+- **H2c stays `NOT STARTED`.** No status change — comprehension remains far below
+  anything meaningful in every condition tried across E042 and E043.
+- **The registered falsifier fired and is recorded as such**, not quietly reinterpreted
+  because a more favourable unregistered number appeared in the same run. That number is
+  reported above and flagged as exploratory, exactly where it belongs.
+- **New, better-specified diagnostic owed, not run here**: does `W_pred`'s growth
+  concentrate on the entries a correct association *should* strengthen — specifically,
+  pallial-neuron-to-aerial-channel weights sourced from neurons responsive to the alarm
+  call — or is it diffuse across the matrix regardless of relevance? This needs reading
+  `W_pred` structurally (which rows/columns moved), not just its mean or max, and is a
+  cheap, static analysis on the already-cached end states from E042/E043 rather than a
+  new rearing run.
+- **Compute-costly escalation (more predator density, more duration) is not obviously
+  the next lever** given this result — the bottleneck, whatever it is, did not visibly
+  respond to a 2× exposure increase on the metric that was supposed to detect it. The
+  structural read above is cheaper and more likely to say something before spending more
+  on rearing runs.
