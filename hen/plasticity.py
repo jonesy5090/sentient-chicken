@@ -77,6 +77,22 @@ class PlasticConfig(NamedTuple):
     # Neuromodulation
     reward_scale: float = 60.0
     strike_penalty: float = 1.0
+    # T2 (E066, following E065's null): `reward()` had no term for sickness at all --
+    # checked directly, there was none -- so the only teaching signal available to
+    # `W`'s reward-gated update (the pathway that actually routes place-cell
+    # information toward motor output; `hebbian_readout` only touches `W_out`, which
+    # reads from the motor region's own rates, not from sensory input) had nothing to
+    # learn T2's outcome from. Same discrete-event shape as `strike_penalty`, same
+    # default magnitude (1.0) as a first-pass calibration -- getting poisoned is a
+    # real cost (60s of impaired mobility) but not obviously as severe as a predator
+    # strike, and no attempt is made here to derive a "correct" relative weighting.
+    #
+    # Off by default (0.0), matching `readout_scaling_strength`'s own precedent: this
+    # changes reward dynamics for *any* plastic run in a world with T2's contamination
+    # scaffold active, not just T2's own experiments, so every other hypothesis that
+    # happens to run with plasticity enabled against `DEFAULT_COOP` must opt in
+    # explicitly rather than have its established results silently move underneath it.
+    sickness_penalty: float = 0.0
     baseline_tau_s: float = 20.0
 
     # Weight on flockmates' welfare in a hen's own reward signal. This is kin
@@ -256,7 +272,15 @@ def reward(w_prev, w_next, cfg: CoopConfig, pc: PlasticConfig) -> jax.Array:
     # the guard test runs at -- where no hawk arrives at all. Reading the event counter
     # is the other half of E014's fix, six experiments late.
     struck = w_next.n_strike_events - w_prev.n_strike_events
-    own = d_drive * pc.reward_scale - struck * pc.strike_penalty
+    # Sickness onset (T2, E066): a discrete event, not a rate, the same reasoning
+    # `struck` above already applies -- dividing by dt would let one poisoning event
+    # dominate the same way one strike used to before E014's fix. `sick_on` is a level
+    # (True for the whole `sickness_duration_s` window), so the onset is its own
+    # rising edge, not `w_next.sick_on` directly, which would double-charge every step
+    # she stays sick.
+    sick_onset = (w_next.sick_on & ~w_prev.sick_on).astype(jnp.float32)
+    own = (d_drive * pc.reward_scale - struck * pc.strike_penalty
+          - sick_onset * pc.sickness_penalty)
 
     if pc.kin_weight == 0.0:
         return own
