@@ -357,8 +357,37 @@ wrong sign) — ruling out "the aggregate washed out a real effect." T2 stays
 `NOT SUPPORTED`, now on solid methodological ground: both live objections to E065
 checked directly, conclusion held.
 
-**Candidate future task, not T2 (flagged, not scoped): food-call homing via place
-cells.** Raised while reviewing whether E063 should also change the ordinary food
+**Candidate future task, scoped enough to know it is blocked: spatial memory for
+feeder locations.** Deplete a feeder, and test whether a hen remembers where it was and
+returns faster once it regrows — memory of location should speed up search. Attractive
+because it needs *no new mechanisms*: `W_pred` could bind place-pattern → `CLS_FOOD`,
+`pred_gain` injects that into `reflex_in`, and the existing innate food-approach reflex
+fires. A complete loop from parts already built and off by default.
+
+**Blocked by the environment, measured before building** (the check T2 never got):
+**a hen can see food 98.3% of hen-steps**, and with depletion enabled at its default
+only 1.7% of steps have no food visible anywhere, with feeders below `CLS_FOOD`'s
+visibility gate just 0.33% of the time. In a 20 m arena with `vision_range=10` and four
+feeders she never needs to remember where food is — she can look. A perfect spatial
+memory would buy nothing measurable, so the metric cannot show a positive result
+regardless of whether the capability exists. `CLAUDE.md`'s sixth instrument check,
+answered no.
+
+Before this task is worth building, the environment needs to make food *findable but
+not visible*: fewer feeders, shorter `vision_range`, a larger arena, or much harsher
+deplete/regrow dynamics. None is free — `vision_range` also governs predator detection,
+arena size touches flock density and every dispersal result (E025, E048, E062), and
+depletion has already been relitigated once (E025 → E037). Needs its own scoped design
+and a sweep to locate settings where memory has room to pay, before any build.
+
+A second, narrower blocker to resolve in that design: `CLS_FOOD` is *egocentric*
+(bin-indexed, rotating with heading), and this model exposes no allocentric heading
+channel — so a place→food association can support *recognition* ("I am at a food
+place") but not obviously *navigation* ("food is that way"). The same gap that blocked
+the gakel bearing problem in E064. Recognition alone may still pay via area-restricted
+search, but that is the weaker claim and should be the one stated.
+
+~~**Earlier framing of the same idea: food-call homing via place cells.**~~ Raised while reviewing whether E063 should also change the ordinary food
 call's design — it shouldn't (see the reasoning below), but it surfaces a genuinely
 new, separate, testable idea. The food call itself still cannot carry direction, for
 the same reason gakel's plain amplitude couldn't (no bearing in this model's audio, and

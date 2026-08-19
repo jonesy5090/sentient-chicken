@@ -47,7 +47,9 @@ SCAFFOLD_WEIGHT = 1.5
 
 def reflex_matrix(auditory_scaffold: bool = False,
                   scaffold_gain: float = 1.0,
-                  legacy_food_call: bool = False) -> np.ndarray:
+                  legacy_food_call: bool = False,
+                  gakel_scaffold: bool = False,
+                  gakel_scaffold_gain: float = 1.0) -> np.ndarray:
     """The innate arc as a fixed (MOTOR_DIM, OBS_DIM) matrix.
 
     `auditory_scaffold` adds an innate response to *hearing* an alarm call. It is off
@@ -187,6 +189,9 @@ def reflex_matrix(auditory_scaffold: bool = False,
     if auditory_scaffold:
         _add_auditory_scaffold(w, scaffold_gain)
 
+    if gakel_scaffold:
+        _add_gakel_scaffold(w, gakel_scaffold_gain)
+
     return r
 
 
@@ -251,6 +256,61 @@ def _add_auditory_scaffold(w, gain: float = 1.0) -> None:
     # predators, which keeps a second-order conditioning test available later -- the
     # Curio design, where a neutral cue paired with an alarm becomes alarming itself.
 
+
+
+def _add_gakel_scaffold(w, gain: float = 1.0) -> None:
+    """An innate withdrawal response to *hearing* the gakel call. T2-revised.
+
+    The one behavioural anchor T2-revised adds, and the reason it is not smuggling in
+    the answer: this is wired to the **call**, not to any place. Nothing
+    location-specific appears anywhere in the arc. Which places are aversive is left
+    entirely to association (`W_pred` binding a place-cell pattern to this channel),
+    which is exactly the production-innate / usage-learned split used everywhere else
+    here -- and structurally identical to `CLS_SICK`'s turn-away being innate while
+    *which hen is sick* is not.
+
+    **Why suppression of approach rather than a turn.** The audio channels carry no
+    direction (E064's whole premise), so "turn away from the call" is not computable
+    from this input and would have to invent a bearing. Suppressing forward drive and
+    pecking needs no direction at all. It also makes T2's "food there should be avoided
+    too" fall out for free: the suppression acts on *approach and ingestion*, not on a
+    food-specific channel, so food at an aversive place is declined without any extra
+    inference machinery.
+
+    **Biological grounding, and its limit, stated honestly.** `_add_auditory_scaffold`
+    above rests on parentally naive chicks responding differentially to conspecific
+    *fear* calls. That literature is about alarm calls. Whether naive birds show an
+    innate response to the gakel call specifically -- a frustration / negative-expectation
+    vocalisation -- is not something this project can cite with confidence. It is a
+    modelling assumption, not a finding, and is why this is off by default and named a
+    scaffold rather than a reflex.
+
+    Same weight as the alarm scaffold, for the same a-priori reason: sigmoid(1.5 - 2.5)
+    = 0.27 is a partial, graded response, and it stays well below the visual arc's own
+    weights so first-hand information continues to dominate second-hand.
+    """
+    gakel_call = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_GAKEL)
+
+    w(spec.M_FORWARD, gakel_call, -SCAFFOLD_WEIGHT * gain)
+    w(spec.M_PECK, gakel_call, -SCAFFOLD_WEIGHT * gain)
+
+    # Deliberately NOT wired:
+    #
+    # *No turn.* See above -- there is no bearing in this channel to turn along.
+    #
+    # *No relay.* Hearing a gakel call does not trigger producing one, matching the
+    # alarm scaffold's own reasoning: a relay makes the acoustic environment
+    # self-driving and would confound any measurement of who is calling and when.
+    #
+    # *No crouch or flee.* This is bad food, not a predator. Borrowing the
+    # anti-predator response would make the two call classes behaviourally
+    # indistinguishable and destroy the referential distinction the project exists to
+    # study.
+    #
+    # *Nothing on CLS_SICK or the place channels.* The visual turn-away from a sick
+    # flockmate is separate and already innate (E060). The place channels stay
+    # deliberately unwired, exactly as E063 left them -- that is the property that
+    # makes the location-specific part genuinely learned.
 
 def reflex_bias() -> np.ndarray:
     b = np.full((spec.MOTOR_DIM,), REST_BIAS, dtype=np.float32)
