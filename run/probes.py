@@ -28,6 +28,12 @@ GENOME_SEED = 1     # every probe uses the same genome, only the flock size vari
 
 _CONNECTOME_CACHE: dict = {}
 
+# Adoption gate for E072's balanced E/I (E074). Module-level rather than a per-probe
+# argument because the whole point is to re-run the *entire* ethogram under a different
+# connectome without touching a single probe's own staging. Set by `--balanced-ei`, or
+# directly by a diagnostic script.
+BALANCED_EI = False
+
 
 class Probe(NamedTuple):
     name: str
@@ -37,11 +43,11 @@ class Probe(NamedTuple):
 
 def _connectome(n_hens: int, gakel_scaffold: bool = False):
     """Same genome for every probe; width follows the staged flock size."""
-    ck = (n_hens, gakel_scaffold)
+    ck = (n_hens, gakel_scaffold, BALANCED_EI)
     if ck not in _CONNECTOME_CACHE:
         _CONNECTOME_CACHE[ck] = connectome.build(
             jax.random.key(GENOME_SEED), regions.DEFAULT_REGIONS, n_hens=n_hens,
-            gakel_scaffold=gakel_scaffold)
+            gakel_scaffold=gakel_scaffold, balanced_ei=BALANCED_EI)
     return _CONNECTOME_CACHE[ck]
 
 
@@ -354,7 +360,15 @@ def run_all(cfg: CoopConfig = spec.DEFAULT_COOP):
 
 
 def main() -> None:
-    print("Neonatal ethogram -- a hen that has never learned anything\n")
+    global BALANCED_EI
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--balanced-ei", action="store_true",
+                    help="run the whole ethogram on an E/I-balanced connectome "
+                         "(E072/E074's adoption gate), instead of the default")
+    BALANCED_EI = ap.parse_args().balanced_ei
+    print("Neonatal ethogram -- a hen that has never learned anything"
+          f"{' [balanced E/I]' if BALANCED_EI else ''}\n")
     results = run_all()
     width = max(len(r.name) for r in results)
     for r in results:
