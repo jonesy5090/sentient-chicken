@@ -1270,8 +1270,17 @@ the E014 erosion concern. This confirms empirically what E058/E059 + E063 jointl
 predict: the rule amplifies existing innate anchors and place cells were deliberately
 given none, so no reward magnitude can produce place-specific avoidance. The metric
 itself is sound (E069 Part A: resolves ~19–35% of baseline at n=8, far finer than
-T2's own predicted effect). **Tuning cannot rescue T2**; it needs a place-linked
-anchor, a different rule, or acceptance as answered in the negative.
+T2's own predicted effect). **Tuning cannot rescue T2** in its instrumental form. A revised architecture is
+designed in [docs/backlog.md](../docs/backlog.md)'s **T2-revised** section: the same
+task built *associatively* rather than instrumentally, which sidesteps E067's and
+E069's findings entirely because neither applies to a rule that is not reward-gated.
+It reuses the whole existing scaffold and needs only two new mechanisms — an innate
+withdrawal response to *hearing* a gakel call (an anchor on the call, not on any
+place, so nothing location-specific is wired), and a shared allocentric population so
+a place learned by testimony is recognisable when visited. The associative machinery
+itself already exists and already feeds perception (`W_pred` + `pred_gain`), off by
+default. L vs. C? remains a real contrast under it: a yoked listener binds calls to
+the wrong places, learning as hard as L but learning nothing true.
 
 **All three Stage 2 runs remain withdrawn as tests of the actual claim.** E065, E066 and E068 measured what the code does, accurately; none of them
 delivered a teaching signal large enough to test whether a flock *can* learn this.

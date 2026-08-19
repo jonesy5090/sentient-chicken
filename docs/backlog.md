@@ -374,6 +374,141 @@ learned rather than reflexive. Distinct from T2 (this is about *finding* food fa
 not avoiding a danger) and not scoped or pre-registered — a candidate for its own future
 task if a hypothesis needs it.
 
+### T2-revised — the same task, built associatively instead of instrumentally
+
+> **Design only, nothing built.** Supersedes T2's Stage 2 architecture, not T2's
+> question. The scaffold (E060–E062) and both location channels (E063, E064) are
+> unchanged and reused as-is.
+
+**Why the first architecture failed, precisely.**
+[E069](experiments/E069-t2-positive-control.md) settled it: no `sickness_penalty`
+magnitude across a thousandfold sweep produces learned avoidance, while the connectome
+survives intact and the metric is demonstrably adequate. The reason is structural and
+was predictable from two facts the project had already established separately —
+E058/E059 (the reward-gated rule *amplifies an existing innate anchor* and never builds
+an association from nothing) and E063 (place cells were deliberately given no reflex:
+*"raw location carries no innate meaning alone, by design"*). Jointly those guarantee
+no reward magnitude can produce place-specific avoidance. Tuning cannot fix it.
+
+**The reframe.** T2's Stage 2 asked an *instrumental* question — "was that good for
+me?" — routed through `m`, the reward-gated pathway. The behaviour it actually needs is
+*associative* — "these two things co-occurred" — which needs no reward and no credit
+assignment at all. `hen/plasticity.py`'s own docstring says exactly this about
+`W_pred`: association between co-occurring stimuli "needs no reward and no attribution
+of benefit to anyone, which is exactly the credit-assignment problem that sank E005 and
+E006."
+
+Building it associatively **sidesteps E067's eligibility defect and E069's finding
+entirely** — neither applies to a rule that isn't reward-gated. This routes around the
+broken machinery rather than through it.
+
+#### The chain, and what each link needs
+
+| link | mechanism | status |
+|---|---|---|
+| a hen falls sick, calls | gakel call, innate production on sickness onset | **built** (E060) |
+| flockmates hear it | audio channel, audibility measured at 11× | **built** (E061) |
+| the call carries *where* | gakel location cue, caller's place-pattern, loudness-weighted | **built** (E064) |
+| the call means *something bad* | innate withdrawal response to hearing gakel | **new (1)** |
+| testimony and experience share a map | shared allocentric population for both place channels | **new (2)** |
+| "that place is bad" is remembered | `W_pred` binds place-pattern → gakel, non-reward-gated | **built, off by default** |
+| the memory changes behaviour | `pred_gain` injects prediction into `reflex_in` | **built** |
+| food there is avoided too | withdrawal competes with food approach | **free, if (1) acts on approach** |
+
+Only two pieces are genuinely new. The associative machinery already exists and already
+feeds perception: `hen/brain.py`'s `predicted = einsum(W_pred, src * pred_src)` followed
+by `reflex_in = clip(obs + pred_gain * relu(predicted), 0, 1)` — a learned prediction is
+added directly to what the reflex arc reads. A hen who has bound place P to the gakel
+channel will, on returning to P, *perceive a call that is not there*.
+
+#### New mechanism 1 — an innate withdrawal response to hearing the gakel call
+
+A fixed reflex: heard gakel amplitude → reduced forward drive (and/or turning away).
+Wired in `hen/innate.py` alongside the existing call-production weights.
+
+**Why this is not smuggling in the answer**, which the earlier "aversion signal →
+avoid" sketch genuinely was. The anchor is on the *call*, not on any place. Nothing
+location-specific is wired anywhere. Which places are aversive is entirely learned, and
+learned only from co-occurrence. This is the same production-innate / usage-learned
+split the project applies everywhere, and structurally identical to `CLS_SICK`'s
+turn-away being innate while *which hen is sick* is not.
+
+**Biological grounding, and its limit.** `auditory_scaffold`'s own justification applies:
+naive chicks do show innate responses to a conspecific's fear call before any learning.
+That literature is about *alarm* calls; whether naive birds respond innately to the
+gakel call specifically — a frustration/negative-affect vocalisation — is not something
+this project can cite with confidence. State it as a modelling assumption, not a
+finding. It should follow `auditory_scaffold`'s precedent exactly: opt-in, off by
+default, documented as scaffolding, and never on in a headline condition without saying
+so.
+
+#### New mechanism 2 — a shared allocentric representation
+
+The gap that makes this necessary: she hears the call *from a distance*, so her own
+place cells (`PLACE_LO..PLACE_HI`) encode where **she** is, not where the bad feeder is.
+E064's cue (`GAKEL_PLACE_LO..GAKEL_PLACE_HI`) carries the caller's location and
+deliberately reuses E063's identical grid geometry — but they are **different
+observation indices**. A pattern learned on the testimony channel does not transfer to
+the self-location channel when she later walks there. Without this, testimony can only
+ever teach her about the spot she was standing on when she heard the news.
+
+The fix is a **connectome prior, not a behavioural one**: both channels project onto a
+common allocentric population (naturally, the `hippocampus` region E063 gave its first
+real function), so cell *k* of that population responds to place *k* whether the
+evidence arrived by testimony or by being there. Nothing about which place is good or
+bad is implied — only that a place is the same place however you learned of it, which is
+what a cognitive map *is*.
+
+Implemented in `hen/connectome.py` as a structured projection replacing the default
+random afferent draw for these two blocks specifically — the same kind of targeted
+wiring `modality_segregated` already does for the auditory pathway.
+
+#### Why L vs C? remains a real test
+
+This is the objection that killed the earlier sketch and it does not apply here. Under
+`channel_mode='yoked'`, a hen hears the flock's real gakel calls time-shifted, so
+`W_pred` binds them to **the wrong places** — her associations are as strong as L's and
+point somewhere harmless. Under `intact` they land on locations that were genuinely
+contaminated. Both conditions learn equally hard; only L learns something *true*. The
+contrast measures information transfer and nothing else, which is what
+`docs/backlog.md` §1 requires of the headline comparison.
+
+E064's `pos_log` already guarantees a yoked listener receives the caller's position
+*as of when she called*, not her current one — so the wrong-place binding is genuinely
+decorrelated rather than accidentally informative.
+
+#### Staging
+
+1. **Wire and validate mechanism 1 in isolation.** Ethogram probe: a hen hearing a
+   staged gakel call withdraws; one hearing other calls does not. No learning.
+2. **Wire and validate mechanism 2 in isolation.** Positive control, and the one that
+   matters most: stage a hen at place P, confirm the shared population responds
+   similarly whether P is signalled by self-location or by testimony. If this fails
+   nothing downstream can work, and it fails silently.
+3. **Positive control for the whole chain, before any contrast.** Hand-plant a
+   `W_pred` association (place P → gakel) and confirm a hen avoids P with no learning
+   involved. **This is the step E065 skipped and three experiments paid for.** If a
+   hand-wired success is undetectable, stop.
+4. **Only then** the L vs C? contrast, with the same metric and MDE E069 characterised
+   (19–35% of baseline at n=8 — adequate for T2's predicted effect).
+
+#### Known unknowns, stated before building
+
+- **`tau_lag = 1.5 s` may be too short.** It bridges cue→outcome for `W_pred`. Binding
+  is roughly simultaneous here (she hears the call while the location cue is active),
+  so 1.5 s is plausibly enough — but this is an assumption, and step 3's positive
+  control is where it gets tested rather than assumed.
+- **`pred_gain` has never run in a headline condition.** E058/E059 used
+  `pred_gain=0.0`. Its interaction with the reflex arc at nonzero gain is largely
+  uncharacterised, and `hen/brain.py`'s `relu` + `clip` means a strong prediction can
+  saturate a channel.
+- **Hallucination is the failure mode to watch.** A hen who over-predicts gakel calls
+  perceives danger everywhere and stops foraging. `W_pred`'s existing `pred_max` clip
+  bounds this; whether it bounds it *enough* at a behaviourally useful `pred_gain` is
+  unknown.
+- **This does not rescue the reward-gated rule**, and is not meant to. E067's
+  `strike_penalty` audit remains open and untouched by any of this.
+
 ### T3 — The safe corridor (stretch)
 
 Food beyond a region where some ground is dangerous; the safe route changes
