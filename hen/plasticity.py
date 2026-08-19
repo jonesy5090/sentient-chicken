@@ -144,6 +144,12 @@ class PlasticConfig(NamedTuple):
     eta_pred: float = 5e-3
     tau_lag: float = 1.5            # seconds; bridges cue to outcome
     pred_max: float = 0.05          # per-synapse cap on the top-down projection
+    # Centre the prediction pathway's source before projecting it (E071). Off by
+    # default so it is a contrast rather than a change, matching `pred_enabled`'s own
+    # precedent -- E042/E043 ran H2c against the uncentred rule and their recorded
+    # numbers describe that rule. Applies to both halves: the readout in `brain.py`
+    # and `W_pred`'s own update below, which had the identical defect.
+    pred_centred: bool = False
 
     # Readout rule kind (H2f, E055). `W_pred` above is already non-reward-gated, but it
     # only ever augments *perception* (it writes onto the observation the reflex arc
@@ -192,6 +198,14 @@ class PlasticState(NamedTuple):
     z_motor_bar: jax.Array  # (H, MOTOR_DIM)
     z_err: jax.Array       # (H, OBS_DIM) masked prediction error trace
     z_lag: jax.Array       # (H, N) slow trace: what the brain was doing before
+    # Slow mean of `z_lag`, for centring the prediction pathway (E071). `z_lag` is a
+    # rate trace: strictly positive, mean ~0.23, with the across-stimulus signal
+    # measured at 3.7% of that DC baseline (E070). Projecting it raw through `W_pred`
+    # lets the DC term dominate -- E070 measured a planted place association predicting
+    # 1.0000 at its own place and 0.9637 at a different one. This is the same defect
+    # E019 found for `W`/`W_out`, which is why the fix is the same: subtract the
+    # trace's own slow mean, exactly as `z_slow_bar` does.
+    z_lag_bar: jax.Array   # (H, N)
     baseline: jax.Array    # (H,) running expectation of reward
     # Accumulated reward-prediction-error since the last consolidation (E067). `m`
     # itself is not a trace anywhere else in this file -- unlike z_fast/z_slow/
@@ -226,6 +240,7 @@ def initial_state(p: BrainParams, n_hens: int, pc: PlasticConfig) -> PlasticStat
         z_motor_bar=jnp.zeros((n_hens, p.W_out.shape[1])),
         z_err=jnp.zeros((n_hens, p.W_pred.shape[1])),
         z_lag=jnp.zeros((n_hens, n)),
+        z_lag_bar=jnp.zeros((n_hens, n)),
         baseline=jnp.zeros((n_hens,)),
         m_acc=jnp.zeros((n_hens,)),
         age_s=jnp.array(0.0),
@@ -343,6 +358,7 @@ def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,
     return ps._replace(
         z_err=err,
         z_lag=ps.z_lag + a_l * (r - ps.z_lag),
+        z_lag_bar=ps.z_lag_bar + a_b * (ps.z_lag - ps.z_lag_bar),
         z_fast=ps.z_fast + a_f * (r - ps.z_fast),
         z_slow=ps.z_slow + a_s * (r - ps.z_slow),
         z_motor=ps.z_motor + a_m * (motor - ps.z_motor),
@@ -449,8 +465,13 @@ def consolidate(p: BrainParams, ps: PlasticState, m: jax.Array,
         # memory traffic of a simulation that is already bandwidth bound.
         # Error now, against what the brain was doing a moment ago, and only from
         # neurons allowed to source a prediction.
+        # Centred for the same reason the recurrent rule centres its own factors: an
+        # uncentred, strictly-positive source makes the update dominated by the DC
+        # term, so `W_pred` learns to predict from "the pallium is on" rather than
+        # from what distinguishes this state from a typical one.
+        lag = ps.z_lag - ps.z_lag_bar if pc.pred_centred else ps.z_lag
         d_pred = (eta_pred_of(ps, pc) * ps.z_err[:, :, None]
-                  * (ps.z_lag * p.pred_src[None, :])[:, None, :])
+                  * (lag * p.pred_src[None, :])[:, None, :])
         w_pred = jnp.clip(p.W_pred + d_pred, -pc.pred_max, pc.pred_max)
 
     return p._replace(W=w, W_out=w_out, W_pred=w_pred)

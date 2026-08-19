@@ -823,8 +823,21 @@ new home.
   answered in the negative for this architecture** — see E069 §8, which sets out the
   hazard in option 1 (an anchor specific enough to make T2 learnable risks hardwiring
   the answer T2 exists to discover).
-- **HIGH PRIORITY, and it may unblock several hypotheses at once: `W_pred` never
-  received E019's centring fix.** [E070](experiments/E070-t2-revised-chain-positive-control.md)
+- **THE critical path, now on evidence rather than assertion: pallial separability
+  (H2d/E017).** [E071](experiments/E071-pred-centring.md) established that it is the
+  proximate blocker for **three** hypotheses at once — T2-revised, H2c and H3 all need
+  the pallium to distinguish *which* stimulus, and none can while place-to-place
+  pallial correlation sits at **0.94–0.96** (E070's measurement). E071 also rules out
+  the cheap substitute: centring the prediction readout (below) helps materially but
+  leaves the prediction *variable* across places rather than *selective* for one, with
+  a distractor place driving stronger withdrawal than the planted one. E017 relocated
+  this to fan-in dilution at sensory→pallium; E041 reframed it around density; neither
+  resolved it. **Whatever is tried next should be measured against a concrete target:
+  place-to-place pallial correlation must come down from 0.94–0.96 before any linear
+  readout off the pallium can be referential.**
+- ~~**HIGH PRIORITY: `W_pred` never received E019's centring fix.**~~ **Fixed behind a
+  flag ([E071](experiments/E071-pred-centring.md)), and it is necessary but not
+  sufficient.** [E070](experiments/E070-t2-revised-chain-positive-control.md)
   measured a hand-planted place→gakel association predicting **1.0000 at the planted
   place and 0.9637 at a different place entirely** — 3.6% selectivity. Traced: the place
   block is perfectly orthogonal in the observation (0.0000), and the information
