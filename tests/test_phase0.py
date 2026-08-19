@@ -369,6 +369,64 @@ def test_place_cells_discriminate_distinct_locations():
 
 
 
+
+# --- Shared allocentric map (T2-revised mechanism 2) ------------------------
+
+def test_shared_place_map_transfers_by_place_and_only_by_place():
+    """Testimony about place P must evoke the same representation as *being* at P,
+    and must not evoke the representation of any other place.
+
+    The first half is what makes the association transferable at all: `W_pred` sources
+    from the pallium, so a binding learned while hearing about P is written onto units
+    that must still be active when she later walks to P. Without shared afferents there
+    is no overlap and no transfer.
+
+    The second half is what makes it a *map* rather than a blanket merge of the two
+    channels. If testimony about P also lit up place Q, the hen would learn that
+    everywhere is dangerous -- which would look like success on any aggregate metric
+    while being the opposite of the referential claim T2 exists to test.
+
+    Magnitude is checked too: the patterns must be congruent but not identical, or a
+    hen could not distinguish "I am here" from "someone called from there".
+    """
+    import numpy as np
+
+    def stub_response(p, block_lo, k):
+        obs = jnp.zeros((1, spec.OBS_DIM)).at[0, block_lo + k].set(1.0)
+        return np.asarray((obs @ p.W_in.T)[0])
+
+    off = connectome.build(jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=1)
+    on = connectome.build(jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=1,
+                          shared_place_map=True, testimony_gain=0.5)
+
+    # Off by default: the flag must change nothing unless asked for.
+    assert jnp.array_equal(off.W_in, connectome.build(
+        jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=1,
+        shared_place_map=False).W_in)
+
+    same, cross, ratios = [], [], []
+    for k in range(spec.N_PLACE):
+        self_k = stub_response(on, spec.PLACE_LO, k)
+        test_k = stub_response(on, spec.GAKEL_PLACE_LO, k)
+        if self_k.std() > 0 and test_k.std() > 0:
+            same.append(np.corrcoef(self_k, test_k)[0, 1])
+            ratios.append(test_k.sum() / max(self_k.sum(), 1e-9))
+        # a different place, chosen far away on the grid
+        other = (k + spec.PLACE_GRID // 2 + 1) % spec.N_PLACE
+        self_other = stub_response(on, spec.PLACE_LO, other)
+        if self_other.std() > 0 and test_k.std() > 0:
+            cross.append(np.corrcoef(self_other, test_k)[0, 1])
+
+    assert np.mean(same) > 0.99, (
+        f"testimony about P must evoke P's own representation; got {np.mean(same):.3f}")
+    assert np.mean(same) - np.mean(cross) > 0.5, (
+        f"testimony about P is nearly as similar to other places ({np.mean(cross):.3f}) "
+        f"as to P itself ({np.mean(same):.3f}) -- this is a blanket merge, not a map")
+    assert np.mean(ratios) == pytest.approx(0.5, abs=0.02), (
+        "testimony must be weaker than first-hand experience, or the two are "
+        "indistinguishable once summed")
+
+
 # --- Gakel withdrawal scaffold (T2-revised mechanism 1) ---------------------
 
 def test_gakel_scaffold_is_off_by_default_and_narrowly_scoped():
