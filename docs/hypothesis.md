@@ -1259,7 +1259,7 @@ consequence, which remains separately open.
 
 ## T2 — the rotating poisoned feeder: does the flock learn *which* feeder to avoid
 
-**Status: NOT STARTED — Stages 1, 1b and 1c complete**
+**Status: NOT SUPPORTED — Stage 2 (E065) tested, a clean null**
 ([docs/backlog.md](../docs/backlog.md)'s T2 section has the complete mechanical design;
 [E060](experiments/E060-t2-contamination-scaffold.md) built and validated the scaffold
 in isolation, 12/12 ethogram assays including four new falsifier checks, 74/74 full
@@ -1267,9 +1267,7 @@ suite; [E061](experiments/E061-t2-population-scaffold-check.md) confirmed all th
 pieces work at the population level in a free-running 16-hen flock;
 [E062](experiments/E062-t2-contamination-period-calibration.md) swept
 `contamination_period_s` and found no reason to move it off 300s — no learning
-involved in any of the three). Status stays `NOT STARTED` because all three stages
-test the instrument, not the hypothesis — nothing about T2's actual claim (does the
-flock learn to avoid the feeder) has been tested yet.
+involved in any of Stages 1/1b/1c).
 
 **Prerequisite found and filled before Stage 2 could be designed
 ([E063](experiments/E063-allocentric-place-cells.md)):** T2's literal claim — durable
@@ -1297,6 +1295,34 @@ between calling and observation), the same class of leak E024's shuffled control
 for plain audibility. `OBS_DIM` 113 → 138, 81/81 full suite. Stage 2 can now be
 designed against a model where both the direct-witness and indirect-testimony
 pathways have somewhere real to learn.
+
+**Stage 2, the actual test, run ([E065](experiments/E065-t2-stage2-learning-contrast.md)):**
+16 hens, H2f's validated rule (`hebbian_readout` + `readout_scaling_strength=0.3`,
+E057's own configuration), intact (L) vs. yoked (C?) vs. a fixed-connectome baseline
+(S), 8 seeds/condition, 90 minutes (18 contamination rotations). Primary metric:
+does L's sickness-per-rotation fall further from early (rotations 1–4) to late
+(rotations 15–18) than C?'s does. **It does not — and the sign points the wrong way.**
+L: +0.875 (late minus early, i.e. slightly *worse*); C?: −0.250 (slightly better);
+primary contrast (L − C?) = +1.125 ± 0.715, t=1.57, not significant (threshold 2.365).
+S's own early-to-late change (+1.719) was nominally the largest of the three, none
+significant — consistent with a within-run trend common to every condition
+(population dynamics unrelated to learning or channel content) rather than anything
+channel-specific. `|W_out|` drift diagnostic: C? and L landed on the identical
+aggregate value (0.0632) — not proof the rule was inactive (E057's own finding is
+that channel content changes *which* weights move, not the whole-matrix mean), but a
+real, flagged limit of what this diagnostic can distinguish. Matched water-intake
+control: clean null, as it should be given the primary result was already null. No
+positive control specific to this exact metric was run — flagged as the next step if
+this result is ever treated as more than a first pass.
+
+**Consequence**: the H2f rule that produced this project's only genuine, replicated
+positive learning result (E057) does not carry over to building T2's durable,
+place-based avoidance, even with both representational prerequisites in place.
+Consistent with, not contradicted by, E058/E059's finding that this rule amplifies
+existing anchors rather than building new associations from nothing — T2 asked for
+something harder than either H2f or H2c did. Not necessarily the end of T2: the
+local-vs-aggregate weight-change question, a longer run, or a different rule all
+remain genuinely open and unpursued, not ruled out.
 
 **Claim:** a flock with a working communication channel converges toward roughly one
 hen's mistake per contamination rotation (the discoverer eats the bad feeder, gets
@@ -1387,10 +1413,18 @@ equivalent checks here would be repeating that mistake with more moving parts, n
   doesn't exist yet, so the narrower stale-cue-misattribution risk this stage set out
   to check remains unmeasured; flagged for Stage 2 only if results there look
   consistent with it.
-- **Stage 2** (not yet pre-registered): the L vs. C? contrast itself, run once 1b and
-  1c have confirmed the scaffold behaves as designed and found a workable rotation
-  period, rather than spending Stage 2's compute on a possibly-broken instrument or an
-  untuned parameter.
+- **Stage 2 — done, null ([E065](experiments/E065-t2-stage2-learning-contrast.md)):**
+  16 hens, H2f's rule, L vs. C? vs. a fixed baseline S, 8 seeds, 18 rotations. The
+  falsifier fired: L's early-to-late sickness-per-rotation change (+0.875) was not
+  smaller than C?'s (−0.250) — the primary contrast (+1.125 ± 0.715, t=1.57) was not
+  significant, and the sign points the wrong way. `|W_out|` drift identical between C?
+  and L (0.0632 both) — not proof the rule was inactive, but a real limit on what this
+  coarse diagnostic can distinguish from a small, localised effect. S's own
+  early-to-late change was nominally the largest of the three, consistent with a
+  within-run trend unrelated to learning or channel content. The anchor being real and
+  tested (Stage 1b) was necessary but not sufficient — this specific durable,
+  place-based contingency is harder than H2f's own task, and the rule that worked
+  there does not clear this bar.
 
 ---
 
@@ -1453,6 +1487,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E065 | **T2 Stage 2: the actual L vs C? learning contrast -- run, a clean null.** 16 hens, H2f's validated rule (E057), L (intact) vs C? (yoked) vs S (fixed), 8 seeds, 90min/18 rotations. Primary: does L's sickness-per-rotation fall further early(rot 1-4)->late(rot 15-18) than C?'s. It does not, and the sign is wrong: L +0.875 (worse), C? -0.250 (better), primary contrast +1.125+/-0.715 t=1.57, not significant (threshold 2.365). S's own early-late change (+1.719) was nominally largest of the three -- consistent with a within-run trend common to every condition, not learning-specific. `\|W_out\|` drift identical C?/L (0.0632 both) -- not proof the rule was inactive (E057: content changes *which* weights move, not the mean), a real diagnostic limit, not dismissed. Matched water-intake control: clean null as expected given the primary was null. T2 -> `NOT SUPPORTED`, first time actually tested against data. Not the end of T2: local-vs-aggregate weight change, a longer run, or a different rule all remain open, unpursued. |
 | E064 | **T2 Stage 2 prerequisite #2: a gakel-call location cue for listeners beyond visual range.** E063's place cells only solve durable location memory for a hen who directly *witnesses* a sickness event; a hen who only *hears* the gakel call still gets nothing spatial, since audio here has never carried direction and self-location doesn't reveal a caller's. Added a loudness-weighted mixture of gakel callers' own place-cell patterns (reusing E063's grid) rather than asking the pallium to learn trigonometry from a bearing it isn't given -- `OBS_DIM` 113 -> 138. Required a new `World.pos_log` ring buffer (matching `call_log`) so `channel_mode='yoked'` hands a listener the caller's position *when she called*, not her current one -- verified directly with a caller who moved 22+m between calling and observation, the same class of leak E024's shuffled control had. 81/81 full suite (77 prior + 4 new); one test-bug caught and fixed (positions initially beyond `hear_range`, correctly zeroing the very thing the test meant to check). T2 stays `NOT STARTED` -- scaffolding, not a result. |
 | E063 | **T2 Stage 2 prerequisite: an innate allocentric place-cell channel.** T2's literal claim (durable avoidance of a specific feeder, outlasting the visible cue, recognised from any approach direction) turned out unrepresentable: every existing channel is egocentric by design, so a hen loses any trace of a location the moment she turns. Added a fixed 5x5 Gaussian place-cell grid (`place_sigma=2.0`) giving `hen/regions.py`'s previously-generic `hippocampus` region its first real function -- `OBS_DIM` 88 -> 113, the biggest single jump yet. No changes needed to `connectome.py` (existing exteroceptive routing) or `innate.py` (deliberately no reflex reads it -- raw location carries no innate meaning alone). 77/77 full suite (74 prior + 3 new: peak-at-centre, heading-independence, location-discrimination), full ethogram unchanged. T2 stays `NOT STARTED` -- this is scaffolding, not a result. |
 | E062 | **T2 Stage 1c: calibrate `contamination_period_s` — swept, found no reason to change it.** 16 hens, no learning, {100,200,300,450,600}s x 3 seeds x 40min. Audience saturates flat ~14/15 at every period (gregariousness already clumps the flock tightly, E025) — a longer period buys no more reachable audience. Overlap (rotation firing while a hen is still sick) stayed 43-61% at *every* period including 600s, prediction wrong: at ~5.6 discovery events/rotation (E061), cumulative sick-time (~335s) exceeds the 300s rotation itself — a direct measurement of the "C? pays ~N times" no-learning baseline, not a period defect. `contamination_period_s` stays 300.0. Per-feeder sickness attribution doesn't exist yet, so the narrower stale-cue-misattribution risk remains unmeasured; flagged for Stage 2 only if warranted. |

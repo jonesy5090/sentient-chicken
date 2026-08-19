@@ -324,9 +324,20 @@ scheduled task. Tier 2 is a real future direction, worth it only once a specific
 hypothesis needs map quality itself to be a variable. Tier 3 is out of scope for this
 project's cadence.
 
-**Stage 2** (not yet pre-registered): the actual L vs. C? contrast — does the flock,
-with the validated and calibrated scaffold and the H2f-style learning rule, converge
-toward one hen's mistake per rotation, as the original prediction states.
+~~**Stage 2**: the actual L vs. C? contrast — does the flock, with the validated and
+calibrated scaffold and the H2f-style learning rule, converge toward one hen's mistake
+per rotation, as the original prediction states.~~ **Done, null
+([E065](experiments/E065-t2-stage2-learning-contrast.md)).** 16 hens, H2f's rule
+(E057), L vs. C? vs. a fixed baseline S, 8 seeds, 18 rotations. The falsifier fired:
+L's early-to-late sickness-per-rotation change (+0.875) was not smaller than C?'s
+(−0.250) — primary contrast +1.125 ± 0.715, t=1.57, not significant, wrong sign. S's
+own change (+1.719) was nominally largest of the three, consistent with a within-run
+trend unrelated to learning or channel content. `|W_out|` drift identical between C?
+and L — a real limit on what this coarse diagnostic can distinguish from a small,
+localised effect, not proof the rule was inactive. **T2 is `NOT SUPPORTED`** at this
+configuration — the first time it has actually been tested against data, not just
+designed. Not closed: the local-vs-aggregate weight-change question, a longer run, or
+a different rule all remain genuinely open and unpursued.
 
 **Candidate future task, not T2 (flagged, not scoped): food-call homing via place
 cells.** Raised while reviewing whether E063 should also change the ordinary food
