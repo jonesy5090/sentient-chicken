@@ -39,6 +39,43 @@ def _bin_proximity(pos, heading, ent_pos, valid, cfg: CoopConfig):
     return jnp.max(onehot * prox[..., None], axis=1)            # (H, N_BINS)
 
 
+def _place_cells(pos: jax.Array, cfg: CoopConfig) -> jax.Array:
+    """(..., N_PLACE) allocentric place-cell activation -- a Gaussian bump per cell on
+    a fixed grid tiling the arena, independent of heading. The one channel in this file
+    that is *not* egocentric; see `coop/spec.py`'s module comment for why.
+
+    `pos` may carry any number of leading batch dims (`(..., 2)`); used both for a
+    hen's own location (`(H, 2)`, E063) and, batched over listener and caller together,
+    for the gakel location cue below (`(H, H, 2)`, E064).
+    """
+    edges = jnp.linspace(0.0, cfg.size, spec.PLACE_GRID + 2)[1:-1]
+    cx, cy = jnp.meshgrid(edges, edges, indexing="ij")
+    centers = jnp.stack([cx.ravel(), cy.ravel()], axis=-1)      # (N_PLACE, 2)
+    d2 = jnp.sum((pos[..., None, :] - centers) ** 2, axis=-1)
+    return jnp.exp(-d2 / (2.0 * cfg.place_sigma ** 2))
+
+
+def _gakel_location_cue(weight: jax.Array, caller_pos: jax.Array,
+                        cfg: CoopConfig) -> jax.Array:
+    """(H, N_PLACE) loudness-weighted mixture of gakel callers' own place-cell
+    patterns, as heard by each listener -- see `coop/spec.py`'s module comment for the
+    design reasoning. Deliberately *un*normalised: a faint, distant call contributes a
+    faint, low-confidence pattern rather than a full-strength one, which is the
+    "coarse" part of coarse directional hearing.
+
+    `weight[i, j]` is how loudly listener i currently hears j's gakel call --
+    `atten[i, j] * gakel_amplitude[j]`, already routed through `_channel` for the H4
+    ladder and, under `channel_mode='yoked'`, already the per-listener lagged amplitude.
+    `caller_pos[i, j]` is where j was when that call was made -- `w.pos` broadcast for
+    the ordinary case, or the matching lagged slice of `w.pos_log` under 'yoked', so a
+    yoked listener never receives a caller's *current* position alongside a
+    time-shifted call (that would leak exactly the real-time contingency the control
+    exists to destroy).
+    """
+    place = _place_cells(caller_pos, cfg)                        # (H, H, N_PLACE)
+    return jnp.clip(jnp.einsum("ij,ijp->ip", weight, place), 0.0, 1.0)
+
+
 def _channel(atten: jax.Array, w, cfg: CoopConfig) -> jax.Array:
     """Rewire who hears whom, for the H4 condition ladder. (H, H) -> (H, H).
 
@@ -167,6 +204,11 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     somatic = jnp.stack([wall, w.speed / cfg.flee_speed,
                          wall_escape_l, wall_escape_r], axis=-1)
 
+    # --- Place cells: allocentric, independent of channel_mode and everything
+    # auditory below -- location is not a call, and does not get rewired by the H4
+    # ladder. ---
+    place = _place_cells(w.pos, cfg)
+
     # --- Audition: flockmates' calls, attenuated by distance ---
     #
     # Voices combine in *intensity*, not amplitude: two birds calling at 0.5 are not
@@ -193,18 +235,25 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
         lags = lag0 + (jnp.arange(h) * (span // max(h, 1))) % max(span, 1)
         idx = (w.t - lags) % cfg.call_log_steps                 # (H,)
         heard = w.call_log[idx]                                 # (H, H, N_CALLS)
+        heard_pos = w.pos_log[idx]                               # (H, H, 2)
         power = jnp.einsum("ij,ijc->ic", atten ** 2, heard ** 2)
+        gakel_weight = atten * heard[:, :, spec.GAKEL_CALL_IDX]
+        gakel_cue = _gakel_location_cue(gakel_weight, heard_pos, cfg)
         return jnp.concatenate(
             [vis, aerial[:, None], intero, somatic,
-             jnp.clip(jnp.sqrt(power), 0.0, 1.0)], axis=-1)
+             jnp.clip(jnp.sqrt(power), 0.0, 1.0), place, gakel_cue], axis=-1)
 
     if cfg.legacy_audio:
         audio = jnp.clip(atten @ w.calls, 0.0, 1.0)             # pre-E019, for E021
     else:
         audio = jnp.clip(jnp.sqrt((atten ** 2) @ (w.calls ** 2)), 0.0, 1.0)
 
+    gakel_weight = atten * w.calls[:, spec.GAKEL_CALL_IDX][None, :]
+    caller_pos = jnp.broadcast_to(w.pos[None, :, :], (h, h, 2))
+    gakel_cue = _gakel_location_cue(gakel_weight, caller_pos, cfg)
+
     return jnp.concatenate(
-        [vis, aerial[:, None], intero, somatic, audio], axis=-1)
+        [vis, aerial[:, None], intero, somatic, audio, place, gakel_cue], axis=-1)
 
 
 def observability(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:

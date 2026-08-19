@@ -115,7 +115,74 @@ IDX_WALL_ESCAPE_R = INTERO_HI + 3
 AUDIO_LO = INTERO_HI + 4                           # 5 auditory call channels
 AUDIO_HI = AUDIO_LO + 5
 
-OBS_DIM = AUDIO_HI                                 # 88 (59 pre-E025, 71 pre-E051, 73 pre-E053, 74 pre-E060)
+# ---------------------------------------------------------------------------
+# Allocentric place cells (T2 Stage 2 prerequisite)
+# ---------------------------------------------------------------------------
+# Every channel above is egocentric -- "what is roughly over there", relative to the
+# hen's own heading. That is deliberate (see `coop/sensing.py`'s module docstring) and
+# it is also why nothing in this model can represent "feeder #2, specifically" once a
+# hen turns away from it: an egocentric bin index describes a direction, not a place.
+# T2's actual claim -- durable avoidance of a particular contaminated feeder that
+# outlasts the visible/audible cue -- needs a location signal that survives a change of
+# heading, which nothing built before E063 provides.
+#
+# Real place cells (O'Keefe & Dostrovsky, 1971; found in birds too, not just mammals)
+# fire by an animal's location in the environment, independent of orientation. That is
+# exactly the missing piece, and `hen/regions.py` already names a `hippocampus` region
+# (E016's connectome) that has had no distinct function of its own until now -- adding
+# an allocentric input finally gives it one, rather than leaving it a generic recurrent
+# pool with a biological name it hasn't earned.
+#
+# Innate, like every other sense in this model: a fixed receptive field tuned to a
+# patch of the arena is a sensory fact (the same simplification `CLS_FOOD`'s fixed
+# proximity gating already makes), not a learned skill -- real place fields do refine
+# with experience, but this project's standing rule is that *production/reception* of
+# every sense is wired and only *usage* is left to learn (Konishi's finding, applied
+# uniformly). What plasticity has to discover -- the entire open question -- is
+# whether a place-cell pattern seen while a flockmate falls sick can be turned into a
+# lasting avoidance response, the same "durable, referential contingency" bar H2f
+# already cleared for a different anchor (E057) and H2c already failed to clear from
+# nothing (E058/E059).
+PLACE_GRID = 5                                     # 5x5 = 25 cells tiling the arena
+N_PLACE = PLACE_GRID * PLACE_GRID
+
+PLACE_LO = AUDIO_HI
+PLACE_HI = PLACE_LO + N_PLACE
+
+# ---------------------------------------------------------------------------
+# Gakel-call location cue (T2 Stage 2 prerequisite, E064)
+# ---------------------------------------------------------------------------
+# Self-location alone does not close the loop. A hen close enough to *see* a sick
+# flockmate at a feeder gets `CLS_SICK` and `CLS_FOOD` in the same egocentric bin and
+# her own place cells tag the moment -- a real, learnable pathway. A hen who only
+# *hears* the gakel call from beyond visual range gets nothing spatial at all: audio in
+# this model has never carried direction (every call is pure distance-attenuated
+# amplitude, the same simplification real avian hearing's approximate directionality
+# is not modelled here), and her own place cells report *her* location, not the
+# caller's. There is no channel connecting the two -- exactly the gap the gakel call
+# was supposed to close ("broadcasts past visual range", E060) but, on inspection,
+# doesn't.
+#
+# This channel closes it directly rather than asking the pallium to reconstruct a
+# bearing from scratch: for each listener, the *loudness-weighted mixture of gakel
+# callers' own place-cell patterns* she currently hears -- reusing the exact same grid
+# and tuning `PLACE_LO:PLACE_HI` already computes for self-location, just evaluated at
+# the caller's position and scaled by how audible she is. A faint, distant call gives a
+# faint, blurry location estimate; a loud, nearby one gives a sharp one; nobody calling
+# gives exactly zero. No new machinery, no requirement that a small pallium learn
+# trigonometry from an egocentric bearing plus its own heading (which this model does
+# not even expose) -- the "coarse" localisation real animals get from hearing is
+# supplied directly, the same way `CLS_SICK` supplies its own ground-truth-but
+# range-limited location rather than asking vision to triangulate depth from scratch.
+#
+# Gakel-specific, not a general "where is every call coming from" upgrade -- the same
+# narrow, need-driven scope every prior channel in this file used (`CLS_CROWDING` for
+# personal space, `CLS_SICK` for sickness, wall-escape for walls). If a future
+# hypothesis needs directional hearing for a different call, that is its own addition.
+GAKEL_PLACE_LO = PLACE_HI
+GAKEL_PLACE_HI = GAKEL_PLACE_LO + N_PLACE
+
+OBS_DIM = GAKEL_PLACE_HI                           # 138 (59 pre-E025, 71 pre-E051, 73 pre-E053, 74 pre-E060, 88 pre-E063, 113 pre-E064)
 
 
 def vis_index(bin_idx: int, cls: int) -> int:
@@ -152,6 +219,10 @@ MOTOR_DIM = 12                                     # 11 pre-E060, first motor-di
 CALL_MOTOR_IDX = (M_CALL_CONTACT, M_CALL_FOOD, M_CALL_AERIAL, M_CALL_GROUND,
                   M_CALL_GAKEL)
 N_CALLS = 5
+
+# Position of the gakel call within any (..., N_CALLS)-shaped array (`w.calls`,
+# `call_log`, the audio slice of an observation) -- used by the E064 location cue.
+GAKEL_CALL_IDX = CALL_MOTOR_IDX.index(M_CALL_GAKEL)
 
 # A silent hen must emit silence. Motor channels are sigmoids, so a bird at rest sits
 # at sigmoid(REST_BIAS) = 0.076 on *every* channel including the four call ones -- a
@@ -285,6 +356,17 @@ class CoopConfig(NamedTuple):
     # food_call_decay_s's own reasoning and default: a bout, not continuous distress
     # calling for the whole sickness duration.
     gakel_call_decay_s: float = 4.0
+
+    # --- Allocentric place cells (T2 Stage 2 prerequisite, E063) ----------------
+    # Gaussian receptive-field width for the `N_PLACE` grid `coop/sensing.py` computes
+    # from `size` and `spec.PLACE_GRID`. At the default 20 m arena and a 5x5 grid, cell
+    # centres sit ~3.3 m apart; this sigma puts a cell's nearest neighbour at ~32% of
+    # its own peak response (exp(-3.3^2 / (2*2.0^2))) -- overlapping enough for smooth
+    # generalisation between adjacent locations, peaked enough that the population
+    # pattern should still resolve `n_food=4` randomly-placed feeders as distinct in
+    # most draws. First-pass, not yet calibrated -- flagged the same way
+    # `contamination_period_s` was until E062 swept it.
+    place_sigma: float = 2.0
 
     # Restores the pre-E019 audio path: emit the raw sigmoid (so a resting hen calls
     # at 0.076 on every channel) and sum voices linearly into a clip. It exists purely
