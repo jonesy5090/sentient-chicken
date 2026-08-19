@@ -193,6 +193,20 @@ class PlasticState(NamedTuple):
     z_err: jax.Array       # (H, OBS_DIM) masked prediction error trace
     z_lag: jax.Array       # (H, N) slow trace: what the brain was doing before
     baseline: jax.Array    # (H,) running expectation of reward
+    # Accumulated reward-prediction-error since the last consolidation (E067). `m`
+    # itself is not a trace anywhere else in this file -- unlike z_fast/z_slow/
+    # z_motor, which are continuously-updated EMAs, `reward_now - baseline` used to be
+    # read fresh every step and only the value at the exact consolidation boundary
+    # (every `interval` steps) ever reached `consolidate()`. A discrete, single-step
+    # reward event (`strike_penalty`, `sickness_penalty`) has no reason to land on
+    # that boundary, and an exhaustive sweep over every possible timing offset found
+    # it does so 2% of the time -- confirmed independently
+    # (`scratchpad/e067_reward_eligibility_check.py`), following an adversarial
+    # review. `m_acc` is a running sum, reset to zero every consolidation; the caller
+    # divides by `pc.interval` to get the mean reward-prediction-error over the
+    # window, which any discrete event within it now always contributes to, rather
+    # than only when its timing happens to coincide with the write.
+    m_acc: jax.Array       # (H,)
     age_s: jax.Array       # scalar, seconds since hatch
     innate_row_sum: jax.Array   # (H, N) reference total input weight per neuron
     innate_row_sum_out: jax.Array  # (H, MOTOR_DIM) same, for W_out (E055 follow-up)
@@ -213,6 +227,7 @@ def initial_state(p: BrainParams, n_hens: int, pc: PlasticConfig) -> PlasticStat
         z_err=jnp.zeros((n_hens, p.W_pred.shape[1])),
         z_lag=jnp.zeros((n_hens, n)),
         baseline=jnp.zeros((n_hens,)),
+        m_acc=jnp.zeros((n_hens,)),
         age_s=jnp.array(0.0),
         innate_row_sum=row_sum,
         innate_row_sum_out=row_sum_out,
@@ -320,6 +335,11 @@ def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,
     # The slow means track each trace on the same time constant as the reward
     # baseline, so "unusually active" and "better than expected" are judged over
     # comparable windows.
+    baseline = ps.baseline + a_b * (reward_now - ps.baseline)
+    # Accumulate this step's reward-prediction-error (E067) -- see PlasticState.m_acc.
+    # Uses the just-updated `baseline`, matching what the old instantaneous `m =
+    # reward - ps.baseline` computation in `_one_step` used.
+    m_acc = ps.m_acc + (reward_now - baseline)
     return ps._replace(
         z_err=err,
         z_lag=ps.z_lag + a_l * (r - ps.z_lag),
@@ -329,7 +349,8 @@ def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,
         z_fast_bar=ps.z_fast_bar + a_b * (ps.z_fast - ps.z_fast_bar),
         z_slow_bar=ps.z_slow_bar + a_b * (ps.z_slow - ps.z_slow_bar),
         z_motor_bar=ps.z_motor_bar + a_b * (ps.z_motor - ps.z_motor_bar),
-        baseline=ps.baseline + a_b * (reward_now - ps.baseline),
+        baseline=baseline,
+        m_acc=m_acc,
         age_s=ps.age_s + cfg.dt,
     )
 
