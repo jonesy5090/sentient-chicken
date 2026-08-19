@@ -1254,14 +1254,17 @@ consequence, which remains separately open.
 
 ## T2 — the rotating poisoned feeder: does the flock learn *which* feeder to avoid
 
-**Status: NOT STARTED — Stage 1 and Stage 1b complete**
+**Status: NOT STARTED — Stages 1, 1b and 1c complete**
 ([docs/backlog.md](../docs/backlog.md)'s T2 section has the complete mechanical design;
 [E060](experiments/E060-t2-contamination-scaffold.md) built and validated the scaffold
 in isolation, 12/12 ethogram assays including four new falsifier checks, 74/74 full
 suite; [E061](experiments/E061-t2-population-scaffold-check.md) confirmed all three
-pieces work at the population level in a free-running 16-hen flock — no learning
-involved in either). Status stays `NOT STARTED` because both stages test the
-instrument, not the hypothesis — nothing about T2's actual claim (does the flock learn
+pieces work at the population level in a free-running 16-hen flock;
+[E062](experiments/E062-t2-contamination-period-calibration.md) swept
+`contamination_period_s` and found no reason to move it off 300s — no learning
+involved in any of the three). Status stays `NOT STARTED` because all three stages
+test the instrument, not the hypothesis — nothing about T2's actual claim (does the
+flock learn
 to avoid the feeder) has been tested yet.
 
 **Claim:** a flock with a working communication channel converges toward roughly one
@@ -1336,11 +1339,23 @@ equivalent checks here would be repeating that mistake with more moving parts, n
   "someone nearby is calling." Does not affect T2's claim, which only needs "something
   happened nearby" (`CLS_SICK` carries *where* separately), but is worth a future
   reader knowing about before mistaking it for a new defect.
-- **Stage 1c** (not yet pre-registered): calibrate `contamination_period_s`.
-  `docs/backlog.md` §2 names this explicitly — "the answer must change faster than an
-  individual can learn it, but slower than the flock can propagate it... finding that
-  band is a sweep, and finding it is itself a result" — not a value to guess once and
-  fix.
+- **Stage 1c — done** ([E062](experiments/E062-t2-contamination-period-calibration.md)):
+  swept `contamination_period_s` over {100, 200, 300, 450, 600}s, 16 hens, no learning.
+  Audience (mean distinct flockmates within `vision_range` of a sick hen) saturates
+  flat at ~14/15 across the *entire* sweep — the strong gregariousness clumping
+  (E025) already makes propagation nearly free at this arena size, so a longer period
+  buys no additional reachable audience. Overlap fraction (a rotation firing while a
+  hen is still visibly sick) stayed high, 43–61%, at *every* period including 600s —
+  ten times `sickness_duration_s`. Prediction wrong, reason found: at ~5.6 discovery
+  events per 300s rotation (E061's own rate), cumulative sick-time per rotation
+  (~335s) exceeds the rotation itself — this is a direct, measured picture of the "C?
+  pays roughly N times per rotation" baseline the backlog predicts, not a defect in
+  the period. Neither check gives any reason to move off 300s, which stays the
+  default — a checked "no change needed," not a skipped calibration. Per-feeder
+  sickness attribution (which of the `n_food` feeders caused a given sick episode)
+  doesn't exist yet, so the narrower stale-cue-misattribution risk this stage set out
+  to check remains unmeasured; flagged for Stage 2 only if results there look
+  consistent with it.
 - **Stage 2** (not yet pre-registered): the L vs. C? contrast itself, run once 1b and
   1c have confirmed the scaffold behaves as designed and found a workable rotation
   period, rather than spending Stage 2's compute on a possibly-broken instrument or an
@@ -1407,6 +1422,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E062 | **T2 Stage 1c: calibrate `contamination_period_s` — swept, found no reason to change it.** 16 hens, no learning, {100,200,300,450,600}s x 3 seeds x 40min. Audience saturates flat ~14/15 at every period (gregariousness already clumps the flock tightly, E025) — a longer period buys no more reachable audience. Overlap (rotation firing while a hen is still sick) stayed 43-61% at *every* period including 600s, prediction wrong: at ~5.6 discovery events/rotation (E061), cumulative sick-time (~335s) exceeds the 300s rotation itself — a direct measurement of the "C? pays ~N times" no-learning baseline, not a period defect. `contamination_period_s` stays 300.0. Per-feeder sickness attribution doesn't exist yet, so the narrower stale-cue-misattribution risk remains unmeasured; flagged for Stage 2 only if warranted. |
 | E061 | **T2 Stage 1b: the scaffold works at the population level, not just in isolation, no learning involved.** 16-hen free-running flock, 3 checks × 3 seeds, 20 min each. **Discovery**: 22.3 sickness onsets / 20 min at the untuned `contamination_period_s=300s` default — not a bottleneck. **Audibility**: heard gakel amplitude correlates 0.167 with a nearby sick flockmate, 11× heard\|sick vs. heard\|not ratio — real signal. **Dispersal**: mean distance to a sick hen 5.44m with the anchor present vs. 2.71m stripped, matching E048's `CLS_CROWDING` result. One caveat, not a failure: the sender-shuffle control (E024's original, not E026's fixed yoked one) retains 82% of intact's correlation, the same architectural shape E024 found for the alarm channel (98%) — the flock clumps, so shuffling *which* nearby hen is credited mostly preserves "someone nearby is calling." Doesn't affect T2's claim, which only needs "something happened" (`CLS_SICK` carries *where* separately). T2 stays `NOT STARTED` — Stage 1b tests the instrument too, not the hypothesis. |
 | E060 | **T2 Stage 1: contamination/sickness/gakel scaffold built and validated, no learning involved.** New `CLS_SICK` vision class + `IDX_SICKNESS_ONSET` (`OBS_DIM` 74 -> 88) and `M_CALL_GAKEL` (`MOTOR_DIM` 11 -> 12, first motor-dim change). All four falsifier checks pass (12/12 ethogram, 70/70 suite): sickness onset is a rising edge (contaminated -> sick=True, clean -> sick=False), sickness mechanically slows movement (0.14m vs 0.93m travelled), the gakel call is a discovery pulse (not continuous, matching E053's fix), and the innate anchor reverses gregariousness's attraction to a sick flockmate (turn_R 0.97 vs turn_L 0.79 sick, vs turn_L 0.79 vs turn_R 0.50 healthy). **Found and fixed two real bugs during validation**: contamination was being unconditionally recomputed every step, silently overriding any staged value (caught by the probe's own negative control); `viz/web/app.js` hardcoded a 4-call stride that would have silently misaligned rendering once N_CALLS grew to 5. T2 stays `NOT STARTED` — Stage 1 tests the instrument, not the hypothesis. |
 | E059 | **Exposure escalation closes E058's open question, mechanistically.** Doubled predator exposure (`hawk_period_s` 20 -> 10, matching E042->E043) reproduced E058's numbers almost exactly — no movement. Checked directly: mean `\|W_out\|` drift **0.054 at both exposure levels** (3 seeds) — `readout_scaling_strength` reaches a dynamic equilibrium independent of exposure, unlike `W_pred`'s hard clip (which E043 found *does* respond to exposure). H2c stays `NOT STARTED`, now for a checked mechanistic reason rather than "maybe more data would help." |
