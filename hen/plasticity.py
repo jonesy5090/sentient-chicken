@@ -151,6 +151,14 @@ class PlasticConfig(NamedTuple):
     # and `W_pred`'s own update below, which had the identical defect.
     pred_centred: bool = False
 
+    # Restores E067's pre-fix behaviour: `m` read as a single-step snapshot at the
+    # consolidation boundary rather than averaged over the window since the last one.
+    # Exists purely so E075 can ask what E067's fix changed, exactly as `legacy_audio`
+    # exists so E021 could ask what E019's audio fix changed. Never a default -- the
+    # snapshot behaviour is the defect E067 measured at a 2% capture rate for discrete
+    # reward events.
+    legacy_m_sampling: bool = False
+
     # Readout rule kind (H2f, E055). `W_pred` above is already non-reward-gated, but it
     # only ever augments *perception* (it writes onto the observation the reflex arc
     # reads) -- it has no route to a motor decision like "call more when someone is

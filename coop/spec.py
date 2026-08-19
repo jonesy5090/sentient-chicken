@@ -339,6 +339,18 @@ class CoopConfig(NamedTuple):
     # and finding it is itself a result" (Stage 1c, not yet run): the period needs to
     # be fast enough that private information stays valuable, slow enough that it can
     # actually propagate through the flock before rotating again.
+    # Master switch for T2's contamination mechanic (E075). **Added because E060 did
+    # not have one**, so from E060 onward every experiment in the project silently ran
+    # with hens being poisoned, gakel-calling and moving at `sickness_mobility_scale`
+    # -- measured at 32 sickness onsets in a 30-minute 16-hen run. That is a change to
+    # the comparison basis for every hypothesis, made without an opt-in, which is
+    # exactly what this file's other additions are careful to avoid (`legacy_audio`,
+    # `auditory_scaffold`, `pred_enabled`, `readout_scaling_strength`, `gakel_scaffold`,
+    # `balanced_ei` are all off by default for this reason).
+    #
+    # Left `True` so this flag alone changes nothing; whether the default should flip
+    # is a separate decision that needs its own evidence, not a drive-by.
+    contamination_enabled: bool = True
     contamination_period_s: float = 300.0
     # How long a hen who eats contaminated food stays in the sickness state -- long
     # enough to be a reliable, observable cue to flockmates (the whole point of
