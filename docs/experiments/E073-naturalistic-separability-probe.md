@@ -89,6 +89,21 @@ PYTHONPATH=. .venv/bin/python scratchpad/e073_naturalistic_probe.py
 | **live rollout** (16 hens, 5 min, hawk every 20 s, 3 seeds) | **0.7288** |
 | live rollout, `balanced_ei` | 0.1209 |
 
+## 6b. Correction (E077) — the headline result does not survive
+
+**§3's 2.13× and the "severity understated 2.6×" claim are both withdrawn.** Both were
+measured with E063's place-cell block active at 25.1% of observation drive — the exact
+common-mode term `balanced_ei` acts on, and a block E076 later established should never
+have been in a default baseline. Re-run with it off
+([E077](E077-reread-balanced-ei.md)): naturalistic separability goes **0.0365 → 0.0814**
+(so the gap to the sparse probe's 0.0961 is 1.2×, not 2.6×) and `balanced_ei`'s
+advantage collapses to **1.05×, t=0.35, null**.
+
+**What still stands**: the E009-series probe genuinely under-drives the pallium relative
+to live operation (live 0.6907, sparse 0.2724), and E009's saturation was genuinely never
+fixed — E023's 0.189 was a sparse-probe number. Those are independent of the place block
+and are the more consequential half. Read §7 with the first two claims struck.
+
 ## 7. Interpretation
 
 **The prediction holds: the two probes give opposite verdicts on the same intervention,
