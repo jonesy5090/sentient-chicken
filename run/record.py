@@ -9,6 +9,34 @@ already uses to produce developmental summaries without materialising every step
 
     usage:  python -m run.record --minutes 10 --fps 15
             python -m run.record --minutes 10 --plastic --name "h4 dive"
+
+Writing `--desc`: this is the only thing standing between the viewer and total
+confusion. Whoever loads a run in the browser (`viz/web/index.html`'s sidebar shows
+it verbatim) may have zero context on this project -- no idea what stage it's from,
+what's been built, or why any of it matters. Treat `--desc` as the one paragraph
+they'll read before watching, and answer three things in plain language, no jargon,
+no experiment numbers:
+
+  1. What is being tested, in a sentence a non-scientist would understand -- "a
+     flock of simulated chickens" is the shared premise everyone already gets from
+     looking at the scene; say what's actually being asked beyond that.
+  2. What they will *see* happening in THIS recording specifically -- only the
+     mechanics actually active (a predator, sickness, calls, learning switched on
+     or off), not a tour of every feature the model has ever grown.
+  3. What this recording demonstrates -- a specific finding, stated plainly
+     ("the flock did not learn to avoid it"), or that it's just a demo of the
+     mechanics with no result attached. Never imply a finding that isn't there.
+
+Example, for a T2 recording:
+    "A flock of simulated chickens forage, drink, and watch for a hawk and a fox.
+    One feeder is secretly 'poisoned' and which one rotates every five minutes; a
+    hen who eats from it turns sickly and flashes red for about a minute, and
+    calls out (a purple dot) to warn nearby flockmates. Learning is switched off
+    in this recording, so it's a demo of the mechanics only -- no claim about
+    whether the flock gets better at avoiding it is being made here."
+
+An empty `--desc` still records (never blocks the run), but prints a reminder --
+see `main()` below.
 """
 
 import argparse
@@ -131,6 +159,11 @@ def record_and_save(key, cfg, pc, minutes: float, fps: float = 15.0, seed: int =
     }
     (out_dir / "meta.json").write_text(json.dumps(meta, indent=2))
     print(f"wrote {out_dir}")
+    if not desc.strip():
+        print("no --desc given -- the viewer's sidebar will show nothing to explain "
+             "this run to someone with no context. See this module's docstring for "
+             "what a good one covers, then edit this run's meta.json's "
+             "\"description\" field directly (no need to re-record).")
     return out_dir
 
 
@@ -144,7 +177,10 @@ def main() -> None:
     ap.add_argument("--plastic", action="store_true")
     ap.add_argument("--name", type=str, default=None,
                     help="label shown in the run picker (default: auto)")
-    ap.add_argument("--desc", type=str, default="")
+    ap.add_argument("--desc", type=str, default="",
+                    help="a paragraph a total newcomer could read and understand "
+                         "what they're about to watch and why -- see this file's "
+                         "module docstring for the full guidance and an example")
     ap.add_argument("--hawk-period", type=float, default=None,
                     help="seconds between hawk dives (default: DEFAULT_COOP's 900s -- "
                          "a several-minute recording will often show none at all; "

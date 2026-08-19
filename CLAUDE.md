@@ -350,3 +350,10 @@ python -m viz.server                                 # browse it in 3D
 - New behaviour needs an assay in `run/probes.py`, not just a test that it runs.
 - Config lives in `NamedTuple`s passed as static JIT args, so conditions are separate
   compiled programs rather than runtime branches.
+- Every `python -m run.record` needs a real `--desc`: a paragraph a total newcomer
+  could read in the viewer's sidebar and understand what they're about to watch, with
+  no context on the project at all. See `run/record.py`'s module docstring for the
+  full guidance (what's tested, what's actually visible in *this* recording, what it
+  demonstrates or plainly doesn't) and a worked example. An empty one prints a
+  reminder rather than blocking the recording, but treat that reminder as something
+  to act on before calling the recording finished, not as noise to ignore.
