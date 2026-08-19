@@ -86,7 +86,9 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           sensory_pallium_density: float | None = None,
           legacy_food_call: bool = False,
           gakel_scaffold: bool = False,
-          gakel_scaffold_gain: float = 1.0) -> BrainParams:
+          gakel_scaffold_gain: float = 1.0,
+          shared_place_map: bool = False,
+          testimony_gain: float = 0.5) -> BrainParams:
     """Sample a newly hatched flock.
 
     `readout_scale` is small on purpose: at hatch the cortical pathway is near-silent
@@ -236,6 +238,39 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         w_in[s_split:s_hi, vis_ch] = _random_afferents(s_split, s_hi, vis_ch)
     else:
         w_in[s_lo:s_hi, extero] = _random_afferents(s_lo, s_hi, extero)
+
+    if shared_place_map:
+        # T2-revised mechanism 2: a shared allocentric map.
+        #
+        # The problem it solves. A hen learns "something bad happened at P" from a call
+        # heard across the coop, so her own place cells (PLACE_LO..PLACE_HI) encode
+        # where *she* is, while the caller's location arrives separately on
+        # GAKEL_PLACE_LO..GAKEL_PLACE_HI. E064 deliberately built the second from the
+        # identical grid geometry as the first -- but they are different observation
+        # indices, and the afferent draw above is independent per column, so the
+        # pallial pattern evoked by "testimony about P" shares nothing with the one
+        # evoked by "standing at P". `W_pred` sources from the pallium
+        # (`pred_src`), so an association learned from testimony would be written onto
+        # units that are silent when she later walks to P. Zero transfer. Without this,
+        # testimony can only ever teach her about the spot she was standing on when she
+        # heard the news.
+        #
+        # The fix, and why it is a connectome prior rather than a behavioural one:
+        # give the testimony block the *same* afferent pattern as the self-location
+        # block, scaled. Stub unit i's response to hearing-about-P then becomes a
+        # scaled copy of its response to being-at-P, so any `W_pred` weight learned on
+        # one is directly readable from the other. Nothing about which places are good
+        # or bad is implied -- only that a place is the same place however you learned
+        # of it, which is what a cognitive map *is*.
+        #
+        # Scaled rather than identical, deliberately. At `testimony_gain=1.0` the two
+        # channels would be indistinguishable once summed, and a hen could not tell "I
+        # am here" from "someone called from there". A gain below 1 keeps the
+        # representations congruent in *pattern* (so the association transfers) while
+        # separable in *magnitude*, and encodes the same ordering `innate.py` already
+        # argues for the alarm scaffold: first-hand information beats second-hand.
+        w_in[:, spec.GAKEL_PLACE_LO:spec.GAKEL_PLACE_HI] = (
+            testimony_gain * w_in[:, spec.PLACE_LO:spec.PLACE_HI])
 
     w_in[h_lo:h_hi, spec.INTERO_LO:spec.INTERO_HI] = rng.gamma(
         2.0, 1.0, (h_hi - h_lo, spec.INTERO_HI - spec.INTERO_LO))

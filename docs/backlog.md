@@ -823,6 +823,26 @@ new home.
   answered in the negative for this architecture** — see E069 §8, which sets out the
   hazard in option 1 (an anchor specific enough to make T2 learnable risks hardwiring
   the answer T2 exists to discover).
+- **HIGH PRIORITY, and it may unblock several hypotheses at once: `W_pred` never
+  received E019's centring fix.** [E070](experiments/E070-t2-revised-chain-positive-control.md)
+  measured a hand-planted place→gakel association predicting **1.0000 at the planted
+  place and 0.9637 at a different place entirely** — 3.6% selectivity. Traced: the place
+  block is perfectly orthogonal in the observation (0.0000), and the information
+  survives into the pallium (across-place variation has real structure, top singular
+  values 0.294/0.117/0.097/0.066) — but it is **3.7% of the DC baseline**, and
+  `brain.py`'s readout is `W_pred @ (src * pred_src)` on raw, uncentred rates, so the DC
+  term dominates. `plasticity.py` already documents this exact failure for `W` and
+  `W_out` ("without centring the outer product is dominated by the product of the two
+  means") and fixes it there via `z_fast_bar`/`z_slow_bar`/`z_motor_bar`. **`W_pred`
+  has no equivalent in either its learning or its readout.** Ruled out by measurement,
+  not argument: not a settling artefact (identical at 1–300 settle steps), and not
+  dilution by competing channels (a dedicated place-only stub slice at 10/21/32 units
+  leaves pallium similarity at 0.9997). Proposed fix: subtract a running mean of pallial
+  rate from `src` before projection, the direct analogue of `z_slow_bar`. Needs its own
+  pre-registration and a guard test — it is a core change to `brain.py` on the pathway
+  H2c and H3 also depend on. Note this is a *more specific and more tractable* claim
+  than H2d/E017's standing "projection problem" framing: for place information at least,
+  the projection is fine and the readout is not.
 - **Fix whenever T2 or any reward-gated experiment next runs**: the `|W_out|` "is the
   rule active?" diagnostic reads a pathway that structurally cannot respond under
   `hebbian_readout` (its update is not reward-gated), and returned a falsely
