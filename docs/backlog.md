@@ -644,6 +644,21 @@ new home.
 
 ## 8. Open items from experiments
 
+- **HIGH PRIORITY, unresolved: does `strike_penalty`'s reward-eligibility defect
+  affect any prior hypothesis's actual conclusion?**
+  [E067](experiments/E067-reward-eligibility-sampling-defect.md) confirmed, via an
+  adversarial review and independent re-verification, that `m` (the factor gating
+  `consolidate()`'s update to the recurrent weights `W`) is sampled at the exact
+  consolidation-boundary step rather than traced, so a discrete single-step reward
+  event — `strike_penalty`, used since ~E014, throughout H2/H4/T1's history — reaches
+  `consolidate()` on only ~2% of occurrences. Confirmed as a real mechanism, not
+  adopted as a reinterpretation of any specific prior result: whether T1's
+  Pareto-safety finding, any of H4's states, or H2's own clean nulls actually
+  *depended* on the discrete strike-event term surviving to a boundary — versus being
+  adequately explained by the continuous `d_drive` pathway, which is a genuine trace
+  and unaffected — has not been checked for any of them. This needs its own scoped
+  investigation per hypothesis before any status changes; the mechanism alone does
+  not tell you which conclusions, if any, actually move.
 - ~~**Does the cortical pathway ever influence behaviour?**~~ **Answered by
   [E002](experiments/E002-can-the-pallium-reach-a-muscle.md):** it does, but only
   once the readout can learn. At the E001 setting `|W_out|` grew 1.00x — frozen.
