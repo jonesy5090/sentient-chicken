@@ -108,12 +108,103 @@ PYTHONPATH=. .venv/bin/python scratchpad/e065_t2_stage2_contrast.py --seeds 8 --
 
 ## 6. Result
 
-_Not yet run._
+8 seeds/condition, 90 min (18 rotations of 300s), `threshold(df=7)=2.365`.
+
+**Primary — sickness-per-rotation, early (rotations 1–4) vs. late (rotations 15–18):**
+
+| condition | early | late |
+|---|---|---|
+| S | 5.906 | 7.625 |
+| C? | 9.312 | 9.062 |
+| L | 8.562 | 9.438 |
+
+| contrast | mean ± SE | t | |
+|---|---|---|---|
+| L: late − early | +0.875 ± 0.693 | 1.26 | not significant |
+| C?: late − early | −0.250 ± 0.620 | 0.40 | not significant |
+| S: late − early | +1.719 ± 1.209 | 1.42 | not significant |
+| **PRIMARY: (L late−early) − (C? late−early)** | **+1.125 ± 0.715** | **1.57** | **not significant** |
+
+**Diagnostic 1 (is the rule active?)**: final mean `|W_out|` — C? 0.0632, L 0.0632,
+identical to four decimal places.
+
+**Diagnostic 2 (matched control, water intake)**: (L late−early) − (C? late−early) =
+−266.5 ± 361.4, t=0.74, not significant.
+
+Wall clock: 3238s (~54 min) for all 24 runs.
 
 ## 7. Interpretation
 
-_Pending §6._
+**The falsifier fires. Not just non-significant — the sign points the wrong way.**
+L's early-to-late change is *more positive* (sickness got slightly worse) than C?'s
+(which got slightly better), the opposite of the prediction, well short of
+significance either way. Nothing here supports T2's headline claim at this
+configuration.
+
+**Diagnostic 1 needs a careful read, not a dismissal.** C? and L landing on the exact
+same aggregate `|W_out|` looks at first like "the rule wasn't active," but that is not
+the right conclusion: this is a mean over the *entire* readout matrix, and E057's own
+finding was that channel content changes *which* weights move (a targeted,
+audience-specific component riding alongside a general one), not necessarily the
+aggregate magnitude. A rule that is genuinely active but produces localized,
+channel-specific changes too small to move the whole-matrix mean would look exactly
+like this. What this diagnostic rules out is a *bigger* failure mode (the rule
+silently disabled, e.g. `pc.enabled` not taking effect) — it does not, on its own,
+distinguish "no differential learning happened" from "differential learning happened
+but stayed local." That distinction was not checked here and would need a more
+targeted weight-level diagnostic to resolve, the same escalation E057 needed after
+E055/E056's own aggregate measures were ambiguous.
+
+**S's own early-to-late change is worth noticing.** S (fixed connectome, no learning
+at all) shows the *largest* nominal increase (+1.719) of the three conditions, though
+also not significant. This is consistent with the sickness-rate trend across a run
+being dominated by within-run population dynamics common to every condition
+(exploration patterns, spatial spread, or some other developmental drift unrelated to
+learning) rather than by anything channel- or learning-specific — exactly the kind of
+confound the S baseline exists to catch, and it did its job here even though nothing
+reached significance.
+
+**Diagnostic 2 is a clean, uninformative null**, which is the right outcome for a
+diagnostic guarding against a false positive that never arose — nothing to defend
+here since the primary result itself was null.
+
+**Is this a trustworthy null, per CLAUDE.md's own rule ("a null is only informative if
+the instrument could have shown a positive")?** The metric has real room to move in
+both directions (values ranged 5.9–9.4 across conditions and windows, nowhere near a
+ceiling or floor), and the underlying learning rule, statistical apparatus and
+seed-matched paired design are the exact ones E057 used to detect a real, replicated
+effect in a different context — so the apparatus is known-capable of finding signal
+when it exists. What was *not* run here is a positive control specific to this exact
+metric (sickness-per-rotation) — a planted, guaranteed-detectable effect to confirm
+this particular pipeline can see it. Flagged as a real gap, not glossed over: if this
+null is ever treated as more than a first-pass result (e.g. before writing it into
+`README.md`'s summary of what works), that control is the next thing to run, not an
+afterthought.
 
 ## 8. Consequence
 
-_Pending §6._
+**T2's headline prediction is not supported at this configuration** — the H2f rule
+that produced this project's only genuine, replicated positive learning result
+(audience-sensitive calling, E057) does not carry over to building the durable,
+place-based avoidance T2's claim requires, even with both representational
+prerequisites (E063, E064) in place. Consistent with, not contradicted by, E058/E059's
+own finding that this rule amplifies existing anchors rather than building new
+stimulus-response associations from nothing — T2 asked for something harder than
+either H2f or H2c did (a bias that must generalise across a changing set of egocentric
+encounters with the same allocentric place, not just re-time an existing response),
+and it did not clear that bar.
+
+Update `docs/hypothesis.md`'s T2 node: status moves from `NOT STARTED` to a tested,
+clean null — the first time T2 has actually been checked against data rather than
+designed. Update `docs/backlog.md`'s T2 section to record the result and close out the
+open "Stage 2" line item.
+
+**Not necessarily the end of T2.** Genuinely open, not pursued here: (1) the local
+vs. aggregate weight-change question flagged in §7 — a targeted diagnostic could still
+find a real but small, swamped-by-noise effect; (2) whether a longer run (more than 18
+rotations) or a different learning rule entirely would fare better, though nothing in
+this project's history suggests a better rule is close at hand; (3) whether the S
+baseline's own unexplained upward drift deserves its own look before trusting *any*
+future within-run comparison on this metric. None of these are scheduled — this
+result is reported as what it is, a clean null on the configuration actually tested,
+not a claim that the broader question is closed.
