@@ -207,7 +207,8 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     # --- Place cells: allocentric, independent of channel_mode and everything
     # auditory below -- location is not a call, and does not get rewired by the H4
     # ladder. ---
-    place = _place_cells(w.pos, cfg)
+    place = (_place_cells(w.pos, cfg) if cfg.place_cells_enabled
+             else jnp.zeros((h, spec.N_PLACE)))
 
     # --- Audition: flockmates' calls, attenuated by distance ---
     #
@@ -238,7 +239,8 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
         heard_pos = w.pos_log[idx]                               # (H, H, 2)
         power = jnp.einsum("ij,ijc->ic", atten ** 2, heard ** 2)
         gakel_weight = atten * heard[:, :, spec.GAKEL_CALL_IDX]
-        gakel_cue = _gakel_location_cue(gakel_weight, heard_pos, cfg)
+        gakel_cue = (_gakel_location_cue(gakel_weight, heard_pos, cfg)
+                     if cfg.place_cells_enabled else jnp.zeros((h, spec.N_PLACE)))
         return jnp.concatenate(
             [vis, aerial[:, None], intero, somatic,
              jnp.clip(jnp.sqrt(power), 0.0, 1.0), place, gakel_cue], axis=-1)
@@ -250,7 +252,8 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
 
     gakel_weight = atten * w.calls[:, spec.GAKEL_CALL_IDX][None, :]
     caller_pos = jnp.broadcast_to(w.pos[None, :, :], (h, h, 2))
-    gakel_cue = _gakel_location_cue(gakel_weight, caller_pos, cfg)
+    gakel_cue = (_gakel_location_cue(gakel_weight, caller_pos, cfg)
+                 if cfg.place_cells_enabled else jnp.zeros((h, spec.N_PLACE)))
 
     return jnp.concatenate(
         [vis, aerial[:, None], intero, somatic, audio, place, gakel_cue], axis=-1)

@@ -248,7 +248,7 @@ def test_contamination_only_changes_on_epoch_transition():
     value back to whatever epoch 0 resolves to. It must persist within an epoch
     (the hawk_on/hawk_t pattern -- state, not a recomputation) so it can be staged.
     """
-    cfg = CFG._replace(n_hens=1, n_food=1, contamination_period_s=300.0)
+    cfg = CFG._replace(contamination_enabled=True, n_hens=1, n_food=1, contamination_period_s=300.0)
     w = world.reset(jax.random.key(0), cfg)
     w = w._replace(food_contaminated=jnp.array([False]))   # stage: clean, epoch 0
     motor = jnp.zeros((1, spec.MOTOR_DIM))
@@ -302,7 +302,7 @@ def test_sickness_onset_sets_timer_and_decays_but_outlasts_the_call():
     clearly outlast the call's own short decay (E060's design: a discovery pulse for
     the call, a much longer physiological state for the sickness itself).
     """
-    cfg = CFG._replace(n_hens=1, n_food=1)
+    cfg = CFG._replace(contamination_enabled=True, n_hens=1, n_food=1)
     w = world.reset(jax.random.key(0), cfg)
     w = w._replace(pos=jnp.array([[10.0, 10.0]]), heading=jnp.array([0.0]),
                    food_pos=jnp.array([[10.05, 10.0]]),
@@ -328,7 +328,7 @@ def test_place_cells_peak_near_the_nearest_grid_center():
     that cell and materially less on every other -- the basic geometry claim, checked
     directly rather than assumed.
     """
-    cfg = CFG._replace(n_hens=1)
+    cfg = CFG._replace(place_cells_enabled=True, n_hens=1)
     w = world.reset(jax.random.key(0), cfg)
     edges = jnp.linspace(0.0, cfg.size, spec.PLACE_GRID + 2)[1:-1]
     center = jnp.array([edges[0], edges[0]])
@@ -343,7 +343,7 @@ def test_place_cells_are_independent_of_heading():
     every egocentric bin in `vis`. Rotating a hen in place must not move her place-cell
     pattern at all.
     """
-    cfg = CFG._replace(n_hens=1)
+    cfg = CFG._replace(place_cells_enabled=True, n_hens=1)
     w = world.reset(jax.random.key(0), cfg)
     w = w._replace(pos=jnp.array([[8.3, 12.7]]))
     p0 = sensing.observe(w._replace(heading=jnp.array([0.0])), cfg)[
@@ -359,7 +359,7 @@ def test_place_cells_discriminate_distinct_locations():
     channel carries no usable location information regardless of what plasticity does
     with it.
     """
-    cfg = CFG._replace(n_hens=2)
+    cfg = CFG._replace(place_cells_enabled=True, n_hens=2)
     w = world.reset(jax.random.key(0), cfg)
     w = w._replace(pos=jnp.array([[2.0, 2.0], [18.0, 18.0]]),
                    heading=jnp.zeros((2,)))
@@ -473,7 +473,7 @@ def test_gakel_cue_is_zero_when_nobody_is_calling():
     """No gakel call anywhere must mean no location cue anywhere -- the channel should
     never manufacture a signal from silence.
     """
-    cfg = CFG._replace(n_hens=3)
+    cfg = CFG._replace(place_cells_enabled=True, n_hens=3)
     w = world.reset(jax.random.key(0), cfg)
     obs = sensing.observe(w, cfg)
     assert float(obs[:, spec.GAKEL_PLACE_LO:spec.GAKEL_PLACE_HI].max()) == pytest.approx(
@@ -484,7 +484,7 @@ def test_gakel_cue_points_at_the_caller_not_the_listener():
     """A listener's cue must peak at the *caller's* place-cell pattern, not her own --
     the entire point of this channel over the plain audio amplitude it's built from.
     """
-    cfg = CFG._replace(n_hens=2)
+    cfg = CFG._replace(place_cells_enabled=True, n_hens=2)
     w = world.reset(jax.random.key(0), cfg)
     # (2,2) to (12,12) is ~14.1 m apart -- within hear_range=15.0 so the call is
     # actually audible, but far enough that the two hens map to clearly distinct cells.
@@ -502,7 +502,7 @@ def test_gakel_cue_fades_with_distance():
     -- the "coarse" part of coarse directional hearing, and the reason this channel
     needs no artificial noise injected to be honestly imprecise.
     """
-    cfg = CFG._replace(n_hens=3)
+    cfg = CFG._replace(place_cells_enabled=True, n_hens=3)
     w = world.reset(jax.random.key(0), cfg)
     calls = jnp.zeros((3, spec.N_CALLS)).at[1, spec.GAKEL_CALL_IDX].set(0.9) \
                                         .at[2, spec.GAKEL_CALL_IDX].set(0.9)
@@ -524,7 +524,7 @@ def test_yoked_gakel_cue_uses_the_callers_position_when_she_called_not_now():
     exactly the real-time contingency the yoked control exists to destroy (the same
     class of leak E024's shuffled control had for plain audibility).
     """
-    cfg = CFG._replace(n_hens=2, channel_mode="yoked", call_log_steps=spec.YOKE_LOG_STEPS,
+    cfg = CFG._replace(place_cells_enabled=True, n_hens=2, channel_mode="yoked", call_log_steps=spec.YOKE_LOG_STEPS,
                        yoke_min_lag_s=1.0)
     key = jax.random.key(0)
     w = world.reset(key, cfg)
