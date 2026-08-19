@@ -257,6 +257,46 @@ def test_being_caught_is_aversive(flock):
         "the per-step contact counter still reaches the reward; it is diagnostics only")
 
 
+def test_discrete_reward_event_reaches_consolidation_regardless_of_timing():
+    """E067 guard: a single-step reward event (a strike, a sickness onset) must
+    reach `consolidate()` no matter which step within the `interval`-step window it
+    lands on.
+
+    Before this fix, `m` was `reward - baseline` read fresh every step, but only the
+    value at the exact consolidation-boundary step (`t % interval == 0`) was ever
+    passed to `consolidate()` -- an event landing anywhere else was invisible. An
+    exhaustive sweep over every possible timing offset found this happened on only
+    2% of occurrences (`scratchpad/e067_reward_eligibility_check.py`, following an
+    adversarial review). `m_acc` (accumulated every step in `update_traces`, reset on
+    consolidation) fixes this: because it is a *sum* over the window, a single
+    spike's contribution to the mean is the same regardless of exactly when within
+    the window it occurred.
+    """
+    p = connectome.build(jax.random.key(1), regions.DEFAULT_REGIONS, n_hens=1)
+    pc = PlasticConfig(enabled=True)
+    r = jnp.zeros((1, p.b.shape[0]))
+    motor = jnp.zeros((1, p.W_out.shape[1]))
+
+    def mean_m_after_spike(onset_step):
+        ps = plasticity.initial_state(p, 1, pc)
+        for t in range(1, pc.interval + 1):
+            reward_now = jnp.array([-1.0]) if t == onset_step else jnp.array([0.0])
+            ps = plasticity.update_traces(ps, r, motor, reward_now, CFG, pc)
+        return float(ps.m_acc[0] / pc.interval)
+
+    m_early = mean_m_after_spike(1)               # far from the boundary
+    m_mid = mean_m_after_spike(pc.interval // 2)
+    m_late = mean_m_after_spike(pc.interval)       # exactly on the boundary
+
+    for label, m in (("early", m_early), ("mid", m_mid), ("late", m_late)):
+        assert m < -0.015, (
+            f"a discrete reward event at the {label} offset must still reach "
+            f"consolidation (expected ~-1/{pc.interval}), got m={m}")
+    assert max(m_early, m_mid, m_late) - min(m_early, m_mid, m_late) < 0.005, (
+        f"timing within the window should barely matter: early={m_early}, "
+        f"mid={m_mid}, late={m_late}")
+
+
 def test_sickness_onset_is_aversive_only_when_opted_in():
     """T2 (E066): `sickness_penalty` defaults to 0.0, matching
     `readout_scaling_strength`'s own precedent -- adding this term must change

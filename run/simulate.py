@@ -96,13 +96,19 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
         pred_err = sensing.observability(w, cfg) * (obs - drives.predicted)
     ps = plasticity.update_traces(ps, r, motor, reward, cfg, pc, pred_err)
 
-    # Reward prediction error: what just happened, minus what she had come to expect.
-    m = reward - ps.baseline
+    # Reward prediction error, averaged over the window since the last consolidation
+    # (E067), not the instantaneous value at this step. `ps.m_acc` accumulates every
+    # step in `update_traces`; a single-step discrete reward event (a strike, a
+    # sickness onset) used to be visible to `consolidate()` only if it happened to
+    # land exactly on this boundary -- confirmed at a 2% hit rate. Averaging over the
+    # whole `interval`-step window means any such event within it is always seen,
+    # rather than a lottery over its exact timing.
+    at_boundary = w_next.t % pc.interval == 0
+    m = ps.m_acc / pc.interval
 
-    p = jax.lax.cond(
-        w_next.t % pc.interval == 0,
-        lambda: plasticity.consolidate(p, ps, m, pc),
-        lambda: p)
+    p = jax.lax.cond(at_boundary, lambda: plasticity.consolidate(p, ps, m, pc),
+                     lambda: p)
+    ps = ps._replace(m_acc=jnp.where(at_boundary, 0.0, ps.m_acc))
 
     if pc.growth_enabled:
         p = jax.lax.cond(
