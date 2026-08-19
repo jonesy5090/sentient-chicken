@@ -257,6 +257,28 @@ def test_being_caught_is_aversive(flock):
         "the per-step contact counter still reaches the reward; it is diagnostics only")
 
 
+def test_sickness_onset_is_aversive_only_when_opted_in():
+    """T2 (E066): `sickness_penalty` defaults to 0.0, matching
+    `readout_scaling_strength`'s own precedent -- adding this term must change
+    nothing for any experiment that doesn't explicitly opt in, since `sick_on`
+    (E060) exists unconditionally on every `World`, in every hypothesis's runs, not
+    just T2's own.
+    """
+    w = world.reset(jax.random.key(0), CFG)
+    onset = w._replace(sick_on=jnp.ones((CFG.n_hens,), dtype=bool))
+
+    assert float(jnp.mean(plasticity.reward(w, onset, CFG, LEARN))) == 0.0, (
+        "sickness_penalty=0.0 by default; a sickness onset must not move reward")
+
+    pc = LEARN._replace(sickness_penalty=1.0)
+    assert float(jnp.mean(plasticity.reward(w, onset, CFG, pc))) < 0.0
+
+    # Still sick, not newly sick -- must not charge every step of an already-sick
+    # window, the same rising-edge discipline `struck` already uses (E014's fix).
+    still_sick = onset._replace(sick_on=jnp.ones((CFG.n_hens,), dtype=bool))
+    assert float(jnp.mean(plasticity.reward(onset, still_sick, CFG, pc))) == 0.0
+
+
 # --- Guards against the E010 confound ---------------------------------------
 
 def test_fixed_control_is_actually_fixed():
