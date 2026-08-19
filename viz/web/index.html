@@ -4,25 +4,30 @@
   html, body { margin: 0; height: 100%; background: #12141a; color: #e6e6e6;
     font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   #scene { position: fixed; inset: 0; }
-  #hud { position: fixed; top: 0; left: 0; right: 0; display: flex; gap: 12px;
-    align-items: center; padding: 10px 14px; background: linear-gradient(#12141aee, #12141a00);
-    pointer-events: none; }
-  #hud > * { pointer-events: auto; }
   select, button { background: #1e2129; color: #e6e6e6; border: 1px solid #333844;
     border-radius: 6px; padding: 5px 9px; font: inherit; cursor: pointer; }
   select:hover, button:hover { border-color: #556; }
-  #desc { color: #9aa0ab; max-width: 34ch; overflow: hidden; text-overflow: ellipsis;
-    white-space: nowrap; }
-  #bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 10px;
+
+  #sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 280px;
+    background: #171a22ee; border-right: 1px solid #262b38; padding: 14px;
+    overflow-y: auto; box-sizing: border-box; backdrop-filter: blur(4px); }
+  #sidebar select { width: 100%; }
+  #runName { font-size: 15px; font-weight: 600; margin: 14px 0 2px; color: #e6e6e6; }
+  #runMeta { margin: 0 0 10px; color: #9aa0ab; font-size: 12px; }
+  #runDesc { margin: 0 0 18px; color: #cdd3dd; font-size: 12.5px; line-height: 1.5; }
+  #legendTitle { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: #6b7280; margin: 0 0 8px; border-top: 1px solid #262b38; padding-top: 14px; }
+  #legend { font-size: 11.5px; color: #9aa0ab; line-height: 1.7; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  .dot.pulse { animation: pulse 0.9s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+  #bar { position: fixed; left: 280px; right: 0; bottom: 0; display: flex; gap: 10px;
     align-items: center; padding: 10px 14px; background: linear-gradient(#12141a00, #12141aee); }
-  #bar > * { pointer-events: auto; }
   #scrub { flex: 1; accent-color: #6aa0ff; }
   #clock { font-variant-numeric: tabular-nums; color: #9aa0ab; min-width: 11ch; }
-  #legend { position: fixed; right: 14px; bottom: 46px; font-size: 11px; color: #9aa0ab;
-    text-align: right; line-height: 1.6; }
-  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
-  #empty { position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-    color: #9aa0ab; text-align: center; padding: 20px; }
+  #empty { position: fixed; inset: 0; left: 280px; display: none; align-items: center;
+    justify-content: center; color: #9aa0ab; text-align: center; padding: 20px; }
   #empty code { color: #cdd3dd; }
 </style>
 <div id="scene"></div>
@@ -30,23 +35,26 @@
   <div>No recorded runs found.<br>Run <code>python -m run.record --minutes 10</code>
   from the project root, then reload.</div>
 </div>
-<div id="hud">
+<div id="sidebar">
   <select id="runSelect"></select>
-  <span id="desc"></span>
-</div>
-<div id="legend">
-  <div><span class="dot" style="background:#e0e0e0"></span>contact call</div>
-  <div><span class="dot" style="background:#5ad86b"></span>food call</div>
-  <div><span class="dot" style="background:#ff4d4d"></span>aerial alarm</div>
-  <div><span class="dot" style="background:#ffb020"></span>ground alarm</div>
-  <div><span class="dot" style="background:#9b59b6"></span>gakel call (falling sick)</div>
-  <div style="margin-top:6px"><span class="dot" style="background:#7a9a3d"></span>food patch (size = amount left)</div>
-  <div><span class="dot" style="background:#b8433d"></span>food patch, contaminated (ground truth, hens can't see this)</div>
-  <div><span class="dot" style="background:#3a7bd5"></span>water dish</div>
-  <div><span class="dot" style="background:#8a2a2a"></span>hawk (dive only)</div>
-  <div><span class="dot" style="background:#b85c1e"></span>fox (on ground)</div>
-  <div><span class="dot" style="background:#ff2a2a"></span>hen flashes red when struck</div>
-  <div><span class="dot" style="background:#9fae3d"></span>hen sick (slowed)</div>
+  <div id="runName"></div>
+  <p id="runMeta"></p>
+  <p id="runDesc"></p>
+  <p id="legendTitle">Legend</p>
+  <div id="legend">
+    <div><span class="dot" style="background:#e0e0e0"></span>contact call</div>
+    <div><span class="dot" style="background:#5ad86b"></span>food call</div>
+    <div><span class="dot" style="background:#ff4d4d"></span>aerial alarm</div>
+    <div><span class="dot" style="background:#ffb020"></span>ground alarm</div>
+    <div><span class="dot" style="background:#9b59b6"></span>gakel call (falling sick)</div>
+    <div style="margin-top:8px"><span class="dot" style="background:#7a9a3d"></span>food patch (size = amount left)</div>
+    <div><span class="dot" style="background:#b8433d"></span>food patch, contaminated -- red marker on top face (ground truth; invisible to the hens)</div>
+    <div><span class="dot" style="background:#3a7bd5"></span>water dish</div>
+    <div><span class="dot" style="background:#8a2a2a"></span>hawk (dive only)</div>
+    <div><span class="dot" style="background:#b85c1e"></span>fox (on ground)</div>
+    <div><span class="dot" style="background:#ff2a2a"></span>hen flashes red when struck</div>
+    <div><span class="dot pulse" style="background:#ff3b3b"></span>hen sick -- pulsing red marker above her (also tinted body, slowed)</div>
+  </div>
 </div>
 <div id="bar">
   <button id="playBtn">pause</button>
