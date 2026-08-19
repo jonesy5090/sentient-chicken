@@ -73,8 +73,14 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
     sigma = pc.explore_sigma / (1.0 + age_s / pc.explore_tau_s)
 
     obs = sensing.observe(w, cfg)
+    # The prediction pathway's source. Centred under `pred_centred` (E071): `z_lag` is
+    # a strictly-positive rate trace whose across-stimulus signal is ~3.7% of its DC
+    # baseline, and projecting it raw lets the DC term dominate the prediction.
+    pred_from = None
+    if pc.pred_enabled:
+        pred_from = ps.z_lag - ps.z_lag_bar if pc.pred_centred else ps.z_lag
     x, motor, drives = brain.step(x, obs, p, cfg.dt, k_explore, sigma,
-                                  pc.pred_gain, ps.z_lag if pc.pred_enabled else None)
+                                  pc.pred_gain, pred_from)
     w_next = world.step(w, motor, k_world, cfg)
 
     # Pathway magnitudes, carried out of the loop so a run can report whether the

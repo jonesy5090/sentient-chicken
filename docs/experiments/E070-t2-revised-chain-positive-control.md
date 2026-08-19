@@ -146,6 +146,17 @@ test:**
   clumps and never visits an arbitrary grid cell, so avoidance could not have been
   detected regardless. `CLAUDE.md`'s fifth instrument check, failed.
 
+## 6b. Correction (E071)
+
+§7 below concludes "for place information the projection is fine, the readout is not."
+**That is too strong, and [E071](E071-pred-centring.md) corrects it.** Centring the
+readout — the fix §8 proposes — does help materially: the prediction goes from flat
+across places (ratio 1.042) to varying by place. But the centred pallial states remain
+correlated at 0.94–0.96, so a linear readout keyed to one place still responds strongly
+to others; after `relu`, a distractor place drives *stronger* withdrawal than the
+planted one. Both problems are real: an uncentred readout **and** genuinely poor
+pallial separability. The residual is H2d/E017. Read §7 with that correction in place.
+
 ## 7. Interpretation
 
 **This is E019's defect, in the one pathway that never received E019's fix.**
