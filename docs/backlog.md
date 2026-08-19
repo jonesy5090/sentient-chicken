@@ -644,6 +644,22 @@ new home.
 
 ## 8. Open items from experiments
 
+- **BLOCKING T2, and the reason three Stage 2 runs were uninformative: the sickness
+  reward is ~4 orders of magnitude too weak.**
+  [E068](experiments/E068-t2-stage2-fixed-eligibility.md) measured it directly:
+  sickness fires in 0.0417% of a hen's consolidation windows and supplies 0.16x the
+  ambient reward even in those — a total share of roughly 0.007% of the reinforcement
+  she receives. Turning `sickness_penalty` on vs off moves the recurrent weights by
+  0.07%, inside seed noise, *with* E067's fix applied. Before T2 Stage 2 is run a
+  fourth time, two things: (1) calibrate `sickness_penalty` against the ambient reward
+  it competes with — noting E014's history, where one discrete event scaled too large
+  destroyed the connectome, so this needs its own guard rather than just being raised;
+  (2) run the positive control E065 flagged and never ran, planting a
+  guaranteed-detectable effect on the sickness-per-rotation metric and confirming the
+  harness reports it. Also cheap and worth doing whenever T2 next runs: the `|W_out|`
+  "is the rule active?" diagnostic reads a pathway that structurally cannot respond
+  under `hebbian_readout` (its update is not reward-gated), and gave a falsely
+  reassuring identical value in three consecutive experiments — it should read `|W|`.
 - **HIGH PRIORITY, unresolved: does `strike_penalty`'s reward-eligibility defect
   affect any prior hypothesis's actual conclusion?**
   [E067](experiments/E067-reward-eligibility-sampling-defect.md) confirmed, via an
