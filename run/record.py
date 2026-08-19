@@ -34,13 +34,15 @@ RUNS_DIR = Path(__file__).resolve().parent.parent / "runs"
 # project already takes seriously for the sim itself.
 _FIELDS = ("pos", "heading", "head_down", "calls",
            "hawk_pos", "hawk_on", "fox_pos", "fox_on",
-           "food_amount", "struck")
+           "food_amount", "struck",
+           "sick_on", "food_contaminated")
 
 
 def _snapshot(w: world.World):
     return (w.pos, w.heading, w.head_down, w.calls,
             w.hawk_pos, w.hawk_on, w.fox_pos, w.fox_on,
-            w.food_amount, w.n_strike_events)
+            w.food_amount, w.n_strike_events,
+            w.sick_on.astype(jnp.float32), w.food_contaminated.astype(jnp.float32))
 
 
 @partial(jax.jit, static_argnames=("cfg", "pc", "n_frames", "steps_per_frame"))

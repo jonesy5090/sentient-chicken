@@ -109,6 +109,9 @@ function buildHens(n) {
 const HEN_COLOR = new THREE.Color(0xd9c9a3);
 const HEN_HEAD_DOWN = new THREE.Color(0x9c8a63);
 const HEN_STRUCK = new THREE.Color(0xff2a2a);
+// Visibly slow/still (T2, E060) -- a sickly yellow-green, distinct from head-down's
+// plain dim tan so the two are never ambiguous at a glance.
+const HEN_SICK = new THREE.Color(0x9fae3d);
 const HIDDEN = new THREE.Matrix4().makeScale(0, 0, 0);
 // Height of the hen model's rotation pivot above the floor. Must clear the model's
 // own half-extent (radius 0.22) plus how far its length (0.25, half of the 0.5
@@ -121,16 +124,25 @@ const HEN_PIVOT_Y = 0.35;
 // Food / water: static positions per run, only `food_amount` animates.
 // ---------------------------------------------------------------------------
 let foodMesh = null, waterMesh = null;
+const FOOD_SAFE = new THREE.Color(0x7a9a3d);
+// Contaminated feeder (T2, E060) -- shown as ground truth for a human watching the
+// replay, the same way hawk/fox position is always shown regardless of what a hen
+// currently perceives. Real contamination stays invisible to the hens themselves
+// (`coop/world.py`); this is a debug view, not a simulation of hen perception.
+const FOOD_CONTAMINATED = new THREE.Color(0xb8433d);
+
 function buildResources(foodPos, waterPos) {
   if (foodMesh) scene.remove(foodMesh, waterMesh);
   foodMesh = new THREE.InstancedMesh(
     new THREE.CylinderGeometry(0.35, 0.4, 0.15, 10),
-    new THREE.MeshStandardMaterial({ color: 0x7a9a3d }), foodPos.length);
+    new THREE.MeshStandardMaterial({ vertexColors: false }), foodPos.length);
   foodMesh.receiveShadow = true;
+  foodMesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(foodPos.length * 3), 3);
   for (let i = 0; i < foodPos.length; i++) {
     dummy.position.set(foodPos[i][0], 0.075, foodPos[i][1]);
     dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
     foodMesh.setMatrixAt(i, dummy.matrix);
+    foodMesh.setColorAt(i, FOOD_SAFE);
   }
   scene.add(foodMesh);
 
@@ -236,7 +248,9 @@ function render(fi) {
     }
     lastStruck[i] = s;
     const flashing = now < flashUntil[i];
-    henMesh.setColorAt(i, flashing ? HEN_STRUCK : (down > 0.5 ? HEN_HEAD_DOWN : HEN_COLOR));
+    const sick = arrays.sick_on[fi * H + i] > 0.5;
+    henMesh.setColorAt(i, flashing ? HEN_STRUCK :
+      (sick ? HEN_SICK : (down > 0.5 ? HEN_HEAD_DOWN : HEN_COLOR)));
 
     // Calling indicator: a small sphere above the hen, coloured by call type,
     // visible only while amplitude clears the rest-floor.
@@ -261,6 +275,8 @@ function render(fi) {
   henCallMesh.instanceMatrix.needsUpdate = true;
   henCallMesh.instanceColor.needsUpdate = true;
 
+  const contaminated = arrays.food_contaminated;
+  const contS = stride('food_contaminated');
   for (let i = 0; i < meta.n_food; i++) {
     const amt = foodAmt[fi * foodS + i];
     const m4 = new THREE.Matrix4();
@@ -271,8 +287,10 @@ function render(fi) {
     dummy.scale.set(1, Math.max(0.15, amt), 1);
     dummy.updateMatrix();
     foodMesh.setMatrixAt(i, dummy.matrix);
+    foodMesh.setColorAt(i, contaminated[fi * contS + i] > 0.5 ? FOOD_CONTAMINATED : FOOD_SAFE);
   }
   foodMesh.instanceMatrix.needsUpdate = true;
+  foodMesh.instanceColor.needsUpdate = true;
 
   const hawkOn = arrays.hawk_on[fi] > 0.5;
   hawkMesh.visible = hawkOn;
