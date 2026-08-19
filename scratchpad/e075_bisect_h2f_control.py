@@ -24,19 +24,26 @@ ap.add_argument("--minutes", type=float, default=30.0)
 ap.add_argument("--cache", default="scratchpad/e075_cache.json")
 a = ap.parse_args()
 
-cfg = spec.DEFAULT_COOP._replace(n_hens=16, food_deplete_rate=0.0)
+CFG_NOW = spec.DEFAULT_COOP._replace(n_hens=16, food_deplete_rate=0.0)
+CFG_PRE_E060 = CFG_NOW._replace(contamination_enabled=False)
 BASE = dict(growth_enabled=False, kin_audible=True, explore_sigma=0.6,
             hebbian_readout=True, readout_scaling_strength=0.3)
 
 ARMS = {
-    "current":  (PlasticConfig(enabled=False, explore_sigma=0.0),
+    "current":  (CFG_NOW, PlasticConfig(enabled=False, explore_sigma=0.0),
                  PlasticConfig(enabled=True, **BASE)),
-    "legacy_m": (PlasticConfig(enabled=False, explore_sigma=0.0, legacy_m_sampling=True),
+    "legacy_m": (CFG_NOW,
+                 PlasticConfig(enabled=False, explore_sigma=0.0, legacy_m_sampling=True),
                  PlasticConfig(enabled=True, legacy_m_sampling=True, **BASE)),
+    # Candidate 2: E060 put contamination into DEFAULT_COOP with no off switch, so
+    # every run since has had hens being poisoned (32 onsets per 30 min at 16 hens).
+    # E057 predates that entirely.
+    "no_contamination": (CFG_PRE_E060, PlasticConfig(enabled=False, explore_sigma=0.0),
+                         PlasticConfig(enabled=True, **BASE)),
 }
 
 
-def run_one(seed, pc, tag):
+def run_one(seed, pc, cfg):
     key = jax.random.key(seed)
     w = world.reset(key, cfg)
     p = connectome.build(jax.random.fold_in(key, 1), regions.DEFAULT_REGIONS,
@@ -54,14 +61,14 @@ crit = _t_critical(n - 1)
 print(f"E075 -- bisecting H2f's food control, {n} seeds, {a.minutes:.0f} min")
 print(f"threshold t({n-1})={crit:.3f}   (E057 reported the food control NULL)\n")
 
-for arm, (pc_s, pc_l) in ARMS.items():
+for arm, (cfg, pc_s, pc_l) in ARMS.items():
     rows = {}
     for name, pc in (("S", pc_s), ("L", pc_l)):
         vals = []
         for s in range(n):
             ck = f"{arm}|{name}|{s}|{a.minutes}"
             if ck not in cache:
-                cache[ck] = run_one(s, pc, arm)
+                cache[ck] = run_one(s, pc, cfg)
                 json.dump(cache, open(a.cache, "w"))
             vals.append(cache[ck])
         rows[name] = jnp.array(vals)

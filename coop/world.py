@@ -173,10 +173,13 @@ def reset(key: jax.Array, cfg: CoopConfig = spec.DEFAULT_COOP) -> World:
         food_amount=jnp.ones((cfg.n_food,)),
         # Epoch 0 of the same rotation `step` computes, so a hen born mid-contamination
         # is possible and consistent, not a special-cased always-safe start.
-        food_contaminated=jax.nn.one_hot(
-            jax.random.randint(jax.random.fold_in(jax.random.key(0xBADF00D), 0),
-                               (), 0, cfg.n_food),
-            cfg.n_food) > 0.5,
+        food_contaminated=(
+            jax.nn.one_hot(
+                jax.random.randint(jax.random.fold_in(jax.random.key(0xBADF00D), 0),
+                                   (), 0, cfg.n_food),
+                cfg.n_food) > 0.5
+            if cfg.contamination_enabled
+            else jnp.zeros((cfg.n_food,), dtype=bool)),
         contamination_epoch=jnp.array(0, dtype=jnp.int32),
         water_pos=jax.random.uniform(k_water, (cfg.n_water, 2),
                                      minval=0.1 * s, maxval=0.9 * s),
@@ -299,8 +302,10 @@ def step(w: World, motor: jax.Array, key: jax.Array,
     rotate = epoch != w.contamination_epoch
     bad_idx = jax.random.randint(
         jax.random.fold_in(jax.random.key(0xBADF00D), epoch), (), 0, cfg.n_food)
-    food_contaminated = jnp.where(
-        rotate, jax.nn.one_hot(bad_idx, cfg.n_food) > 0.5, w.food_contaminated)
+    food_contaminated = (
+        jnp.where(rotate, jax.nn.one_hot(bad_idx, cfg.n_food) > 0.5, w.food_contaminated)
+        if cfg.contamination_enabled
+        else jnp.zeros((cfg.n_food,), dtype=bool))
     contamination_epoch = jnp.where(rotate, epoch, w.contamination_epoch)
 
     # --- Feeding ---
