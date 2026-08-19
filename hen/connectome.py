@@ -88,7 +88,8 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           gakel_scaffold: bool = False,
           gakel_scaffold_gain: float = 1.0,
           shared_place_map: bool = False,
-          testimony_gain: float = 0.5) -> BrainParams:
+          testimony_gain: float = 0.5,
+          balanced_ei: bool = False) -> BrainParams:
     """Sample a newly hatched flock.
 
     `readout_scale` is small on purpose: at hatch the cortical pathway is near-silent
@@ -212,6 +213,37 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     fan_in = jnp.maximum(jnp.sum(mask, axis=1, keepdims=True), 1.0)
     w_raw = jnp.abs(jax.random.normal(k_w, (n_hens, n, n))) * (gain / jnp.sqrt(fan_in))
     w = w_raw * mask[None] * dale[None, None, :]
+
+    if balanced_ei:
+        # E072. Every recurrent projection here carries a large positive DC by
+        # construction: 80% of neurons are excitatory (EXCITATORY_FRACTION) and both
+        # signs draw magnitudes from the same |normal|, so excitation outweighs
+        # inhibition ~4:1 in total. Measured on the default connectome, the
+        # sensory->pallium block nets **+0.93 per pallial unit**.
+        #
+        # That is exactly the quantity E017/E034 localised H2d's 14.5-17x loss to --
+        # "a clean difference lands as a small perturbation on a large common-mode
+        # drive" -- and exactly the defect E027 already fixed for `W_out`, whose
+        # comment reads: "The stub is 80% excitatory, so signing a rectified draw
+        # leaves every motor channel with a large positive DC bias where the old
+        # zero-mean draw was balanced." `W_out` now nets -0.000000. `W` never received
+        # the same treatment.
+        #
+        # Same construction as `w_out`'s: scale each postsynaptic unit's inhibitory
+        # inputs so their total magnitude matches its excitatory total, making the row
+        # sum zero. Balanced per row rather than by neuron count, which is only correct
+        # in expectation -- the same reasoning E027 gives.
+        exc = w_raw * mask[None] * (dale > 0)[None, None, :]
+        inh = w_raw * mask[None] * (dale < 0)[None, None, :]
+        scale = exc.sum(-1, keepdims=True) / (inh.sum(-1, keepdims=True) + 1e-9)
+        balanced = exc - inh * scale
+        # Hold total synaptic magnitude constant. Scaling inhibition up to meet
+        # excitation raises sum|W| by ~60%, which would confound "balanced E/I" with
+        # "more total weight" -- the identical confound that invalidated both of
+        # E017/E034's modality-segregation figures (E035: segregation was never
+        # separated from less total drive to the segregated slice). Renormalising here
+        # makes the flag change the E/I *ratio* and nothing else.
+        w = balanced * (jnp.sum(jnp.abs(w)) / (jnp.sum(jnp.abs(balanced)) + 1e-9))
 
     # --- Afferents. Exteroceptive channels reach the sensory stub; interoceptive
     # drives reach the hypothalamus. Nothing else gets direct input.
