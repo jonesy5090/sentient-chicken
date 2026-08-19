@@ -168,3 +168,38 @@ Update `docs/hypothesis.md`'s T2 node to record this corrected result alongside
 E065's, explaining why the earlier conclusion needed a second look and what changed.
 `docs/backlog.md`'s T2 section: mark the corrected re-run done, retire the open
 "reward signal" and "innate-reflex confound" questions this run was built to answer.
+
+## 9. Post-hoc corrections (red-team review, E067)
+
+An adversarial review commissioned after this experiment, independently re-verified
+before adoption per this project's own red-team discipline, found two real defects
+in this experiment's own measurement, alongside the reward-sampling defect recorded
+separately in [E067](E067-reward-eligibility-sampling-defect.md):
+
+**The witnessed/testimony-only split (§5) under-gates "witnessed."**
+`scratchpad/e066_t2_stage2_corrected.py`'s `nearby_sick` check uses pure Euclidean
+distance (`d < cfg.vision_range`), but the actual innate anchor is driven by
+`CLS_SICK`, which also requires the sick hen to fall within the observer's field of
+view (`coop/sensing.py`: `prox * (jnp.abs(ang) <= _HALF_FOV)`, a 300°/2 half-angle —
+a 60° blind cone directly behind her). Confirmed directly by reading both code paths.
+This means the "witnessed" bucket includes some cases the innate reflex could not
+actually have used (sick flockmate nearby but behind her), so it is not the clean
+"explainable by the anchor alone" population §7 describes. This does not weaken the
+testimony-only result — correcting for FOV would only move cases *into* that bucket,
+never out of it, so the true testimony-only population is at least as large as
+reported and shows the same null.
+
+**S's early-to-late trend is substantially a single-rotation warm-up artifact,**
+not evidence of a channel/learning-independent population trend as this experiment's
+§7 originally claimed. Confirmed directly against `scratchpad/e066_cache.json`:
+summed across all 8 seeds, rotation 0 has 26 total onsets against 38–89 at every
+other rotation — a clear, isolated dip, most likely the flock not yet having found
+the first bad feeder from a cold start. Excluding rotation 0 from S's early window
+roughly halves its reported trend (+1.719 → +0.833). **This does not touch the
+primary L-vs-C? contrast**, which holds `explore_sigma` and the world seed fixed
+across both arms and never uses S in its own computation — the headline null stands
+unmodified. It does mean S's trend should not be read as informative about
+population-level dynamics independent of channel content, which §7 overstated.
+
+No numbers in §6 are changed by either correction; both are corrections to
+interpretation, recorded here rather than silently editing §7's original text.

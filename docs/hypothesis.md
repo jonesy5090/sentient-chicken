@@ -1260,7 +1260,8 @@ consequence, which remains separately open.
 ## T2 — the rotating poisoned feeder: does the flock learn *which* feeder to avoid
 
 **Status: NOT SUPPORTED — Stage 2 tested (E065), withdrawn and corrected (E066), the
-corrected result agrees**
+corrected result agrees; an adversarial review (E067) found the rule had a third,
+independent, structural reason it could not have succeeded, verified but not fixed**
 ([docs/backlog.md](../docs/backlog.md)'s T2 section has the complete mechanical design;
 [E060](experiments/E060-t2-contamination-scaffold.md) built and validated the scaffold
 in isolation, 12/12 ethogram assays including four new falsifier checks, 74/74 full
@@ -1352,6 +1353,28 @@ this rule amplifies existing anchors rather than building new associations from
 nothing — T2 asked for something harder than either H2f or H2c did. Not claimed as
 fully closed: the local-vs-aggregate weight-change question, a longer run, or a
 different rule all remain genuinely open and unpursued, not ruled out.
+
+**Correction, from an adversarial review and independent re-verification
+([E067](experiments/E067-reward-eligibility-sampling-defect.md)): "a genuine reward
+signal" above overstates what E066 actually built.** `m` (the factor gating
+`consolidate()`'s update to the recurrent weights `W`) is not a trace — it is
+recomputed fresh every step but only the value at the exact consolidation-boundary
+step (`w_next.t % pc.interval == 0`, every 50 steps) is ever used. `sickness_penalty`
+is a discrete, single-step event, and a swept check over every possible offset within
+one interval found it reaches `consolidate()` on only **2% of occurrences** —
+confirmed independently with a fresh script against the real `hen/plasticity.py`
+functions, not merely read off the review. `strike_penalty` — used since ~E014,
+throughout H2/H4/T1's history — shares the identical defect, confirmed the same way;
+that broader implication is named in E067 but deliberately **not acted on** here, per
+this project's own red-team rule against rewriting the tree on an unverified
+reinterpretation. For T2 specifically: this is a third, independent, structural
+reason the rule could not plausibly have succeeded — on top of `hebbian_readout`'s
+`W_out` update never reading sensory input at all (already known) and place cells
+having no pre-existing motor correlate to amplify (already known). T2's *numbers*
+in E065/E066 stand as genuine measurements of what the code as written does; the
+*interpretation* changes from "a fair test the rule failed" to "the instrument could
+not have detected success even if the flock were capable of it." Status unchanged
+(`NOT SUPPORTED`), for a now more precisely understood reason.
 
 **Claim:** a flock with a working communication channel converges toward roughly one
 hen's mistake per contamination rotation (the discoverer eats the bad feeder, gets
@@ -1516,6 +1539,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E067 | **Red-team diagnostic: the reward-modulation factor is sampled, not traced, at consolidation time -- E066's "genuine reward signal" claim overstated.** Adversarial review (no context on this conversation) commissioned after T2's second null; every finding independently re-verified with fresh scripts before adoption, per this project's own red-team rule. `m` (`run/simulate.py`'s `reward - ps.baseline`) is recomputed every step but only the value at the exact consolidation boundary (every `interval=50` steps) reaches `consolidate()`. A discrete single-step event -- `sickness_penalty` or `strike_penalty`, both the same shape -- reaches the boundary on only **2% of occurrences** (swept exhaustively, confirmed independently, not just read off the review). For T2: a third, independent, structural reason the rule couldn't have succeeded, alongside `hebbian_readout`'s `W_out` never reading sensory input and place cells having no pre-existing motor correlate. `strike_penalty` (H2/H4/T1's history) shares the identical defect -- named, explicitly **not acted on**: no specific prior conclusion's actual dependence on it has been checked, and this project's own discipline forbids rewriting the tree on an unverified reinterpretation. Also independently verified two narrower E066 corrections: the witnessed/testimony-only split under-gates "witnessed" (no field-of-view check, unlike the real innate reflex) and S's early-to-late trend is substantially a single-rotation cold-start artifact (excluding rotation 0 roughly halves it, 1.719->0.833) -- neither changes the primary L-vs-C? null. Nothing fixed; not pre-registered, a diagnostic. |
 | E066 | **T2 Stage 2, corrected: E065's null re-run with a real reward signal, plus a witnessed-vs-testimony-only split -- still null, more solidly.** `reward()` had no term for sickness at all (checked directly) -- E065's null likely wasn't a fair test. Added `sickness_penalty` (off by default), re-ran identically otherwise. Primary contrast sign flipped to the predicted direction but stayed tiny: -0.19+/-1.25, t=0.15 (threshold 2.365). Also split onsets by whether another already-sick hen was visible at that moment (witnessed, explainable by the innate anchor alone, identical across conditions) vs not (testimony-only, the only case audio could help). Testimony-only was ~1/3 the volume of witnessed (confirms a design-review dilution concern was real) but showed no effect either (+0.06+/-0.19, t=0.32, wrong sign) -- rules out "the aggregate washed out a real effect." `\|W_out\|` drift still identical C?/L. T2 stays `NOT SUPPORTED`, now on solid methodological ground -- both live objections to E065 checked directly, conclusion held. |
 | E065 | **T2 Stage 2: the actual L vs C? learning contrast -- run, a clean null.** 16 hens, H2f's validated rule (E057), L (intact) vs C? (yoked) vs S (fixed), 8 seeds, 90min/18 rotations. Primary: does L's sickness-per-rotation fall further early(rot 1-4)->late(rot 15-18) than C?'s. It does not, and the sign is wrong: L +0.875 (worse), C? -0.250 (better), primary contrast +1.125+/-0.715 t=1.57, not significant (threshold 2.365). S's own early-late change (+1.719) was nominally largest of the three -- consistent with a within-run trend common to every condition, not learning-specific. `\|W_out\|` drift identical C?/L (0.0632 both) -- not proof the rule was inactive (E057: content changes *which* weights move, not the mean), a real diagnostic limit, not dismissed. Matched water-intake control: clean null as expected given the primary was null. T2 -> `NOT SUPPORTED`, first time actually tested against data. Not the end of T2: local-vs-aggregate weight change, a longer run, or a different rule all remain open, unpursued. |
 | E064 | **T2 Stage 2 prerequisite #2: a gakel-call location cue for listeners beyond visual range.** E063's place cells only solve durable location memory for a hen who directly *witnesses* a sickness event; a hen who only *hears* the gakel call still gets nothing spatial, since audio here has never carried direction and self-location doesn't reveal a caller's. Added a loudness-weighted mixture of gakel callers' own place-cell patterns (reusing E063's grid) rather than asking the pallium to learn trigonometry from a bearing it isn't given -- `OBS_DIM` 113 -> 138. Required a new `World.pos_log` ring buffer (matching `call_log`) so `channel_mode='yoked'` hands a listener the caller's position *when she called*, not her current one -- verified directly with a caller who moved 22+m between calling and observation, the same class of leak E024's shuffled control had. 81/81 full suite (77 prior + 4 new); one test-bug caught and fixed (positions initially beyond `hear_range`, correctly zeroing the very thing the test meant to check). T2 stays `NOT STARTED` -- scaffolding, not a result. |
