@@ -42,6 +42,15 @@ class World(NamedTuple):
     # slot is written and one gathered per step, so the cost is a few hundred bytes of
     # traffic against W's megabytes -- it does not threaten the bandwidth budget.
     call_log: jax.Array     # (cfg.call_log_steps, H, N_CALLS); 1 unless yoked
+    # Matching ring buffer of positions (T2 Stage 2 prerequisite, E064). The gakel
+    # location cue (`coop/sensing.py`) needs the CALLER's position at the moment she
+    # called, not her current one -- under `channel_mode='yoked'` a listener hears a
+    # time-shifted call, and handing her the caller's *current* position alongside it
+    # would leak real-time information the control is specifically meant to destroy,
+    # the same class of leak E024's shuffled control had for plain audibility. Same
+    # shape/lifecycle as `call_log`: one slot written and gathered per step, (1, H, 2)
+    # unless yoked.
+    pos_log: jax.Array      # (cfg.call_log_steps, H, 2); 1 unless yoked
 
     # Resources
     food_pos: jax.Array     # (F, 2)
@@ -158,6 +167,7 @@ def reset(key: jax.Array, cfg: CoopConfig = spec.DEFAULT_COOP) -> World:
         speed=jnp.zeros((h,)),
         calls=jnp.zeros((h, spec.N_CALLS)),
         call_log=jnp.zeros((cfg.call_log_steps, h, spec.N_CALLS)),
+        pos_log=jnp.zeros((cfg.call_log_steps, h, 2)),
         food_pos=jax.random.uniform(k_food, (cfg.n_food, 2),
                                     minval=0.1 * s, maxval=0.9 * s),
         food_amount=jnp.ones((cfg.n_food,)),
@@ -423,6 +433,7 @@ def step(w: World, motor: jax.Array, key: jax.Array,
         # nothing at all rather than 0.076 of every call in the repertoire (E019).
         calls=emitted,
         call_log=w.call_log.at[w.t % cfg.call_log_steps].set(emitted),
+        pos_log=w.pos_log.at[w.t % cfg.call_log_steps].set(kin.pos),
         hunger=hunger,
         thirst=thirst,
         cold=cold,

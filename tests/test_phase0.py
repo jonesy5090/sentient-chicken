@@ -30,9 +30,12 @@ def flock():
 # --- Structure ------------------------------------------------------------
 
 def test_observation_layout_is_consistent():
-    assert spec.OBS_DIM == spec.PLACE_HI
+    assert spec.OBS_DIM == spec.GAKEL_PLACE_HI
     assert spec.PLACE_LO == spec.AUDIO_HI
+    assert spec.GAKEL_PLACE_LO == spec.PLACE_HI
+    assert spec.GAKEL_PLACE_HI - spec.GAKEL_PLACE_LO == spec.N_PLACE
     assert spec.N_PLACE == spec.PLACE_GRID ** 2
+    assert spec.CALL_MOTOR_IDX[spec.GAKEL_CALL_IDX] == spec.M_CALL_GAKEL
     assert spec.vis_index(0, 0) == 0
     assert spec.vis_index(spec.N_BINS - 1, spec.N_VIS_CLASSES - 1) == spec.VIS_HI - 1
     assert len(spec.CALL_MOTOR_IDX) == spec.N_CALLS
@@ -363,6 +366,85 @@ def test_place_cells_discriminate_distinct_locations():
     place = sensing.observe(w, cfg)[:, spec.PLACE_LO:spec.PLACE_HI]
     corr = jnp.corrcoef(place[0], place[1])[0, 1]
     assert corr < 0.1, "opposite corners should not share a place-cell pattern"
+
+
+# --- Gakel-call location cue (T2 Stage 2 prerequisite, E064) ----------------
+
+def test_gakel_cue_is_zero_when_nobody_is_calling():
+    """No gakel call anywhere must mean no location cue anywhere -- the channel should
+    never manufacture a signal from silence.
+    """
+    cfg = CFG._replace(n_hens=3)
+    w = world.reset(jax.random.key(0), cfg)
+    obs = sensing.observe(w, cfg)
+    assert float(obs[:, spec.GAKEL_PLACE_LO:spec.GAKEL_PLACE_HI].max()) == pytest.approx(
+        0.0, abs=1e-6)
+
+
+def test_gakel_cue_points_at_the_caller_not_the_listener():
+    """A listener's cue must peak at the *caller's* place-cell pattern, not her own --
+    the entire point of this channel over the plain audio amplitude it's built from.
+    """
+    cfg = CFG._replace(n_hens=2)
+    w = world.reset(jax.random.key(0), cfg)
+    # (2,2) to (12,12) is ~14.1 m apart -- within hear_range=15.0 so the call is
+    # actually audible, but far enough that the two hens map to clearly distinct cells.
+    w = w._replace(pos=jnp.array([[2.0, 2.0], [12.0, 12.0]]), heading=jnp.zeros((2,)),
+                   calls=jnp.zeros((2, spec.N_CALLS)).at[1, spec.GAKEL_CALL_IDX].set(0.9))
+    cue = sensing.observe(w, cfg)[:, spec.GAKEL_PLACE_LO:spec.GAKEL_PLACE_HI]
+    truth_caller = sensing._place_cells(w.pos[1:2], cfg)[0]
+    truth_listener = sensing._place_cells(w.pos[0:1], cfg)[0]
+    assert int(cue[0].argmax()) == int(truth_caller.argmax())
+    assert int(cue[0].argmax()) != int(truth_listener.argmax())
+
+
+def test_gakel_cue_fades_with_distance():
+    """A more distant caller must produce a weaker (not just differently-located) cue
+    -- the "coarse" part of coarse directional hearing, and the reason this channel
+    needs no artificial noise injected to be honestly imprecise.
+    """
+    cfg = CFG._replace(n_hens=3)
+    w = world.reset(jax.random.key(0), cfg)
+    calls = jnp.zeros((3, spec.N_CALLS)).at[1, spec.GAKEL_CALL_IDX].set(0.9) \
+                                        .at[2, spec.GAKEL_CALL_IDX].set(0.9)
+    w = w._replace(pos=jnp.array([[10.0, 10.0], [11.0, 10.0], [14.0, 10.0]]),
+                   heading=jnp.zeros((3,)), calls=calls)
+    cue = sensing.observe(w, cfg)[:, spec.GAKEL_PLACE_LO:spec.GAKEL_PLACE_HI]
+    near_strength = float(cue[0].max())  # listener 0 re: caller 1, 1 m away
+    # isolate caller 2's own contribution by re-running with only she calling
+    w2 = w._replace(calls=jnp.zeros((3, spec.N_CALLS)).at[2, spec.GAKEL_CALL_IDX].set(0.9))
+    far_strength = float(
+        sensing.observe(w2, cfg)[:, spec.GAKEL_PLACE_LO:spec.GAKEL_PLACE_HI][0].max())
+    assert far_strength < near_strength
+
+
+def test_yoked_gakel_cue_uses_the_callers_position_when_she_called_not_now():
+    """The correctness property this whole channel exists to get right: under
+    `channel_mode='yoked'`, a listener must be cued to where the caller *was* when she
+    called, never her current position -- handing over the current one would leak
+    exactly the real-time contingency the yoked control exists to destroy (the same
+    class of leak E024's shuffled control had for plain audibility).
+    """
+    cfg = CFG._replace(n_hens=2, channel_mode="yoked", call_log_steps=spec.YOKE_LOG_STEPS,
+                       yoke_min_lag_s=1.0)
+    key = jax.random.key(0)
+    w = world.reset(key, cfg)
+    w = w._replace(pos=jnp.array([[10.0, 10.0], [2.0, 2.0]]), heading=jnp.zeros((2,)))
+    silent = jnp.zeros((2, spec.MOTOR_DIM))
+    calling = jnp.zeros((2, spec.MOTOR_DIM)).at[1, spec.M_CALL_GAKEL].set(1.0)
+
+    w = world.step(w, calling, jax.random.fold_in(key, 1), cfg)   # logs (~2, 2)
+    w = w._replace(pos=w.pos.at[1].set(jnp.array([18.0, 18.0])))   # she then moves far
+
+    lag0 = int(cfg.yoke_min_lag_s / cfg.dt)
+    for t in range(lag0 - int(w.t)):
+        w = world.step(w, silent, jax.random.fold_in(key, t + 2), cfg)
+
+    cue = sensing.observe(w, cfg)[:, spec.GAKEL_PLACE_LO:spec.GAKEL_PLACE_HI]
+    truth_old = sensing._place_cells(jnp.array([[2.0, 2.0]]), cfg)[0]
+    truth_new = sensing._place_cells(jnp.array([[18.0, 18.0]]), cfg)[0]
+    assert int(cue[0].argmax()) == int(truth_old.argmax())
+    assert float(cue[0, int(truth_new.argmax())]) < 1e-6
 
 
 # --- Null control ---------------------------------------------------------

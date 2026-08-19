@@ -36,8 +36,10 @@ Status values: `SUPPORTED` · `UNDER TEST` · `NOT STARTED` · `REFUTED` · `ABA
 > the first time (11 → 12, the gakel call), which none of the earlier additions
 > touched. [E063](experiments/E063-allocentric-place-cells.md) (T2 Stage 2
 > prerequisite) added a 25-cell allocentric place-cell grid, the first channel in this
-> file that is *not* egocentric: 88 → 113, the biggest single jump so far. Unlike
-> E023, none of these touch neuron
+> file that is *not* egocentric: 88 → 113. [E064](experiments/E064-gakel-location-cue.md)
+> (T2 Stage 2 prerequisite) added a second 25-cell block, the same grid reused for the
+> *caller's* location as heard by a listener beyond visual range: 113 → 138, now the
+> biggest single jump. Unlike E023, none of these touch neuron
 > identity or any existing channel's values —
 > the observation layout is symbolic and offset-based (`coop/spec.py`), so every prior
 > channel keeps its old index and meaning, just at a new absolute position. What they do
@@ -1277,9 +1279,24 @@ Every existing sensory channel is egocentric by design (`coop/sensing.py`'s own
 docstring); a hen who turns away from a location loses any representation of having
 been there. E063 added a fixed grid of innate, allocentric place cells (`hen/regions.py`'s
 previously-generic `hippocampus` region's first real function) — `OBS_DIM` 88 → 113,
-77/77 full suite including the unchanged ethogram. Stage 2 can now be designed against
-a model that has somewhere to put a location-specific association, rather than one
-architecturally incapable of the claim being tested.
+77/77 full suite including the unchanged ethogram.
+
+**Second prerequisite found and filled
+([E064](experiments/E064-gakel-location-cue.md)):** E063 alone only solves the problem
+for a hen who directly *witnesses* a sickness event (her own place cells tag the
+moment `CLS_SICK` and `CLS_FOOD` co-occur in view). A hen who only *hears* the gakel
+call from beyond visual range — precisely the case the call was built for — still gets
+nothing spatial: audio here has never carried direction, and self-location doesn't
+reveal anyone else's. E064 added a loudness-weighted mixture of gakel callers' own
+place-cell patterns rather than asking the pallium to learn trigonometry from a
+bearing it isn't even given (this model doesn't expose a hen's own heading as a
+channel). Required extending `World` with a `pos_log` ring buffer, matching
+`call_log`'s pattern, so `channel_mode='yoked'` hands a listener the caller's position
+*when she called*, not her current one — verified directly (a caller who moved 22+ m
+between calling and observation), the same class of leak E024's shuffled control had
+for plain audibility. `OBS_DIM` 113 → 138, 81/81 full suite. Stage 2 can now be
+designed against a model where both the direct-witness and indirect-testimony
+pathways have somewhere real to learn.
 
 **Claim:** a flock with a working communication channel converges toward roughly one
 hen's mistake per contamination rotation (the discoverer eats the bad feeder, gets
@@ -1436,6 +1453,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E064 | **T2 Stage 2 prerequisite #2: a gakel-call location cue for listeners beyond visual range.** E063's place cells only solve durable location memory for a hen who directly *witnesses* a sickness event; a hen who only *hears* the gakel call still gets nothing spatial, since audio here has never carried direction and self-location doesn't reveal a caller's. Added a loudness-weighted mixture of gakel callers' own place-cell patterns (reusing E063's grid) rather than asking the pallium to learn trigonometry from a bearing it isn't given -- `OBS_DIM` 113 -> 138. Required a new `World.pos_log` ring buffer (matching `call_log`) so `channel_mode='yoked'` hands a listener the caller's position *when she called*, not her current one -- verified directly with a caller who moved 22+m between calling and observation, the same class of leak E024's shuffled control had. 81/81 full suite (77 prior + 4 new); one test-bug caught and fixed (positions initially beyond `hear_range`, correctly zeroing the very thing the test meant to check). T2 stays `NOT STARTED` -- scaffolding, not a result. |
 | E063 | **T2 Stage 2 prerequisite: an innate allocentric place-cell channel.** T2's literal claim (durable avoidance of a specific feeder, outlasting the visible cue, recognised from any approach direction) turned out unrepresentable: every existing channel is egocentric by design, so a hen loses any trace of a location the moment she turns. Added a fixed 5x5 Gaussian place-cell grid (`place_sigma=2.0`) giving `hen/regions.py`'s previously-generic `hippocampus` region its first real function -- `OBS_DIM` 88 -> 113, the biggest single jump yet. No changes needed to `connectome.py` (existing exteroceptive routing) or `innate.py` (deliberately no reflex reads it -- raw location carries no innate meaning alone). 77/77 full suite (74 prior + 3 new: peak-at-centre, heading-independence, location-discrimination), full ethogram unchanged. T2 stays `NOT STARTED` -- this is scaffolding, not a result. |
 | E062 | **T2 Stage 1c: calibrate `contamination_period_s` — swept, found no reason to change it.** 16 hens, no learning, {100,200,300,450,600}s x 3 seeds x 40min. Audience saturates flat ~14/15 at every period (gregariousness already clumps the flock tightly, E025) — a longer period buys no more reachable audience. Overlap (rotation firing while a hen is still sick) stayed 43-61% at *every* period including 600s, prediction wrong: at ~5.6 discovery events/rotation (E061), cumulative sick-time (~335s) exceeds the 300s rotation itself — a direct measurement of the "C? pays ~N times" no-learning baseline, not a period defect. `contamination_period_s` stays 300.0. Per-feeder sickness attribution doesn't exist yet, so the narrower stale-cue-misattribution risk remains unmeasured; flagged for Stage 2 only if warranted. |
 | E061 | **T2 Stage 1b: the scaffold works at the population level, not just in isolation, no learning involved.** 16-hen free-running flock, 3 checks × 3 seeds, 20 min each. **Discovery**: 22.3 sickness onsets / 20 min at the untuned `contamination_period_s=300s` default — not a bottleneck. **Audibility**: heard gakel amplitude correlates 0.167 with a nearby sick flockmate, 11× heard\|sick vs. heard\|not ratio — real signal. **Dispersal**: mean distance to a sick hen 5.44m with the anchor present vs. 2.71m stripped, matching E048's `CLS_CROWDING` result. One caveat, not a failure: the sender-shuffle control (E024's original, not E026's fixed yoked one) retains 82% of intact's correlation, the same architectural shape E024 found for the alarm channel (98%) — the flock clumps, so shuffling *which* nearby hen is credited mostly preserves "someone nearby is calling." Doesn't affect T2's claim, which only needs "something happened" (`CLS_SICK` carries *where* separately). T2 stays `NOT STARTED` — Stage 1b tests the instrument too, not the hypothesis. |

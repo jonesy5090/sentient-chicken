@@ -149,7 +149,40 @@ N_PLACE = PLACE_GRID * PLACE_GRID
 PLACE_LO = AUDIO_HI
 PLACE_HI = PLACE_LO + N_PLACE
 
-OBS_DIM = PLACE_HI                                 # 113 (59 pre-E025, 71 pre-E051, 73 pre-E053, 74 pre-E060, 88 pre-E063)
+# ---------------------------------------------------------------------------
+# Gakel-call location cue (T2 Stage 2 prerequisite, E064)
+# ---------------------------------------------------------------------------
+# Self-location alone does not close the loop. A hen close enough to *see* a sick
+# flockmate at a feeder gets `CLS_SICK` and `CLS_FOOD` in the same egocentric bin and
+# her own place cells tag the moment -- a real, learnable pathway. A hen who only
+# *hears* the gakel call from beyond visual range gets nothing spatial at all: audio in
+# this model has never carried direction (every call is pure distance-attenuated
+# amplitude, the same simplification real avian hearing's approximate directionality
+# is not modelled here), and her own place cells report *her* location, not the
+# caller's. There is no channel connecting the two -- exactly the gap the gakel call
+# was supposed to close ("broadcasts past visual range", E060) but, on inspection,
+# doesn't.
+#
+# This channel closes it directly rather than asking the pallium to reconstruct a
+# bearing from scratch: for each listener, the *loudness-weighted mixture of gakel
+# callers' own place-cell patterns* she currently hears -- reusing the exact same grid
+# and tuning `PLACE_LO:PLACE_HI` already computes for self-location, just evaluated at
+# the caller's position and scaled by how audible she is. A faint, distant call gives a
+# faint, blurry location estimate; a loud, nearby one gives a sharp one; nobody calling
+# gives exactly zero. No new machinery, no requirement that a small pallium learn
+# trigonometry from an egocentric bearing plus its own heading (which this model does
+# not even expose) -- the "coarse" localisation real animals get from hearing is
+# supplied directly, the same way `CLS_SICK` supplies its own ground-truth-but
+# range-limited location rather than asking vision to triangulate depth from scratch.
+#
+# Gakel-specific, not a general "where is every call coming from" upgrade -- the same
+# narrow, need-driven scope every prior channel in this file used (`CLS_CROWDING` for
+# personal space, `CLS_SICK` for sickness, wall-escape for walls). If a future
+# hypothesis needs directional hearing for a different call, that is its own addition.
+GAKEL_PLACE_LO = PLACE_HI
+GAKEL_PLACE_HI = GAKEL_PLACE_LO + N_PLACE
+
+OBS_DIM = GAKEL_PLACE_HI                           # 138 (59 pre-E025, 71 pre-E051, 73 pre-E053, 74 pre-E060, 88 pre-E063, 113 pre-E064)
 
 
 def vis_index(bin_idx: int, cls: int) -> int:
@@ -186,6 +219,10 @@ MOTOR_DIM = 12                                     # 11 pre-E060, first motor-di
 CALL_MOTOR_IDX = (M_CALL_CONTACT, M_CALL_FOOD, M_CALL_AERIAL, M_CALL_GROUND,
                   M_CALL_GAKEL)
 N_CALLS = 5
+
+# Position of the gakel call within any (..., N_CALLS)-shaped array (`w.calls`,
+# `call_log`, the audio slice of an observation) -- used by the E064 location cue.
+GAKEL_CALL_IDX = CALL_MOTOR_IDX.index(M_CALL_GAKEL)
 
 # A silent hen must emit silence. Motor channels are sigmoids, so a bird at rest sits
 # at sigmoid(REST_BIAS) = 0.076 on *every* channel including the four call ones -- a

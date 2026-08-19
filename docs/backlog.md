@@ -259,9 +259,40 @@ fixed 5×5 innate place-cell grid, giving `hen/regions.py`'s previously-generic
 an unchanged ethogram, confirming nothing already-validated moved. Scaffolding, not a
 result — Stage 2 can now actually be designed.
 
+**Second prerequisite found and filled ([E064](experiments/E064-gakel-location-cue.md)).**
+E063's place cells solve durable location memory only for a hen who directly *witnesses*
+a sickness event (`CLS_SICK` and `CLS_FOOD` co-occur in her own egocentric view, so her
+own place cells tag the moment). A hen who only *hears* the gakel call from beyond
+visual range gets nothing spatial at all — audio in this model has never carried
+direction, and self-location alone doesn't tell you where someone *else* is. Added a
+loudness-weighted mixture of gakel callers' own place-cell patterns, reusing E063's
+grid rather than asking the pallium to learn trigonometry from a bearing it isn't even
+given. Required extending `World` with a `pos_log` ring buffer (matching `call_log`'s
+existing pattern) so the yoked control hands a listener the caller's position *when she
+called*, not her current one — the same class of leak E024's shuffled control had for
+plain audibility, caught here before it could contaminate a result rather than after.
+`OBS_DIM` 113 → 138.
+
 **Stage 2** (not yet pre-registered): the actual L vs. C? contrast — does the flock,
 with the validated and calibrated scaffold and the H2f-style learning rule, converge
 toward one hen's mistake per rotation, as the original prediction states.
+
+**Candidate future task, not T2 (flagged, not scoped): food-call homing via place
+cells.** Raised while reviewing whether E063 should also change the ordinary food
+call's design — it shouldn't (see the reasoning below), but it surfaces a genuinely
+new, separate, testable idea. The food call itself still cannot carry direction, for
+the same reason gakel's plain amplitude couldn't (no bearing in this model's audio, and
+place cells encode a listener's *own* location, not a caller's or a resource's) — so
+wiring the food call to *innately* pull hens toward it would both fail mechanically and
+break this project's central design principle (production innate, comprehension/usage
+learned; hardwiring "call → approach" collapses exactly the question H2/H3/T2 exist to
+test). What E063 genuinely opens up: a hen who has personally visited a food patch
+before could *learn* to associate her own place-cell pattern there with "food," and use
+that memory to navigate back to a remembered location out of sight, on hearing or
+seeing some later food-related cue — a real capability that didn't exist pre-E063, and
+learned rather than reflexive. Distinct from T2 (this is about *finding* food faster,
+not avoiding a danger) and not scoped or pre-registered — a candidate for its own future
+task if a hypothesis needs it.
 
 ### T3 — The safe corridor (stretch)
 
