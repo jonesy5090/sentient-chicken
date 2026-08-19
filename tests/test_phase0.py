@@ -30,7 +30,9 @@ def flock():
 # --- Structure ------------------------------------------------------------
 
 def test_observation_layout_is_consistent():
-    assert spec.OBS_DIM == spec.AUDIO_HI
+    assert spec.OBS_DIM == spec.PLACE_HI
+    assert spec.PLACE_LO == spec.AUDIO_HI
+    assert spec.N_PLACE == spec.PLACE_GRID ** 2
     assert spec.vis_index(0, 0) == 0
     assert spec.vis_index(spec.N_BINS - 1, spec.N_VIS_CLASSES - 1) == spec.VIS_HI - 1
     assert len(spec.CALL_MOTOR_IDX) == spec.N_CALLS
@@ -314,6 +316,53 @@ def test_sickness_onset_sets_timer_and_decays_but_outlasts_the_call():
         wn = world.step(wn, motor, jax.random.fold_in(jax.random.key(1), t), cfg)
     assert float(wn.sick_call_drive[0]) < 0.05   # the call has decayed
     assert bool(wn.sick_on[0])                   # she is still sick
+
+
+# --- Allocentric place cells (T2 Stage 2 prerequisite, E063) ----------------
+
+def test_place_cells_peak_near_the_nearest_grid_center():
+    """A hen standing exactly on a grid centre must read (near) peak activation on
+    that cell and materially less on every other -- the basic geometry claim, checked
+    directly rather than assumed.
+    """
+    cfg = CFG._replace(n_hens=1)
+    w = world.reset(jax.random.key(0), cfg)
+    edges = jnp.linspace(0.0, cfg.size, spec.PLACE_GRID + 2)[1:-1]
+    center = jnp.array([edges[0], edges[0]])
+    w = w._replace(pos=center[None, :], heading=jnp.zeros((1,)))
+    place = sensing.observe(w, cfg)[0, spec.PLACE_LO:spec.PLACE_HI]
+    assert float(place[0]) == pytest.approx(1.0, abs=1e-5)
+    assert float(jnp.sort(place)[-2]) < 0.5   # every other cell clearly lower
+
+
+def test_place_cells_are_independent_of_heading():
+    """The whole point of this channel is that it survives a change of heading, unlike
+    every egocentric bin in `vis`. Rotating a hen in place must not move her place-cell
+    pattern at all.
+    """
+    cfg = CFG._replace(n_hens=1)
+    w = world.reset(jax.random.key(0), cfg)
+    w = w._replace(pos=jnp.array([[8.3, 12.7]]))
+    p0 = sensing.observe(w._replace(heading=jnp.array([0.0])), cfg)[
+        0, spec.PLACE_LO:spec.PLACE_HI]
+    p1 = sensing.observe(w._replace(heading=jnp.array([2.1])), cfg)[
+        0, spec.PLACE_LO:spec.PLACE_HI]
+    assert jnp.allclose(p0, p1, atol=1e-6)
+
+
+def test_place_cells_discriminate_distinct_locations():
+    """A positive control (CLAUDE.md's instrument discipline): two hens on opposite
+    sides of the arena must produce measurably different place-cell patterns, or the
+    channel carries no usable location information regardless of what plasticity does
+    with it.
+    """
+    cfg = CFG._replace(n_hens=2)
+    w = world.reset(jax.random.key(0), cfg)
+    w = w._replace(pos=jnp.array([[2.0, 2.0], [18.0, 18.0]]),
+                   heading=jnp.zeros((2,)))
+    place = sensing.observe(w, cfg)[:, spec.PLACE_LO:spec.PLACE_HI]
+    corr = jnp.corrcoef(place[0], place[1])[0, 1]
+    assert corr < 0.1, "opposite corners should not share a place-cell pattern"
 
 
 # --- Null control ---------------------------------------------------------

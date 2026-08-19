@@ -39,6 +39,18 @@ def _bin_proximity(pos, heading, ent_pos, valid, cfg: CoopConfig):
     return jnp.max(onehot * prox[..., None], axis=1)            # (H, N_BINS)
 
 
+def _place_cells(pos: jax.Array, cfg: CoopConfig) -> jax.Array:
+    """(H, N_PLACE) allocentric place-cell activation -- a Gaussian bump per cell on a
+    fixed grid tiling the arena, independent of heading. The one channel in this file
+    that is *not* egocentric; see `coop/spec.py`'s module comment for why.
+    """
+    edges = jnp.linspace(0.0, cfg.size, spec.PLACE_GRID + 2)[1:-1]
+    cx, cy = jnp.meshgrid(edges, edges, indexing="ij")
+    centers = jnp.stack([cx.ravel(), cy.ravel()], axis=-1)      # (N_PLACE, 2)
+    d2 = jnp.sum((pos[:, None, :] - centers[None, :, :]) ** 2, axis=-1)
+    return jnp.exp(-d2 / (2.0 * cfg.place_sigma ** 2))
+
+
 def _channel(atten: jax.Array, w, cfg: CoopConfig) -> jax.Array:
     """Rewire who hears whom, for the H4 condition ladder. (H, H) -> (H, H).
 
@@ -167,6 +179,11 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     somatic = jnp.stack([wall, w.speed / cfg.flee_speed,
                          wall_escape_l, wall_escape_r], axis=-1)
 
+    # --- Place cells: allocentric, independent of channel_mode and everything
+    # auditory below -- location is not a call, and does not get rewired by the H4
+    # ladder. ---
+    place = _place_cells(w.pos, cfg)
+
     # --- Audition: flockmates' calls, attenuated by distance ---
     #
     # Voices combine in *intensity*, not amplitude: two birds calling at 0.5 are not
@@ -196,7 +213,7 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
         power = jnp.einsum("ij,ijc->ic", atten ** 2, heard ** 2)
         return jnp.concatenate(
             [vis, aerial[:, None], intero, somatic,
-             jnp.clip(jnp.sqrt(power), 0.0, 1.0)], axis=-1)
+             jnp.clip(jnp.sqrt(power), 0.0, 1.0), place], axis=-1)
 
     if cfg.legacy_audio:
         audio = jnp.clip(atten @ w.calls, 0.0, 1.0)             # pre-E019, for E021
@@ -204,7 +221,7 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
         audio = jnp.clip(jnp.sqrt((atten ** 2) @ (w.calls ** 2)), 0.0, 1.0)
 
     return jnp.concatenate(
-        [vis, aerial[:, None], intero, somatic, audio], axis=-1)
+        [vis, aerial[:, None], intero, somatic, audio, place], axis=-1)
 
 
 def observability(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:

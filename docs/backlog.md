@@ -247,6 +247,18 @@ favoured any other candidate. Per-feeder sickness attribution doesn't exist yet,
 narrower stale-cue-misattribution risk this stage set out to check remains unmeasured;
 worth building only if Stage 2's results look consistent with it.
 
+**Prerequisite found and filled before Stage 2 could be designed
+([E063](experiments/E063-allocentric-place-cells.md)).** T2's literal claim — durable
+avoidance of *this specific feeder*, outlasting the visible cue, recognised from a
+later approach in any direction — is not representable by anything built through
+Stage 1c: every existing channel is egocentric by design (`coop/sensing.py`'s own
+docstring), so a hen loses any trace of a location the instant she turns. Added a
+fixed 5×5 innate place-cell grid, giving `hen/regions.py`'s previously-generic
+`hippocampus` region its first real function. `OBS_DIM` 88 → 113. No reflex reads it
+(raw location carries no innate meaning alone, by design); 77/77 full suite including
+an unchanged ethogram, confirming nothing already-validated moved. Scaffolding, not a
+result — Stage 2 can now actually be designed.
+
 **Stage 2** (not yet pre-registered): the actual L vs. C? contrast — does the flock,
 with the validated and calibrated scaffold and the H2f-style learning rule, converge
 toward one hen's mistake per rotation, as the original prediction states.
