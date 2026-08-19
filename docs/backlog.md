@@ -273,6 +273,57 @@ called*, not her current one — the same class of leak E024's shuffled control 
 plain audibility, caught here before it could contaminate a result rather than after.
 `OBS_DIM` 113 → 138.
 
+**Effort assessment, not scoped: making place-cell tuning learned rather than fixed
+at birth.** `README.md` already flags that E063's place cells depart from real biology
+— in every species place cells have been studied in (most thoroughly rodents; the
+avian literature is real but thinner, and mostly behavioural in domestic chicks
+specifically, e.g. Vallortigara and colleagues' geometric-reorientation work following
+Cheng — direct single-unit evidence of chick place-field *development* specifically
+isn't something this project can point to with confidence) a cell's tuning forms
+through exploring a particular environment, not before. Raised while reviewing
+whether that departure is worth closing. Three tiers, increasing cost:
+
+- **Tier 1 — experience-gated reliability.** Keep the current ready-made geometry, but
+  scale the channel's strength by a per-hen, per-cell visitation trace (an EMA
+  matching the decaying-pulse idiom `food_call_drive`/`sick_call_drive` already use,
+  indexed by cell instead of scalar) — a totally novel area reads near-zero regardless
+  of how close the hen actually is. Captures "you can't use spatial memory of
+  somewhere you've never been" without touching the underlying map. One new `(H,
+  N_PLACE)` `World` field, a small `world.step` update, a multiply in `sensing.py` —
+  comparable in scope to E063 itself, a single experiment.
+- **Tier 2 — learned tuning via competitive Hebbian plasticity.** Seed hippocampal
+  units with broad or random initial receptive fields and add a new plasticity rule
+  (`hen/plasticity.py`) that nudges each unit's preferred location toward wherever the
+  hen currently is, weighted by its own response — a standard competitive-learning
+  update, still using ground-truth position as the (imperfect) teaching signal but
+  letting the *mapping* adapt rather than fixing it at `reset()`. A genuinely new kind
+  of plasticity for this project — every existing rule adjusts connection weights, not
+  the parameters of a sensory computation — needing its own validation ladder (geometry
+  checks, a positive control that distinct hens develop distinct maps, full
+  regression). Realistically a multi-experiment arc, comparable to how long H2f's
+  single validated rule took to nail down (E055–E057) — on the order of 1–2 weeks at
+  this project's pace, not a single PR.
+- **Tier 3 — full path-integration + landmark-binding emergence.** No ground-truth
+  position anywhere; place-like coding would have to emerge purely from integrating
+  self-motion (which isn't currently fed back as a signal at all) with visual landmark
+  recognition, via continuous-attractor or self-organising-map dynamics — the actual
+  mechanisms the computational-neuroscience literature proposes for real place/grid
+  cell emergence. A dedicated sub-architecture, not a channel addition, and in real
+  tension with `dense JIT-compiled scan, throughput is a correctness constraint`
+  (attractor dynamics typically need many settling steps per update). Weeks of
+  research-engineering with a real chance of not converging to anything
+  biologically-recognisable — a research project, not a backlog item with an effort
+  estimate that means much.
+
+**Recommendation:** none of this blocks Stage 2 — E063's fixed tuning is a stated,
+deliberate simplification, not a functional gap. Tier 1 is cheap enough to be worth
+doing opportunistically if a future result looks like it's exploiting unrealistic
+birth-complete spatial knowledge (e.g. implausibly fast apparent "learning" in Stage 2
+that's really the ready-made map doing the work) — a diagnostic-driven trigger, not a
+scheduled task. Tier 2 is a real future direction, worth it only once a specific
+hypothesis needs map quality itself to be a variable. Tier 3 is out of scope for this
+project's cadence.
+
 ~~**Stage 2**: the actual L vs. C? contrast — does the flock, with the validated and
 calibrated scaffold and the H2f-style learning rule, converge toward one hen's mistake
 per rotation, as the original prediction states.~~ **Done, null
