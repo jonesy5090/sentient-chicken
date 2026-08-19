@@ -89,12 +89,84 @@ PYTHONPATH=. .venv/bin/python scratchpad/e072_balanced_ei.py
 
 ## 6. Result
 
-_Not yet run._
+**Primary — separability, paired 12 genomes, threshold t=2.201:**
+
+| condition | separability | mean pallial rate |
+|---|---|---|
+| baseline | 0.0961 | 0.2724 |
+| `balanced_ei` | 0.0867 | 0.1191 |
+| gain-matched (gain=0.05) | 0.0033 | 0.1220 |
+
+| contrast | Δ ± SE | t | |
+|---|---|---|---|
+| **balanced vs baseline** | −0.0094 ± 0.0127 | **0.74** | **not significant (0.90×)** |
+| gain-matched vs baseline | −0.0928 ± 0.0124 | 7.46 | significant *decrease* (0.03×) |
+| balanced vs gain-matched | +0.0834 ± 0.0046 | 18.29 | significant (26.28×) |
+
+**That 26.28× must not be quoted as a result.** The gain-matched control turned out
+degenerate: matching balanced's mean pallial rate required `gain=0.05` against a default
+of 0.95, which collapses separability to 0.0033 — a dead network. "Balanced beats a dead
+network by 26×" is true and worthless. The control failed as a control, and since the
+primary comparison showed no effect there is nothing for it to attribute anyway.
+
+**Secondary — place-to-place pallial correlation** (6 genomes, all pairs among 5 grid
+cells, naturalistic full observations via `sensing.observe`):
+
+| condition | correlation |
+|---|---|
+| baseline | 0.9807 |
+| `balanced_ei` | **0.7520** |
 
 ## 7. Interpretation
 
-_Pending §6._
+**The primary prediction is falsified. Balancing E/I does not improve H2d's
+separability** — 0.90×, t=0.74, on a properly paired 12-genome test. The DC is
+genuinely there (+0.9339 per pallial unit, verified) and removing it genuinely does not
+help this metric. Removing the common mode dropped mean pallial rate from 0.27 to 0.12
+and took the differential signal down with it, proportionally.
+
+**But the two probes disagree, and that is the finding worth keeping.** The same
+intervention leaves the classic separability metric untouched while taking place-to-place
+correlation from 0.98 to 0.75. They differ in what they feed the network:
+
+- The settle-and-separate probe used since E009 injects a **single channel at amplitude
+  1.0 into an otherwise-zero observation**. There is almost no common mode to remove, so
+  balancing has almost nothing to do.
+- The place measurement uses a **full naturalistic observation** where dozens of channels
+  are active and the place block is graded. Here the common mode is large, and removing
+  it helps substantially.
+
+If that reading holds, H2d's entire measurement history — E009, E017, E023, E034, E035,
+E041 — rests on a probe whose input statistics are unrepresentative of live operation,
+and which is specifically blind to common-mode effects. **E019 raised a version of this
+concern already** ("separability had been measured on hand-injected observations
+describing a situation the hen never experienced"); it was answered by showing the
+*contrast occurs* in live operation, not by changing the probe.
+
+**Confidence is asymmetric here and should stay that way.** The null is a properly
+paired 12-genome test and is solid. The place result is a 6-genome descriptive
+comparison with no paired statistic — 0.98 vs 0.75 is a large gap, but E035 is the
+standing warning about exactly this kind of number on exactly this kind of structural
+question. It is a lead, not a result.
 
 ## 8. Consequence
 
-_Pending §6._
+**H2d is not fixed, and `balanced_ei` is not adopted as a default.** It stays in the
+codebase, off, as the tested implementation of a hypothesis that did not pay off on the
+metric it was aimed at.
+
+**The next experiment is a probe question, not a mechanism question**, and it is cheap:
+re-measure H2d's separability under naturalistic observations rather than hand-injected
+sparse ones, paired across genomes, with and without `balanced_ei`. That either
+reproduces the place result — in which case a decade of H2d numbers need re-reading and
+`balanced_ei` becomes a live candidate again — or it does not, in which case the place
+finding is about place coding specifically and H2d's history stands.
+
+Do not skip to re-running T2-revised on `balanced_ei` because 0.98 → 0.75 looks
+encouraging. E071's 0.180 looked encouraging too and meant 0.565 once `relu` was
+applied. The place number needs a paired test and a naturalistic-probe replication
+before anything is built on it.
+
+**Standing candidate unchanged**: E041's density finding (~2× at full connectivity,
+monotonic, no optimum found) remains the only intervention with a measured positive
+effect on H2d's own metric, and is still not adopted.
