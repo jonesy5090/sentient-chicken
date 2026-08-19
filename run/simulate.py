@@ -110,7 +110,8 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
     # whole `interval`-step window means any such event within it is always seen,
     # rather than a lottery over its exact timing.
     at_boundary = w_next.t % pc.interval == 0
-    m = ps.m_acc / pc.interval
+    # `legacy_m_sampling` restores the pre-E067 snapshot for bisection (E075).
+    m = (reward - ps.baseline) if pc.legacy_m_sampling else (ps.m_acc / pc.interval)
 
     p = jax.lax.cond(at_boundary, lambda: plasticity.consolidate(p, ps, m, pc),
                      lambda: p)
