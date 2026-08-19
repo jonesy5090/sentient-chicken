@@ -242,7 +242,7 @@ def contamination_causes_sickness_onset(cfg: CoopConfig) -> Probe:
     """T2 (E060). Eating from a contaminated patch must make her sick on the very
     next step (rising edge, no delay); the same setup with a clean patch must not.
     """
-    cfg = cfg._replace(n_hens=1, n_food=1)
+    cfg = cfg._replace(n_hens=1, n_food=1, contamination_enabled=True)
 
     def sick_after_one_bite(contaminated):
         w = _staged(cfg, pos=[[10.0, 10.0]], heading=0.0, food=[[10.05, 10.0]], hunger=0.5)
@@ -280,7 +280,7 @@ def gakel_call_on_falling_sick_not_continuous(cfg: CoopConfig) -> Probe:
     E053's fix for the food call -- not continuous distress calling for the whole,
     much longer sickness duration.
     """
-    cfg = cfg._replace(n_hens=1, n_food=1)
+    cfg = cfg._replace(n_hens=1, n_food=1, contamination_enabled=True)
     w = _staged(cfg, pos=[[10.0, 10.0]], heading=0.0, food=[[10.05, 10.0]], hunger=0.5)
     w = w._replace(food_contaminated=jnp.array([True]))
     w_end, tr = _run(cfg, w, steps=500)

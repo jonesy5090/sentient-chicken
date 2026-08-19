@@ -339,6 +339,20 @@ class CoopConfig(NamedTuple):
     # and finding it is itself a result" (Stage 1c, not yet run): the period needs to
     # be fast enough that private information stays valuable, slow enough that it can
     # actually propagate through the flock before rotating again.
+    # Master switch for the allocentric spatial channels -- E063's place cells and
+    # E064's gakel location cue (E076). Added for the same reason as
+    # `contamination_enabled` below and found the same way: E063 shipped without an
+    # opt-in, and its block turns out to be **25.1% of all observation drive, active
+    # 100% of the time** (E075) -- 25 permanently-on channels added to what had been an
+    # 88-channel observation. Every experiment since E063 has carried that, whether or
+    # not it has anything to do with T2.
+    #
+    # **Default flipped to `False` by E076**, which closed the bisect: with this block
+    # and contamination both off, E057's contrast reproduces to within noise (general
+    # +0.132 vs +0.123, audience-specific +0.241 vs +0.232, food control null at
+    # t=0.98). Left on, it breaks that control. T2's own experiments opt in.
+    place_cells_enabled: bool = False
+
     # Master switch for T2's contamination mechanic (E075). **Added because E060 did
     # not have one**, so from E060 onward every experiment in the project silently ran
     # with hens being poisoned, gakel-calling and moving at `sickness_mobility_scale`
@@ -348,9 +362,9 @@ class CoopConfig(NamedTuple):
     # `auditory_scaffold`, `pred_enabled`, `readout_scaling_strength`, `gakel_scaffold`,
     # `balanced_ei` are all off by default for this reason).
     #
-    # Left `True` so this flag alone changes nothing; whether the default should flip
-    # is a separate decision that needs its own evidence, not a drive-by.
-    contamination_enabled: bool = True
+    # **Default flipped to `False` by E076.** It accounted for roughly half the damage
+    # to H2f's control on its own (t=10.04 -> t=2.70). T2's own experiments opt in.
+    contamination_enabled: bool = False
     contamination_period_s: float = 300.0
     # How long a hen who eats contaminated food stays in the sickness state -- long
     # enough to be a reliable, observable cue to flockmates (the whole point of

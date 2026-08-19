@@ -26,6 +26,8 @@ a = ap.parse_args()
 
 CFG_NOW = spec.DEFAULT_COOP._replace(n_hens=16, food_deplete_rate=0.0)
 CFG_PRE_E060 = CFG_NOW._replace(contamination_enabled=False)
+CFG_PRE_E060_E063 = CFG_NOW._replace(contamination_enabled=False,
+                                     place_cells_enabled=False)
 BASE = dict(growth_enabled=False, kin_audible=True, explore_sigma=0.6,
             hebbian_readout=True, readout_scaling_strength=0.3)
 
@@ -40,6 +42,12 @@ ARMS = {
     # E057 predates that entirely.
     "no_contamination": (CFG_PRE_E060, PlasticConfig(enabled=False, explore_sigma=0.0),
                          PlasticConfig(enabled=True, **BASE)),
+    # Candidate 3 (E076): E063's place block is 25.1% of all observation drive and
+    # always on. Stacked on top of no_contamination, since that arm still cleared
+    # threshold -- this asks whether the two together restore E057's null.
+    "no_contam_no_place": (CFG_PRE_E060_E063,
+                           PlasticConfig(enabled=False, explore_sigma=0.0),
+                           PlasticConfig(enabled=True, **BASE)),
 }
 
 
