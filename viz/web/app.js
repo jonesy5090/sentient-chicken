@@ -296,15 +296,19 @@ function render(fi) {
     henMesh.setColorAt(i, flashing ? HEN_STRUCK :
       (sick ? HEN_SICK : (down > 0.5 ? HEN_HEAD_DOWN : HEN_COLOR)));
 
-    // Calling indicator: a small sphere above the hen, coloured by call type,
-    // visible only while amplitude clears the rest-floor.
+    // Calling indicator: a small sphere beside the hen, coloured by call type,
+    // visible only while amplitude clears the rest-floor. Offset to the side (not
+    // directly above her, where the sick marker below also sits) so a gakel call at
+    // sickness onset -- the two markers' one guaranteed moment of overlap -- doesn't
+    // have the smaller, non-flashing call dot visually swallowed by the bigger,
+    // flashing sick marker sitting in the same column.
     let bestCh = -1, bestAmp = CALL_ON;
     for (let c = 0; c < CALL_COLORS.length; c++) {
       const a = calls[fi * callS + i * CALL_COLORS.length + c];
       if (a > bestAmp) { bestAmp = a; bestCh = c; }
     }
     if (bestCh >= 0) {
-      dummy.position.set(px, 0.9, pz);
+      dummy.position.set(px + 0.3, 0.9, pz);
       dummy.rotation.set(0, 0, 0);
       dummy.scale.set(1, 1, 1);
       dummy.updateMatrix();
@@ -314,7 +318,9 @@ function render(fi) {
     }
     henCallMesh.setMatrixAt(i, dummy.matrix);
 
-    // Sick flag: higher up than the call indicator, hard on/off blink (not a smooth
+    // Sick flag: directly above her (not offset, unlike the call indicator above --
+    // this is the more important of the two signals during a sickness event and
+    // gets the more prominent central position), hard on/off blink (not a smooth
     // pulse) so it reads as an alert across the whole sickness window, not just the
     // brief gakel-call pulse at onset.
     if (sick && Math.floor(now * SICK_FLASH_HZ) % 2 === 0) {
