@@ -445,6 +445,41 @@ decays like the food call's own discovery pulse (E053) rather than nagging for t
 whole, much longer sickness duration. Production only — audience-sensitivity, like the
 other calls, is left for learning to discover, not wired in.
 
+### One sense is fixed from birth on purpose, and real biology disagrees
+
+`coop/spec.py`'s place-cell grid (E063, added as a T2 Stage 2 prerequisite — see
+`docs/experiments/E063-allocentric-place-cells.md`) gives every hen a population of
+units that fire by *where she is in the arena*, independent of which way she's facing —
+the one channel in this model that isn't egocentric. It exists because nothing else
+here lets a hen represent "that particular feeder" once she turns away from it, and
+Stage 2 needs somewhere to put that association.
+
+**It is wired as fixed and innate, the same way every other sense in this model is —
+and that specific choice is not what real chickens do.** In every species place cells
+have been studied in, a cell's *tuning* — which location makes it fire — is not present
+at birth for an environment the animal hasn't yet explored; place fields form and
+settle in as an animal actually moves through a new space, not before. A newly hatched
+chick cannot innately know the shape of a coop she has never stood in. Separately, and
+not the same claim, there is good evidence that chicks bring a real *predisposition* to
+the task: even very young, minimally-experienced chicks preferentially use an
+environment's geometric shape to reorient and relocate a remembered location (the
+"geometric module" line of work following Cheng's original rat studies, extended to
+domestic chicks by Vallortigara and colleagues) — a bias toward *what kind of cue to
+use*, not a pre-loaded map of *this* arena.
+
+So the model takes the same shortcut here it takes everywhere else — a fixed sensory
+response computed the same way from day one, exactly like `CLS_FOOD`'s fixed proximity
+gating — and that shortcut is a bigger simplification for this channel than for most
+others, because unlike "can she see food nearby," *which* location a hen should
+recognise is inherently something that has to come from experience, for a real bird as
+much as a modelled one. Kept anyway, for the same reason every other sense here is
+innate: this project's standing split is that *reception* is wired and *usage* is
+learned (Konishi's finding, applied uniformly), and the open question — can the
+cortical pathway turn a place-cell pattern into a durable, location-specific avoidance
+response — is squarely about usage. A version of this channel where the tuning itself
+also had to be learned would be truer to the animal and is not what's built; flagged
+here rather than left as a silent departure.
+
 ### A scaffold — stands in for learning that doesn't work yet, off by default
 
 One piece of the reflex arc is not real biology, it's a deliberate placeholder:
