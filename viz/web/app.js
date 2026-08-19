@@ -253,12 +253,26 @@ async function loadRun(id) {
 
 function stride(name) { return meta.layout[name].shape.slice(1).reduce((a, b) => a * b, 1); }
 
+// `sick_on`/`food_contaminated` only exist in trajectories recorded after E064 (T2's
+// scaffold) -- an older recording, or anyone who hasn't re-recorded since, has no such
+// field in `layout` at all. Missing entirely, not just empty, so this must be checked
+// before `stride()` even runs (`meta.layout[name].shape` throws on `undefined`) --
+// crashing here previously took the whole render loop down silently: `loadRun` calls
+// `render(0)` synchronously, so the exception fired before `tick()` ever started,
+// leaving the canvas blank forever while the sidebar (populated earlier in `loadRun`)
+// looked fine. Missing data degrades to "nothing is sick/contaminated" instead.
+function hasField(name) { return name in meta.layout; }
+
 function render(fi) {
   const H = meta.hens;
   const pos = arrays.pos, heading = arrays.heading, headDown = arrays.head_down;
   const calls = arrays.calls, foodAmt = arrays.food_amount, struck = arrays.struck;
   const posS = stride('pos'), callS = stride('calls'), foodS = stride('food_amount');
   const now = performance.now() / 1000;
+
+  const hasSick = hasField('sick_on');
+  const hasContaminated = hasField('food_contaminated');
+  const contS = hasContaminated ? stride('food_contaminated') : 0;
 
   for (let i = 0; i < H; i++) {
     const px = pos[fi * posS + i * 2], pz = pos[fi * posS + i * 2 + 1];
@@ -278,7 +292,7 @@ function render(fi) {
     }
     lastStruck[i] = s;
     const flashing = now < flashUntil[i];
-    const sick = arrays.sick_on[fi * H + i] > 0.5;
+    const sick = hasSick && arrays.sick_on[fi * H + i] > 0.5;
     henMesh.setColorAt(i, flashing ? HEN_STRUCK :
       (sick ? HEN_SICK : (down > 0.5 ? HEN_HEAD_DOWN : HEN_COLOR)));
 
@@ -320,7 +334,6 @@ function render(fi) {
   henSickMesh.instanceMatrix.needsUpdate = true;
 
   const contaminated = arrays.food_contaminated;
-  const contS = stride('food_contaminated');
   for (let i = 0; i < meta.n_food; i++) {
     const amt = foodAmt[fi * foodS + i];
     const m4 = new THREE.Matrix4();
@@ -331,7 +344,7 @@ function render(fi) {
     dummy.scale.set(1, Math.max(0.15, amt), 1);
     dummy.updateMatrix();
     foodMesh.setMatrixAt(i, dummy.matrix);
-    const isBad = contaminated[fi * contS + i] > 0.5;
+    const isBad = hasContaminated && contaminated[fi * contS + i] > 0.5;
     foodMesh.setColorAt(i, isBad ? FOOD_CONTAMINATED : FOOD_SAFE);
 
     dummy.position.set(p.x, FOOD_MARKER_Y, p.z);
@@ -393,19 +406,38 @@ scrub.oninput = () => {
 // ---------------------------------------------------------------------------
 // Boot
 // ---------------------------------------------------------------------------
+// An uncaught error anywhere in here previously left a blank canvas with no visible
+// signal why: the scene, camera and lights are all built, but `renderer.render()`
+// only ever runs inside `tick()`, and `tick()` only starts after `loadRun` resolves --
+// so any exception before that point (a missing field, a bad fetch, ...) produces
+// exactly "sidebar fine, scene never draws" with nothing in the page itself to say so.
 (async () => {
-  const runs = await fetchRuns();
-  if (runs.length === 0) {
-    emptyEl.style.display = 'flex';
-    return;
+  try {
+    const runs = await fetchRuns();
+    if (runs.length === 0) {
+      emptyEl.style.display = 'flex';
+      return;
+    }
+    for (const r of runs) {
+      const opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = `${r.name} — ${r.hens}h/${r.minutes}m${r.plastic ? '/plastic' : ''}`;
+      runSelect.appendChild(opt);
+    }
+    runSelect.onchange = () => {
+      bioT = 0; playing = true; playBtn.textContent = 'pause';
+      loadRun(runSelect.value).catch(reportBootError);
+    };
+    await loadRun(runs[0].id);
+    tick();
+  } catch (err) {
+    reportBootError(err);
   }
-  for (const r of runs) {
-    const opt = document.createElement('option');
-    opt.value = r.id;
-    opt.textContent = `${r.name} — ${r.hens}h/${r.minutes}m${r.plastic ? '/plastic' : ''}`;
-    runSelect.appendChild(opt);
-  }
-  runSelect.onchange = () => { bioT = 0; playing = true; playBtn.textContent = 'pause'; loadRun(runSelect.value); };
-  await loadRun(runs[0].id);
-  tick();
 })();
+
+function reportBootError(err) {
+  console.error('sentient-chicken viewer failed to load:', err);
+  emptyEl.innerHTML = `<div>Failed to load this run.<br><code>${err.message}</code><br>`
+    + `Check the browser console for details.</div>`;
+  emptyEl.style.display = 'flex';
+}
