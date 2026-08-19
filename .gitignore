@@ -4,3 +4,7 @@ __pycache__/
 .venv/
 runs/
 core
+
+# local session artifacts
+.claude/settings.local.json
+.claude/worktrees/
