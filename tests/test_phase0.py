@@ -368,6 +368,47 @@ def test_place_cells_discriminate_distinct_locations():
     assert corr < 0.1, "opposite corners should not share a place-cell pattern"
 
 
+
+# --- Gakel withdrawal scaffold (T2-revised mechanism 1) ---------------------
+
+def test_gakel_scaffold_is_off_by_default_and_narrowly_scoped():
+    """It must change nothing unless asked for, and when asked for must touch only
+    the gakel audio channel.
+
+    The second half is the load-bearing part. This scaffold is the single behavioural
+    anchor T2-revised adds, and its whole claim to not smuggling in the answer is that
+    it is wired to the *call* and to nothing else -- in particular not to the place
+    channels, which E063 deliberately left unwired so that the location-specific part
+    stays genuinely learned.
+    """
+    off = innate.reflex_matrix()
+    assert jnp.array_equal(jnp.asarray(off),
+                           jnp.asarray(innate.reflex_matrix(gakel_scaffold=False)))
+
+    on = innate.reflex_matrix(gakel_scaffold=True)
+    gakel = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_GAKEL)
+
+    assert on[spec.M_FORWARD, gakel] < 0.0, "must suppress approach"
+    assert on[spec.M_PECK, gakel] < 0.0, "must suppress ingestion"
+
+    # No other call channel moves -- the response is to this call, not to hearing.
+    for i in range(spec.N_CALLS):
+        ch = spec.AUDIO_LO + i
+        if ch != gakel:
+            assert jnp.array_equal(jnp.asarray(off[:, ch]), jnp.asarray(on[:, ch])), (
+                f"audio channel {i} changed; the scaffold must be gakel-specific")
+
+    # Nothing location-specific anywhere, which is the anti-question-begging claim.
+    assert jnp.array_equal(jnp.asarray(off[:, spec.PLACE_LO:]),
+                           jnp.asarray(on[:, spec.PLACE_LO:])), (
+        "the scaffold touched a place channel; which places are aversive must be "
+        "learned, never wired")
+
+    # And no anti-predator borrowing -- bad food is not a hawk.
+    for m in (spec.M_CROUCH, spec.M_FLEE):
+        assert on[m, gakel] == off[m, gakel]
+
+
 # --- Gakel-call location cue (T2 Stage 2 prerequisite, E064) ----------------
 
 def test_gakel_cue_is_zero_when_nobody_is_calling():

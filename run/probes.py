@@ -35,12 +35,14 @@ class Probe(NamedTuple):
     detail: str
 
 
-def _connectome(n_hens: int):
+def _connectome(n_hens: int, gakel_scaffold: bool = False):
     """Same genome for every probe; width follows the staged flock size."""
-    if n_hens not in _CONNECTOME_CACHE:
-        _CONNECTOME_CACHE[n_hens] = connectome.build(
-            jax.random.key(GENOME_SEED), regions.DEFAULT_REGIONS, n_hens=n_hens)
-    return _CONNECTOME_CACHE[n_hens]
+    ck = (n_hens, gakel_scaffold)
+    if ck not in _CONNECTOME_CACHE:
+        _CONNECTOME_CACHE[ck] = connectome.build(
+            jax.random.key(GENOME_SEED), regions.DEFAULT_REGIONS, n_hens=n_hens,
+            gakel_scaffold=gakel_scaffold)
+    return _CONNECTOME_CACHE[ck]
 
 
 def _staged(cfg: CoopConfig, *, pos, heading, food=None, water=None,
@@ -73,8 +75,8 @@ def _staged(cfg: CoopConfig, *, pos, heading, food=None, water=None,
     )
 
 
-def _run(cfg: CoopConfig, w, steps: int = 120):
-    p = _connectome(cfg.n_hens)
+def _run(cfg: CoopConfig, w, steps: int = 120, gakel_scaffold: bool = False):
+    p = _connectome(cfg.n_hens, gakel_scaffold)
     x = brain.initial_state(p, cfg.n_hens)
     w_end, _x, _p, _ps, _k, trace = simulate.rollout(
         w, x, p, jax.random.key(7), cfg, steps)
@@ -307,11 +309,44 @@ def avoid_a_sick_flockmate(cfg: CoopConfig) -> Probe:
                 f"(healthy should be negative -- attraction)")
 
 
+def withdraw_on_hearing_a_gakel_call(cfg: CoopConfig) -> Probe:
+    """T2-revised mechanism 1. Hearing the gakel call must suppress approach and
+    ingestion -- and must do so *specifically*, not as a response to any call.
+
+    Checked as a within-setup contrast against a contact call at identical amplitude
+    from the identical position, because a scaffold that damped everything on the
+    audio bus would pass a bare sign test while being useless: the whole point is that
+    the aversive response is tied to this call and not to hearing a flockmate.
+
+    Opt-in, like the alarm scaffold -- this probe is the only place it is switched on.
+    """
+    cfg = cfg._replace(n_hens=2, n_food=1)
+    gakel = spec.CALL_MOTOR_IDX.index(spec.M_CALL_GAKEL)
+    contact = spec.CALL_MOTOR_IDX.index(spec.M_CALL_CONTACT)
+
+    def drive(channel):
+        # Food under her beak so peck is genuinely active and has room to fall.
+        w = _staged(cfg, pos=[[10.0, 10.0], [10.0, 10.6]], heading=0.0,
+                    food=[[10.05, 10.0]], hunger=0.8)
+        calls = jnp.zeros((cfg.n_hens, spec.N_CALLS)).at[1, channel].set(1.0)
+        w = w._replace(calls=calls)
+        _, tr = _run(cfg, w, steps=1, gakel_scaffold=True)
+        return _mean(tr, spec.M_FORWARD), _mean(tr, spec.M_PECK)
+
+    fwd_g, peck_g = drive(gakel)
+    fwd_c, peck_c = drive(contact)
+    passed = fwd_g < fwd_c and peck_g < peck_c
+    return Probe("withdraw on hearing a gakel call", passed,
+                f"gakel fwd={fwd_g:.3f} peck={peck_g:.3f} vs "
+                f"contact fwd={fwd_c:.3f} peck={peck_c:.3f} "
+                f"(gakel must be lower on both)")
+
+
 ALL = (peck_at_food, crouch_at_hawk, head_down_blindness, flee_from_fox,
        referential_alarm, contact_call_when_isolated, approach_flockmates,
        food_call_on_arrival_not_continuous, contamination_causes_sickness_onset,
        sickness_slows_movement, gakel_call_on_falling_sick_not_continuous,
-       avoid_a_sick_flockmate)
+       avoid_a_sick_flockmate, withdraw_on_hearing_a_gakel_call)
 
 
 def run_all(cfg: CoopConfig = spec.DEFAULT_COOP):

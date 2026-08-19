@@ -84,7 +84,9 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           modality_segregated: bool = False,
           aud_fraction: float = regions.AUD_FRACTION,
           sensory_pallium_density: float | None = None,
-          legacy_food_call: bool = False) -> BrainParams:
+          legacy_food_call: bool = False,
+          gakel_scaffold: bool = False,
+          gakel_scaffold_gain: float = 1.0) -> BrainParams:
     """Sample a newly hatched flock.
 
     `readout_scale` is small on purpose: at hatch the cortical pathway is near-silent
@@ -298,7 +300,8 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         b=jnp.full((n,), -2.0),
         tau=tau,
         reflex=jnp.asarray(
-            innate.reflex_matrix(auditory_scaffold, scaffold_gain, legacy_food_call)),
+            innate.reflex_matrix(auditory_scaffold, scaffold_gain, legacy_food_call,
+                                 gakel_scaffold, gakel_scaffold_gain)),
         b_motor=jnp.asarray(innate.reflex_bias()),
         dale=dale,
     )
