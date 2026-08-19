@@ -76,12 +76,85 @@ PYTHONPATH=. .venv/bin/python scratchpad/e078_density_naturalistic.py
 
 ## 6. Result
 
-_Not yet run._
+12 genomes, paired, threshold t=2.201. Sparse probe has 1 nonzero channel, naturalistic 14.
+
+| probe | density | separability | mean pallial rate |
+|---|---|---|---|
+| sparse | 0.15 | 0.0656 | 0.2648 |
+| sparse | **0.30** | **0.0961** | 0.2724 |
+| sparse | 0.60 | 0.1448 | 0.2848 |
+| sparse | 1.00 | 0.2035 | 0.3040 |
+| naturalistic | 0.15 | 0.0698 | 0.3786 |
+| naturalistic | **0.30** | **0.0814** | 0.4602 |
+| naturalistic | 0.60 | 0.0729 | 0.5714 |
+| naturalistic | 1.00 | 0.0581 | 0.6745 |
+
+Paired against the 0.30 default:
+
+| probe | density | Δ ± SE | t | | ratio |
+|---|---|---|---|---|---|
+| sparse | 0.15 | −0.0304 ± 0.0060 | 5.06 | significant | 0.68× |
+| sparse | 0.60 | +0.0487 ± 0.0109 | 4.46 | significant | **1.51×** |
+| sparse | 1.00 | +0.1074 ± 0.0264 | 4.07 | significant | **2.12×** |
+| naturalistic | 0.15 | −0.0116 ± 0.0064 | 1.83 | null | 0.86× |
+| naturalistic | 0.60 | −0.0085 ± 0.0032 | 2.70 | significant | **0.90×** |
+| naturalistic | 1.00 | −0.0234 ± 0.0044 | 5.37 | significant | **0.71×** |
 
 ## 7. Interpretation
 
-_Pending §6._
+**E041 reproduces exactly on its own probe — 2.12× at full connectivity against E041's
+~2×.** That is worth stating first: this is not a failure to replicate, and the sparse
+measurement was sound. It is a failure to *transfer*.
+
+**Naturalistically the effect reverses.** Denser connectivity is significantly *worse*,
+and my pre-registered prediction was wrong on direction — §3 said "direction should stay
+positive in both" and "nothing in the mechanism predicts denser being actively harmful".
+It is harmful.
+
+**The mechanism is saturation, and the mean-rate column shows it.** Under sparse input,
+raising density from 0.30 to 1.00 barely moves drive (0.2724 → 0.3040), so extra
+connections buy more units a view of the one informative channel at no cost. Under
+naturalistic input the same change drives the network from 0.4602 to **0.6745** — into
+the compressive region, where differences get squashed faster than extra connections
+reveal them.
+
+That ties directly to the one surviving E073 finding: live operation runs at 0.6907.
+Density 1.00 naturalistically lands at 0.6745 — i.e. **E041's recommended direction moves
+the network toward exactly the saturated regime where separability is worst.**
+
+**There is an optimum naturalistically, and the current default is at it.** E041 reported
+"no optimum found all the way to full connectivity". Under naturalistic input separability
+peaks at 0.30 — the shipped default — falling significantly above it and non-significantly
+below (0.15 is 0.86×, t=1.83). That is a reassuring result about the current
+configuration and a direct contradiction of "more connections is simply better,
+everywhere tested".
+
+**The falsifier fires, and §4 committed to saying so plainly: H2d now has no intervention
+with a positive effect under naturalistic input.** The full list, all paired and all on
+this metric: E/I identity fix null (E023), modality segregation null (E035),
+`balanced_ei` null (E077), density **reversed** (here). H2d's position is materially
+worse than the tree recorded.
 
 ## 8. Consequence
 
-_Pending §6._
+**E041's density finding is re-scoped, not withdrawn.** It is correct for sparse,
+artificial stimuli and does not transfer to the input statistics a hen actually receives.
+It should not be adopted — the tree's "promising, checked, not adopted" now reads
+"checked twice, and adopting it would make things worse."
+
+**`sensory_pallium_density=0.30` is validated as roughly optimal** for the regime that
+matters, which is more than it had before.
+
+**Saturation is the binding constraint, and it is now the only live lead.** Every
+intervention tried has either not touched drive (density, segregation, E/I identity) or
+touched it without helping (`balanced_ei`, which cut live rate 0.73 → 0.12 and gave
+1.05×, null). That pair is the puzzle worth attacking: reducing drive alone does not
+help, and increasing it actively hurts.
+
+**Concrete next test, and it is cheap.** E023 swept recurrent `gain` and set the default
+from that sweep — **on the sparse probe**, where the network sits at 0.27 and is not
+saturated at all. Nobody has swept gain under naturalistic input. Given that separability
+peaks where drive is moderate, and that both too-dense and too-saturated hurt, the gain
+default may be badly placed for live operation in the same way the density
+recommendation was. That is the same class of error this session has now found four
+times, and it is one sweep away from being answered.
