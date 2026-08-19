@@ -644,22 +644,26 @@ new home.
 
 ## 8. Open items from experiments
 
-- **BLOCKING T2, and the reason three Stage 2 runs were uninformative: the sickness
-  reward is ~4 orders of magnitude too weak.**
-  [E068](experiments/E068-t2-stage2-fixed-eligibility.md) measured it directly:
-  sickness fires in 0.0417% of a hen's consolidation windows and supplies 0.16x the
-  ambient reward even in those — a total share of roughly 0.007% of the reinforcement
-  she receives. Turning `sickness_penalty` on vs off moves the recurrent weights by
-  0.07%, inside seed noise, *with* E067's fix applied. Before T2 Stage 2 is run a
-  fourth time, two things: (1) calibrate `sickness_penalty` against the ambient reward
-  it competes with — noting E014's history, where one discrete event scaled too large
-  destroyed the connectome, so this needs its own guard rather than just being raised;
-  (2) run the positive control E065 flagged and never ran, planting a
-  guaranteed-detectable effect on the sickness-per-rotation metric and confirming the
-  harness reports it. Also cheap and worth doing whenever T2 next runs: the `|W_out|`
-  "is the rule active?" diagnostic reads a pathway that structurally cannot respond
-  under `hebbian_readout` (its update is not reward-gated), and gave a falsely
-  reassuring identical value in three consecutive experiments — it should read `|W|`.
+- ~~**BLOCKING T2: the sickness reward is ~4 orders of magnitude too weak, needs
+  calibrating, and E014's erosion history makes "just raise it" unsafe.**~~
+  **Answered and closed by [E069](experiments/E069-t2-positive-control.md).**
+  Calibration is not the fix: a `sickness_penalty` sweep across a thousandfold range
+  produced no learned avoidance at any magnitude. The signal does reach the weights
+  (mean `|W−W₀|` +26% at penalty 1000), but as undirected perturbation rather than
+  behaviour. The E014 safety concern is also retired — the connectome retains 97.5%
+  of its innate synapses at penalty 1000 vs 98.0% at zero, so raising the term is
+  safe and simply useless. The metric was never the limiting factor either (E069
+  Part A: resolves 19–35% of baseline at n=8, far finer than T2's own predicted
+  effect). **T2 now needs a place-linked innate anchor for the rule to amplify, a
+  different rule capable of building associations from nothing, or acceptance as
+  answered in the negative for this architecture** — see E069 §8, which sets out the
+  hazard in option 1 (an anchor specific enough to make T2 learnable risks hardwiring
+  the answer T2 exists to discover).
+- **Fix whenever T2 or any reward-gated experiment next runs**: the `|W_out|` "is the
+  rule active?" diagnostic reads a pathway that structurally cannot respond under
+  `hebbian_readout` (its update is not reward-gated), and returned a falsely
+  reassuring identical value across E065, E066 and E068. It should read `|W|`, as
+  E068's and E069's own follow-up diagnostics do.
 - **HIGH PRIORITY, unresolved: does `strike_penalty`'s reward-eligibility defect
   affect any prior hypothesis's actual conclusion?**
   [E067](experiments/E067-reward-eligibility-sampling-defect.md) confirmed, via an

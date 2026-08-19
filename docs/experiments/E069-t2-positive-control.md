@@ -93,12 +93,103 @@ PYTHONPATH=. .venv/bin/python scratchpad/e069_positive_control.py
 
 ## 6. Result
 
-_Not yet run._
+**A — minimum detectable effect**, from the real variance in three seed blocks:
+
+| experiment | baseline/rotation | SE(contrast) | MDE (count) | MDE (% of baseline) |
+|---|---|---|---|---|
+| E065 | 8.94 | 0.715 | 1.69 | 18.9% |
+| E066 | 8.43 | 1.249 | 2.95 | 35.0% |
+| E068 | 8.47 | 0.866 | 2.05 | 24.2% |
+
+The pre-registered prediction (≈2.1 events, ≈25%) lands mid-range.
+
+Empirical cross-check on E068: the smallest injected reduction in L's late window
+that clears threshold is 3.11, against an analytic MDE of 2.05. Not a discrepancy —
+E068's *observed* contrast was +1.06, so reaching significance in the negative
+direction requires travelling 1.06 + 2.05 = 3.11. The two numbers answer different
+questions ("how large must a true effect be, from zero" vs. "how far must this
+particular observed result move") and agree exactly.
+
+**B — `sickness_penalty` sweep**, 4 seeds, 12 rotations, 60 min/run:
+
+| penalty | early/rot | late/rot | late−early | mean \|W−W₀\| | synapses | vs. innate |
+|---|---|---|---|---|---|---|
+| 0 | 6.92 | 7.92 | +1.00 | 3.745e-04 | 35627 | 98.0% |
+| 1 | 6.75 | 6.83 | +0.08 | 3.888e-04 | 35617 | 98.0% |
+| 10 | 7.75 | 7.83 | +0.08 | 3.689e-04 | 35628 | 98.0% |
+| 100 | 7.25 | 8.50 | +1.25 | 3.841e-04 | 35617 | 98.0% |
+| 1000 | 7.33 | 7.00 | −0.33 | 4.711e-04 | 35433 | 97.5% |
 
 ## 7. Interpretation
 
-_Pending §6._
+**Outcome (ii) of the three pre-registered possibilities: no penalty magnitude
+produces learned avoidance. The obstacle is not calibration.**
+
+Sickness rate does not fall at any penalty. The `late−early` column runs +1.00,
++0.08, +0.08, +1.25, −0.33 across a thousandfold increase in the reward term — no
+trend, no monotonicity, and the single negative value (−0.33 at penalty 1000) is
+roughly a sixth of the minimum detectable effect Part A establishes for a
+better-powered 8-seed block. It is noise.
+
+**The signal does reach the weights; it just does not become behaviour.** Mean
+`|W−W₀|` rises 26% between penalty 0 and penalty 1000 (3.745e-04 → 4.711e-04), so a
+sufficiently large reward term demonstrably perturbs the recurrent weights — E067's
+fix works and the pathway is live. But undirected perturbation is all it is: a large,
+sparse, noisy reward term drives *more* weight change without driving *useful* weight
+change. The weights move; the hen does not learn where not to eat.
+
+**E014's erosion failure mode did not occur, and that risk can be retired.** The
+backlog flagged "just raise it" as unsafe on the precedent of a discrete event scaled
+large enough to destroy the connectome. At a thousandfold penalty the connectome
+retains 97.5% of its innate synapses against 98.0% at zero — a half-point difference.
+Raising `sickness_penalty` is safe. It is simply useless.
+
+**This converges with, and now independently confirms, E066/E067's architectural
+explanation.** E058/E059 established that this project's working rule *amplifies an
+existing innate anchor* and does not build an association from nothing. E063 then gave
+place cells no innate reflex whatsoever — deliberately, and stated as such: *"raw
+location carries no innate meaning alone, by design."* Those two facts are jointly
+sufficient to predict this result. There is nothing linking a place-cell pattern to
+any motor output for the rule to strengthen, so no amount of reward flowing through
+`m` can produce place-specific avoidance. Part B is that prediction confirmed
+empirically rather than inferred.
+
+**Part A's separate verdict: the metric itself is sound.** It resolves changes of
+roughly 19–35% of baseline at n=8. T2's own prediction — L converging toward one
+mistake per rotation while C? pays N times that — is far larger than that threshold,
+so the metric was never the limiting factor. It was adequate for the question; the
+learning was absent.
 
 ## 8. Consequence
 
-_Pending §6._
+**Close the backlog's "calibrate `sickness_penalty`" item as answered: calibration is
+not the fix, and the E014 safety concern attached to it is retired.** Both were
+reasonable given what was known; both are now settled by measurement.
+
+**T2 as currently designed cannot be rescued by tuning.** It requires one of:
+
+1. **A weak innate place-linked anchor for the rule to amplify** — the one route the
+   project's own evidence (E058/E059) says works. This is a real design decision with
+   a real hazard: an anchor specific enough to make T2 learnable risks hardwiring the
+   answer T2 is meant to discover, which is the line `hen/innate.py`'s
+   `auditory_scaffold` already walks deliberately and keeps off by default. Any such
+   anchor would need the same treatment — opt-in, documented as scaffolding, and
+   never on in a headline condition without saying so.
+2. **A different learning rule** capable of building a new association rather than
+   amplifying an existing one — which is the open problem behind H2c's null
+   (E058/E059) and is not specific to T2.
+3. **Accepting T2 as answered in the negative for this architecture**, and recording
+   that the rotating-poisoned-feeder task is beyond what this rule can learn — a
+   legitimate outcome, and the honest reading if neither (1) nor (2) is attempted.
+
+**The wider open item stands unchanged**: E067's `strike_penalty` audit, sharpened by
+`CLAUDE.md`'s own note that the term carries 87% of reward variance at the H4
+configuration while reaching the weights 2% of the time. Nothing here bears on it —
+this experiment measured the sickness term only.
+
+**One methodological note worth keeping.** The positive control was called for by
+E065 and deferred through three subsequent experiments, each of which produced a null
+that was then explained by a newly discovered defect. Running it first would have
+established in a single 30-minute sweep that the task was unlearnable at any signal
+strength, which is the fact all three of those experiments were circling. The rule in
+`CLAUDE.md` is not ceremonial.
