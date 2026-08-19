@@ -72,12 +72,99 @@ PYTHONPATH=. .venv/bin/python scratchpad/e079_gain_naturalistic.py
 
 ## 6. Result
 
-_Not yet run._
+12 genomes, paired, threshold t=2.201.
+
+| probe | gain | separability | settle rate |
+|---|---|---|---|
+| sparse | 0.40 | 0.0279 | 0.1482 |
+| sparse | 0.60 | 0.0439 | 0.1719 |
+| sparse | 0.80 | 0.0645 | 0.2114 |
+| sparse | **0.95** | **0.0961** | 0.2724 |
+| sparse | 1.10 | 0.0811 | 0.5739 |
+| naturalistic | 0.40 | 0.0284 | 0.1611 |
+| naturalistic | 0.60 | 0.0441 | 0.1994 |
+| naturalistic | 0.80 | 0.0648 | 0.2762 |
+| naturalistic | **0.95** | **0.0814** | 0.4602 |
+| naturalistic | 1.10 | 0.0220 | 0.7752 |
+
+Paired against the 0.95 default — **every** other gain is worse on the naturalistic
+probe:
+
+| probe | gain | t | | ratio |
+|---|---|---|---|---|
+| naturalistic | 0.40 | 5.24 | significant | 0.35× |
+| naturalistic | 0.60 | 4.16 | significant | 0.54× |
+| naturalistic | 0.80 | 2.52 | significant | 0.80× |
+| naturalistic | 1.10 | 6.54 | significant | **0.27×** |
+
+**Live rollout** (16 hens, 5 min, 3 seeds):
+
+| gain | live mean pallial rate |
+|---|---|
+| 0.40 | **0.1796** |
+| 0.95 (default) | 0.6861 |
 
 ## 7. Interpretation
 
-_Pending §6._
+**The falsifier fires. Naturalistic separability peaks exactly at the shipped default**,
+with significant decline in *both* directions — the second default this session has
+validated rather than moved (after E078's density). The decline above is far sharper
+naturalistically than sparsely (1.10 gives 0.27× vs sparse's 0.84×, null), which is the
+saturation effect E078 identified, now confirmed on a second axis.
+
+**But the live-rate row reframes the whole problem, and this matters more than the
+validated default.** Gain 0.40 pulls live pallial rate from 0.6861 to **0.1796** —
+comprehensively out of saturation — and separability gets **worse**, 0.35×. That is now
+the second independent demonstration of the same thing:
+
+| intervention | live rate | naturalistic separability |
+|---|---|---|
+| `balanced_ei` (E077) | 0.73 → 0.12 | 1.05×, null |
+| gain 0.40 (here) | 0.69 → 0.18 | **0.35×, significantly worse** |
+
+**Reducing drive does not improve separability. Twice, by unrelated mechanisms.** And
+raising it hurts too (density 1.00 → 0.71×, gain 1.10 → 0.27×). Separability peaks at the
+operating point the model already occupies and falls away in every direction tested.
+
+**That means E009's saturation framing mis-identifies the constraint — and so did my own
+E073 write-up, which leaned on it.** "The network is saturated, therefore differences get
+squashed" predicts that de-saturating helps. It does not. Saturation is a *correlate* of
+the regime where separability is best, not the cause of its being low.
 
 ## 8. Consequence
 
-_Pending §6._
+**H2d has no remaining lead, and that should be stated as plainly as E078's falsifier
+was.** Every structural intervention tried is null or negative, all paired, all on this
+metric:
+
+| intervention | verdict |
+|---|---|
+| E/I identity fix (E023) | null |
+| modality segregation (E035) | null |
+| sensory→pallium density (E041/E078) | reversed naturalistically |
+| balanced E/I (E072/E077) | null |
+| recurrent gain (E023/E079) | **default already optimal** |
+| removing recurrence (E017/E034) | slightly worse |
+
+**The hypothesis worth forming next is that H2d is not a defect at all.** Two stimuli
+differing in one or two channels out of 138, pushed through a random projection into a
+recurrent pool, produce pallial states differing by ~7–8% of mean rate. Nothing tried
+changes that, and the operating point is already optimal. That is a plausible *property*
+of random projection without learned feature extraction — not a bug with a fix waiting.
+
+If so, the circularity is the real finding: the pallium is supposed to learn features
+that separate what matters, but cannot, because separating what matters is the
+precondition for having anything to learn from.
+
+**One concrete, cheap test of that reframing before accepting it.** `OBS_DIM` has grown
+59 → 138 across this project's life, and every addition dilutes the informative fraction
+of a two-channel distinction. If H2d is a random-projection property, **separability
+should have degraded monotonically as channels were added** — which is checkable by
+measuring it against progressively masked observations, and would convert a plausible
+story into a measurement. It also carries an uncomfortable implication worth surfacing
+now: several of those channels are ones I added this session.
+
+**Also corrected here**: `docs/hypothesis.md` claimed `hen/connectome.py:48` has
+`gain = 0.70`. The actual default is **0.95**, at line 81. That note was itself a
+correction of a stale doc, and had gone stale in both the value and the line number —
+the precise failure mode it was written to fix.

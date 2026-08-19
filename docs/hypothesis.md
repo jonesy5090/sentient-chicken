@@ -669,7 +669,22 @@ its own stabiliser works.
 
 ## H2d — the pallium does not form separable representations of distinct stimuli
 
-**Status: SUPPORTED as a limitation, and its whole measurement series needs re-reading**
+**Status: SUPPORTED as a limitation — and after
+[E077](experiments/E077-reread-balanced-ei.md)/[E078](experiments/E078-density-under-naturalistic-input.md)/[E079](experiments/E079-gain-under-naturalistic-input.md),
+every structural intervention tried is null or negative under naturalistic input**
+(E/I identity null, modality segregation null, density *reversed*, balanced E/I null,
+recurrent gain *already optimal*, removing recurrence slightly worse). **The saturation
+framing is also withdrawn**: reducing live drive by two unrelated mechanisms —
+`balanced_ei` (0.73 → 0.12) and gain 0.40 (0.69 → 0.18) — gives 1.05× (null) and 0.35×
+(significantly worse) respectively, while raising it also hurts. Separability peaks at
+the operating point the model already occupies and falls away in every direction tested,
+so saturation is a *correlate* of the best regime, not the cause of separability being
+low. The live hypothesis is now that **H2d is a property of random projection without
+learned feature extraction rather than a defect with a fix** — a two-channel distinction
+in a 138-channel observation, projected randomly, differing by ~7-8% of mean rate. E079
+§8 names a cheap test of that (separability against progressively masked observations,
+since `OBS_DIM` grew 59 → 138 over the project's life). Its own measurement series also
+needs re-reading**
 — [E073](experiments/E073-naturalistic-separability-probe.md) found the probe used
 since E009 **under-drives the pallium by ~2.7×** relative to live operation (sparse
 probe 0.2724 mean rate, naturalistic 0.6019, **live rollout 0.7288**). Two consequences.
@@ -734,9 +749,12 @@ t=3.93 → t=0.08); the fully corrected connectome and world independently by E0
 (+0.0003 ± 0.0156, t=0.02). H2 is a clean null on every operating point this has been
 checked at, not a supported finding waiting on saturation to clear.
 
-~~**Not yet changed.** The gain default stays 0.9~~ — **stale**. The re-baselining
-happened; `hen/connectome.py:48` has `gain = 0.70`. Flagged by external review as a doc
-that describes a state the code left behind.
+~~**Not yet changed.** The gain default stays 0.9~~ — **stale**. ~~The re-baselining
+happened; `hen/connectome.py:48` has `gain = 0.70`.~~ **That correction had itself gone
+stale in both value and line number** — the actual default is **`gain = 0.95`** at
+`hen/connectome.py:81` ([E079](experiments/E079-gain-under-naturalistic-input.md)),
+which is the exact failure mode the note was written to fix. E079 also **validates**
+0.95: naturalistic separability peaks there, declining significantly in both directions.
 
 **H2d was demoted from the critical path by
 [E019](experiments/E019-three-verified-defects.md), pending re-measurement.** Its whole
@@ -1626,6 +1644,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E079 | **The gain default was also set on the sparse probe -- but it turns out already optimal, and the saturation framing is withdrawn.** Both probes, 12 genomes, paired. Naturalistic separability **peaks exactly at the shipped 0.95**, declining significantly in *both* directions (0.80 -> 0.80x t=2.52; 1.10 -> **0.27x** t=6.54, far sharper than sparse's null 0.84x). Second default validated rather than moved this session. **The live-rate row matters more**: gain 0.40 pulls live pallial rate 0.6861 -> **0.1796**, comprehensively out of saturation, and separability gets **worse** (0.35x). That is the second independent demonstration -- `balanced_ei` cut live rate 0.73 -> 0.12 for a null. **Reducing drive does not improve separability; raising it hurts.** So E009's saturation diagnosis, and my own E073 write-up that leaned on it, mis-identify the constraint: saturation correlates with the best regime rather than causing the low value. **H2d now has no remaining lead.** New hypothesis: it is a property of random projection without learned feature extraction, not a fixable defect -- with the circularity that the pallium cannot learn separating features because separation is the precondition for having anything to learn from. Also fixes `docs/hypothesis.md`'s claim that `connectome.py:48` has `gain = 0.70`: it is **0.95 at line 81**, a stale correction of a stale doc. |
 | E078 | **E041's density result reverses under naturalistic input -- and the shipped default turns out optimal.** Both probes, 12 genomes, paired, on E076's corrected baseline. **Reproduces E041 exactly on its own probe** (density 1.00 = 2.12x vs E041's ~2x) -- a transfer failure, not a replication failure. **Naturalistically it reverses**: 0.90x at density 0.60 (t=2.70), **0.71x at 1.00 (t=5.37)**. Mechanism is saturation, visible in mean rate: sparse input barely moves drive with density (0.2724 -> 0.3040), naturalistic goes **0.4602 -> 0.6745** into the compressive region -- and live sits at 0.6907, so E041's recommended direction moves *toward* the worst regime. Separability peaks at the **shipped 0.30 default**, contradicting E041's 'no optimum found up to full connectivity'. My pre-registered prediction was **wrong on direction** -- I said denser could not be actively harmful. **Falsifier fires: H2d now has no intervention with a positive effect naturalistically** (E/I null, segregation null, `balanced_ei` null, density reversed). Only live lead left is saturation itself -- and E023 set the `gain` default from a sparse-probe sweep, never repeated naturalistically. |
 | E077 | **Re-reading `balanced_ei` against E076's corrected baseline: the 2.13x was my own artefact.** E073 measured `balanced_ei` at 2.13x (t=5.75) under a naturalistic probe -- but that probe fed `sensing.observe` while E063's place block sat at 25.1% of observation drive, always on, which is precisely the common-mode term `balanced_ei` acts on. With the block off: **1.05x, t=0.35, null**. Naturalistic baseline separability also goes 0.0365 -> 0.0814, so E073's 'H2d severity understated 2.6x' becomes 1.2x. **Two of E073's four claims fall; two stand** -- the E009 probe genuinely under-drives vs live (0.6907 vs 0.2724) and E009's saturation genuinely was never fixed. **`balanced_ei` is closed as an H2d intervention** and E074's adoption gate is moot. Third distinct harm now traced to one un-opted-in addition: E063's block broke H2f's control, manufactured this false positive across two follow-up experiments, and inflated the probe-vs-live gap. E073 corrected in place. |
 | E076 | **Bisect closed: both causes were my own additions, and both defaults flipped.** Fourth arm -- contamination AND place cells disabled -- returns H2f's food control to **null (-0.0293, t=0.98)** and reproduces E057 to within noise (general +0.132 vs +0.123, audience-specific +0.241 vs +0.232). **H2f was never damaged**: the audience effect holds t=31.7-46.9 across all four arms and is *largest* in the clean one; only the control that made it interpretable as targeted rather than indiscriminate had broken. Causes: **E060 put contamination into `DEFAULT_COOP`** (32 sickness onsets per 30-min run, gakel calls, `CLS_SICK`, 0.15x mobility, for every experiment since) and **E063 added 25 always-on channels worth 25.1% of observation drive** -- neither with an opt-in, against a convention stated explicitly in six other places. Both defaults now `False`; T2's experiments opt in. Also checked, since E073 rested on it: live pallial rate without place cells is **0.6907** vs 0.7288 -- still deeply saturated, so E073's conclusion survives. Flipping surfaced a second lesson: seven tests failed (correctly, all about the disabled machinery) but several others would have passed **vacuously**, comparing two all-zero vectors -- those were opted in too. |
