@@ -339,6 +339,24 @@ configuration — the first time it has actually been tested against data, not j
 designed. Not closed: the local-vs-aggregate weight-change question, a longer run, or
 a different rule all remain genuinely open and unpursued.
 
+**E065 withdrawn and corrected ([E066](experiments/E066-t2-stage2-corrected-rerun.md)).**
+`hen/plasticity.py`'s `reward()` had no term for sickness at all, checked directly —
+E065's null was very likely not a fair test, since the reward-gated pathway that
+routes place-cell information toward motor output (`W`, unaffected by
+`hebbian_readout`, which only touches `W_out`) had nothing to learn T2's outcome
+from. Fixed with `sickness_penalty` (off by default). Also added a pre-registered
+split of sickness onsets into *witnessed* (another already-sick hen within
+`vision_range` — explainable by the innate anchor alone, identical across all three
+conditions) vs. *testimony-only* (not witnessed — the only case the auditory channel
+could plausibly help with), addressing the concern that the innate reflex could
+dilute a small real effect in the aggregate metric. **Result: still null, more
+solidly.** Primary contrast flipped to the predicted sign but stayed tiny
+(−0.19 ± 1.25, t=0.15). Testimony-only onsets were ~1/3 the volume of witnessed ones
+(the dilution concern was real) but showed no effect either (+0.06 ± 0.19, t=0.32,
+wrong sign) — ruling out "the aggregate washed out a real effect." T2 stays
+`NOT SUPPORTED`, now on solid methodological ground: both live objections to E065
+checked directly, conclusion held.
+
 **Candidate future task, not T2 (flagged, not scoped): food-call homing via place
 cells.** Raised while reviewing whether E063 should also change the ordinary food
 call's design — it shouldn't (see the reasoning below), but it surfaces a genuinely

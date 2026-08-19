@@ -78,12 +78,93 @@ PYTHONPATH=. .venv/bin/python scratchpad/e066_t2_stage2_corrected.py --seeds 8 -
 
 ## 6. Result
 
-_Not yet run._
+8 seeds/condition, 90 min (18 rotations), `threshold(df=7)=2.365`.
+
+**Primary — total sickness-per-rotation:**
+
+| condition | early | late |
+|---|---|---|
+| S | 5.906 | 7.625 |
+| C? | 8.469 | 8.875 |
+| L | 8.750 | 8.969 |
+
+| contrast | mean ± SE | t | |
+|---|---|---|---|
+| L: late − early | +0.219 ± 0.462 | 0.47 | not significant |
+| C?: late − early | +0.406 ± 0.888 | 0.46 | not significant |
+| S: late − early | +1.719 ± 1.209 | 1.42 | not significant |
+| **PRIMARY: (L late−early) − (C? late−early)** | **−0.188 ± 1.249** | **0.15** | **not significant** |
+
+S's numbers are bit-for-bit identical to E065's — expected and a useful sanity check:
+`sickness_penalty` only touches `reward()`, and S never consolidates weights
+(`enabled=False`), so nothing about S's own trajectory should move, and nothing did.
+
+**Secondary A — witnessed onsets** (another already-sick hen within `vision_range`,
+explainable by the innate anchor alone): early 3.7–6.8, late 5.3–6.9 across
+conditions; contrast (L−C?) = −0.250 ± 1.284, t=0.19, not significant.
+
+**Secondary B — testimony-only onsets** (no visible sick hen at that moment, the only
+case the auditory channel could plausibly help): early 2.0–2.2, late 2.0–2.3 across
+conditions — roughly a third the count of witnessed onsets, confirming the mechanism
+directly: most sickness-prevention opportunities in this flock are the kind the innate
+reflex already covers. Contrast (L−C?) = **+0.063 ± 0.193, t=0.32, not significant** —
+and the sign is wrong here too (L nominally worse than C?, not better).
+
+**Diagnostic 1**: final mean `|W_out|` — C? 0.0632, L 0.0632, identical to four
+decimal places, same as E065.
+
+**Diagnostic 2**: (L late−early) − (C? late−early) for water intake = −316.4 ± 364.1,
+t=0.87, not significant — clean, as expected given the primary result is null.
+
+Wall clock: 3415s (~57 min).
 
 ## 7. Interpretation
 
-_Pending §6._
+**The correction changed the picture, but not the conclusion.** With reward.py
+prerequisite gap now fixed, the primary contrast's sign flipped to the direction the
+original prediction called for (L's increase smaller than C?'s), but the effect size
+is close to zero (−0.19, against a scale where the individual conditions' own SEs are
+0.5–1.2) and nowhere near significant. This is a materially different — and more
+trustworthy — null than E065's: E065's wrong-signed result is now explained (there was
+no teaching signal at all), and this run closes that specific gap while still finding
+nothing.
+
+**The witnessed/testimony-only split directly confirms the mechanism the design review
+predicted, and gives the null more force, not less.** Testimony-only onsets are about
+a third the volume of witnessed ones — most of what "prevents" sickness in this flock
+is already covered by the innate visual-avoidance reflex, present identically in all
+three conditions. That is exactly the dilution concern raised before this run: if a
+real but small call-specific effect existed, it should show up more clearly in this
+isolated bucket, where the innate reflex has nothing to contribute and only learned,
+auditory-driven avoidance could possibly explain a difference. It does not show up
+there either — if anything the (non-significant) point estimate points the wrong way.
+This rules out "the aggregate metric washed out a real effect" as an explanation for
+the overall null; the null holds in the one bucket built specifically to detect it.
+
+**Diagnostic 1 carries the same caveat as before** — an unchanged aggregate `|W_out|`
+does not prove the rule is inactive, only that this coarse check cannot see anything
+finer. That limitation is now doing less work, though: with a real reward signal in
+place and a null in the specific bucket theory says should show the effect, the burden
+has shifted from "was there anything to learn from" (resolved) to "can this rule learn
+it at all" (looking increasingly like no, though the local-vs-aggregate weight
+question from E065 remains formally open).
 
 ## 8. Consequence
 
-_Pending §6._
+**T2 stays `NOT SUPPORTED`, now on solid methodological ground.** The two live
+objections to E065's conclusion — no reward signal, and a possible innate-reflex
+confound — have both been addressed directly in this single corrected run, and the
+result did not change in substance. H2f's rule, with a working teaching signal and
+looking specifically at the cases only it could plausibly explain, still shows no
+detectable learned avoidance.
+
+This is a stronger, more defensible negative result than E065's, and the T2 line of
+work has now had a fair test. Not claimed as fully closed: a longer run, a different
+rule, or the finer local-weight diagnostic could still turn up something, and none of
+those have been run. But the specific, actionable objections raised during design
+review have been checked, not just noted.
+
+Update `docs/hypothesis.md`'s T2 node to record this corrected result alongside
+E065's, explaining why the earlier conclusion needed a second look and what changed.
+`docs/backlog.md`'s T2 section: mark the corrected re-run done, retire the open
+"reward signal" and "innate-reflex confound" questions this run was built to answer.
