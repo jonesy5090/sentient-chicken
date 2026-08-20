@@ -101,6 +101,34 @@ is close to pointless.
 new behaviour. Which places are aversive stays entirely learned, which is the property
 E063 was protecting and the reason T2-revised is not question-begging.
 
+### Recorded risk: this re-creates the shape E008 fixed
+
+`pred_src`'s own comment (`connectome.py:348`) says predictions come from the pallium
+**never from the sensory stub**, because E008 found the first version circular — sourced
+from a region carrying a percept *directly*, `W_pred` learned "when in hawk-state, predict
+hawk". Giving the hippocampus direct place afferents and then adding it to `pred_src`
+re-creates that structure: a `pred_src` region with direct sensory input.
+
+Three reasons it is still the right change, and one thing it obliges:
+
+1. **The association T2 needs is cross-modal.** `W_pred` writes onto the *gakel call*
+   channel and sources from *place*. The gakel call is not an afferent of the hippocampus,
+   so predicting it from position is not autoencoding. E008's failure was a channel
+   predicting itself.
+2. **The source is lagged and centred** — `z_lag − z_lag_bar`, not instantaneous rate
+   (E008's own fix, plus E071's). That is the cue-to-outcome direction, not the
+   simultaneous one.
+3. **E086 does not learn anything.** It plants `W_pred` and measures decodability. The
+   circularity risk is not exercised here at all.
+
+**But it will be exercised the moment a learning run follows**, and `shared_place_map`
+sharpens it: the testimony channels also feed the hippocampus, so `W_pred` could learn to
+predict testimony-about-P from being-at-P, which is circular in exactly E008's sense and
+would look like successful association. **Any learning experiment built on this must carry
+an autoencoder control** — check that a learned `W_pred` does not simply reconstruct the
+place channels from themselves — before its result is read. Recorded here so it is not
+discovered later.
+
 ### Guard
 
 A test asserting the hippocampus receives place afferents **and** is in `pred_src` when
