@@ -316,13 +316,22 @@ def avoid_a_sick_flockmate(cfg: CoopConfig) -> Probe:
 
 
 def withdraw_on_hearing_a_gakel_call(cfg: CoopConfig) -> Probe:
-    """T2-revised mechanism 1. Hearing the gakel call must suppress approach and
-    ingestion -- and must do so *specifically*, not as a response to any call.
+    """T2-revised mechanism 1. Hearing the gakel call must suppress *ingestion* -- and
+    must do so *specifically*, not as a response to any call -- while leaving locomotion
+    alone.
 
     Checked as a within-setup contrast against a contact call at identical amplitude
     from the identical position, because a scaffold that damped everything on the
     audio bus would pass a bare sign test while being useless: the whole point is that
     the aversive response is tied to this call and not to hearing a flockmate.
+
+    **The forward-drive clause is a guard, not a second effect (E083).** This assay used
+    to require forward drive to fall too, and passed happily while the scaffold was
+    broken. E082 showed why that was the wrong test: `coop/actuation.py` derives speed
+    from `M_FORWARD`, so damping it makes a hen who is already *at* the bad feeder stay
+    at it -- lingering, where avoidance needs leaving. So the clause is now inverted.
+    Forward drive must **not** fall, and this runs at the configuration where the defect
+    appeared, with the hen standing on food, which is the only place it is visible.
 
     Opt-in, like the alarm scaffold -- this probe is the only place it is switched on.
     """
@@ -341,11 +350,13 @@ def withdraw_on_hearing_a_gakel_call(cfg: CoopConfig) -> Probe:
 
     fwd_g, peck_g = drive(gakel)
     fwd_c, peck_c = drive(contact)
-    passed = fwd_g < fwd_c and peck_g < peck_c
+    # 0.01 of motor range: the two conditions differ only in which audio channel is hot,
+    # so anything larger than numerical wobble here is a real path onto M_FORWARD.
+    passed = peck_g < peck_c and fwd_g >= fwd_c - 0.01
     return Probe("withdraw on hearing a gakel call", passed,
-                f"gakel fwd={fwd_g:.3f} peck={peck_g:.3f} vs "
-                f"contact fwd={fwd_c:.3f} peck={peck_c:.3f} "
-                f"(gakel must be lower on both)")
+                f"gakel peck={peck_g:.3f} vs contact peck={peck_c:.3f} (must be lower); "
+                f"gakel fwd={fwd_g:.3f} vs contact fwd={fwd_c:.3f} "
+                f"(must NOT be lower -- see E082)")
 
 
 ALL = (peck_at_food, crouch_at_hawk, head_down_blindness, flee_from_fox,

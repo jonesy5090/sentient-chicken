@@ -269,13 +269,30 @@ def _add_gakel_scaffold(w, gain: float = 1.0) -> None:
     here -- and structurally identical to `CLS_SICK`'s turn-away being innate while
     *which hen is sick* is not.
 
-    **Why suppression of approach rather than a turn.** The audio channels carry no
-    direction (E064's whole premise), so "turn away from the call" is not computable
-    from this input and would have to invent a bearing. Suppressing forward drive and
-    pecking needs no direction at all. It also makes T2's "food there should be avoided
-    too" fall out for free: the suppression acts on *approach and ingestion*, not on a
-    food-specific channel, so food at an aversive place is declined without any extra
-    inference machinery.
+    **Why suppression of *ingestion only*, and not of approach (E083, correcting E082's
+    finding).** The first version of this scaffold suppressed `M_FORWARD` as well, on the
+    reasoning that the audio channels carry no direction (E064's whole premise), so "turn
+    away from the call" is not computable here and would have to invent a bearing.
+    Damping forward drive needs no bearing, so it looked like the conservative choice.
+
+    It is not, and E082 measured why. `coop/actuation.py` derives speed from `M_FORWARD`,
+    so a hen who is *already at* the aversive place and slows down **stays there**. The
+    anchor produced lingering where avoidance requires leaving: with the association
+    planted by hand and firing at 1.000, forward drive duly fell 17% and occupancy at the
+    bad feeder did not move. Worse, the arc four comments below explicitly declines to
+    borrow the anti-predator response, and suppressing locomotion is a functional freeze
+    by another route -- so the implementation contradicted its own stated design.
+
+    Suppressing `M_PECK` alone fixes it without adding any machinery, because forward
+    drive is never wired to food in the first place. It comes from `IDX_HUNGER`,
+    `IDX_THIRST`, `IDX_COLD` and a tonic bias; food drives `M_PECK` only. A hen does not
+    stop at a feeder, she walks through it and pecks as she passes. So she keeps walking,
+    declines to eat, stays hungry, and hunger drives `M_FORWARD` *harder* -- departure
+    falls out of the foraging dynamics that already exist, and still needs no bearing.
+
+    T2's "food there should be avoided too" still falls out for free, and now more
+    directly: the suppression acts on ingestion itself rather than on a food-specific
+    channel, so food at an aversive place is declined without any extra inference.
 
     **Biological grounding, and its limit, stated honestly.** `_add_auditory_scaffold`
     above rests on parentally naive chicks responding differentially to conspecific
@@ -291,12 +308,16 @@ def _add_gakel_scaffold(w, gain: float = 1.0) -> None:
     """
     gakel_call = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_GAKEL)
 
-    w(spec.M_FORWARD, gakel_call, -SCAFFOLD_WEIGHT * gain)
     w(spec.M_PECK, gakel_call, -SCAFFOLD_WEIGHT * gain)
 
     # Deliberately NOT wired:
     #
     # *No turn.* See above -- there is no bearing in this channel to turn along.
+    #
+    # *Nothing on M_FORWARD.* This was wired until E083 and was the defect E082 found:
+    # damping locomotion at the aversive place produces lingering, which is the exact
+    # opposite of avoidance. `run/probes.py`'s gakel assay now guards against it coming
+    # back, and guards at the configuration where it appeared.
     #
     # *No relay.* Hearing a gakel call does not trigger producing one, matching the
     # alarm scaffold's own reasoning: a relay makes the acoustic environment
