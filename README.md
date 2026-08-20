@@ -342,7 +342,7 @@ answer:
 | Can she even **represent the difference** between hearing a call and seeing a hawk? | **Barely.** The two brain states differ by about 7% of resting activity — enough to measure, not enough to obviously learn from. |
 | Does a **trained** connection to the muscles do anything at all, once those two problems are set aside? | **Open again.** It looked settled — removing a trained connection cost more than removing a random one — until E025's food-competition bug turned out to be driving the result. Clean measurement: no detectable effect either way (E038). |
 | Is the learning rule even the **right kind** for this job? | **Yes, when it isn't reward-gated — the project's first genuine positive result.** Wiring in by hand the one piece she was missing (a reflex to *hearing* an alarm) still didn't produce learned, audience-sensitive calling under the normal, reward-modulated rule (E018/E036). Swapping to a non-reward-gated, correlation-based update on the same pathway did: a real, twice-replicated, predominantly audience-conditional increase in alarm calling (+0.232, t=40.90 pooled across 16 seeds) that the reward-modulated rule never produced on the identical task. Not a clean, audience-*only* effect — a smaller, real, context-specific (not indiscriminate) general component rides alongside it — but the falsifier this question was waiting on has cleared (`docs/hypothesis.md`'s H2f, E055–E057). |
-| Can she learn *which specific place* is dangerous, from another hen's call? | **Not yet, and the last blocker is a wrong reflex rather than a limit of the rule.** Reward-driven learning is dead here — a thousandfold `sickness_penalty` sweep produced no avoidance at any magnitude, for a now-understood reason (E069). The associative route survives, and its whole chain has now been shown to conduct end to end with a hand-planted signal: forward drive falls 17% at the poisoned feeder (E082). But she **slows down instead of leaving**, because the innate response to hearing a gakel call suppresses walking, and a hen who stops walking while standing at the bad feeder stays at it. Fixing that response is the next step. |
+| Can she learn *which specific place* is dangerous, from another hen's call? | **Not yet — and the blocker is now the model rather than the measurement, after four experiments in which it was the measurement.** Reward-driven learning is dead here for a settled reason (E069). The associative route survives, and its wiring works end to end. But three separate instrument faults had to be found and fixed before that could be said at all: the signal we were planting fired *hardest away from* the target feeder (E083), and the metric could not resolve the effect the experiments predicted (E084). With both repaired, the real limit appeared: **she can barely tell where she is while she is walking.** Her sense of place is clearly readable when she stands still and almost vanishes once she moves — about four points above guessing (E085). There is not enough of a place signal for an association to attach to, and that is an architecture problem with named fixes rather than a dead end. |
 
 An unplanned finding along the way that still stands: the hens that **grow** new
 connections do *worse* than the ones that only prune. That inverts the obvious
@@ -756,10 +756,23 @@ anchors, and the place cells were deliberately given none, so no reward magnitud
 produce place-specific avoidance. The alternative is associative — pair the call with the
 place and let a non-reward-gated rule bind them, the same kind of rule that produced H2f's
 positive. That chain has now been shown to work end to end by planting the association by
-hand: her forward drive drops 17% at the poisoned feeder. **She just doesn't leave.** The
-innate response to hearing a gakel call suppresses walking, and a hen who stops walking
-while standing at the bad feeder stays at it — a freeze where the task needs a departure
-(E082). Along the way two scaffolds we had added ourselves — a contaminated feeder and a
+hand: her forward drive drops 17% at the poisoned feeder. **She still doesn't avoid it** —
+and it took four experiments to find out why, because three of the reasons were faults in
+our own instruments rather than facts about her. The signal we were planting turned out to
+fire *hardest away from* the feeder we were trying to make aversive. The metric could not
+have detected the effect we had predicted, at the sample size we were using, whatever the
+hen did. And one innate response was wired as a functional freeze, so a hen who "avoided" a
+feeder by slowing down stayed at it.
+
+With all three repaired, the real limit finally showed up, and it is about the bird:
+**she can barely tell where she is while she is moving.** Her sense of place reads clearly
+when she is standing still and nearly disappears once she walks — roughly four percentage
+points above guessing. There is not enough of a place signal for a learned association to
+attach to. That is an architecture problem with specific, named fixes rather than a dead
+end, and it is the first thing in this line of work that is a fact about the model instead
+of a fact about our measurement of it.
+
+Along the way two scaffolds we had added ourselves — a contaminated feeder and a
 population of place cells — turned out to be silently changing the baseline of every
 experiment that ran after them, including one of our own positive results, which is
 withdrawn. Both are now off by default and the affected result reproduces cleanly.

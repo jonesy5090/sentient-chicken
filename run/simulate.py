@@ -59,7 +59,18 @@ class Summary(NamedTuple):
     synapses: jax.Array     # (C,) mean live synapses per hen
     reflex_drive: jax.Array    # (C,) mean |innate arc| at the motor output
     cortical_drive: jax.Array  # (C,) mean |pallial readout| at the motor output
-    w_out_norm: jax.Array      # (C,) mean |W_out|
+    w_out_norm: jax.Array      # (C,) mean |W_out| -- the READOUT, see w_norm below
+    w_norm: jax.Array          # (C,) mean |W| over live synapses -- the RECURRENT matrix
+    #
+    # Two norms, because under `hebbian_readout` they answer different questions and
+    # only one of them answers "is the reward signal reaching the weights?".
+    # `hebbian_readout` replaces the neuromodulator with a constant for `W_out` only,
+    # so `W_out` drifts at the same rate whether a reward arrived or not -- which is
+    # why |W_out| returned a falsely reassuring identical value across E065, E066 and
+    # E068 while `sickness_penalty` was in fact supplying ~0.007% of reinforcement
+    # (E068). `W` stays reward-gated, so |W| is the diagnostic those experiments
+    # needed. Masked, because ~86% of the matrix is structurally zero and averaging
+    # over it dilutes any real movement by an order of magnitude.
 
 
 def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
@@ -186,6 +197,8 @@ def _chunked(w, x, p, ps, key, cfg: CoopConfig, pc: PlasticConfig,
             reflex_drive=jnp.mean(mags[:, 0]),
             cortical_drive=jnp.mean(mags[:, 1]),
             w_out_norm=jnp.mean(jnp.abs(p.W_out)),
+            w_norm=(jnp.sum(jnp.abs(p.W) * p.mask[None, :, :])
+                    / (p.W.shape[0] * jnp.sum(p.mask) + 1e-9)),
         )
         return carry, s
     return jax.lax.scan(chunk, (w, x, p, ps, key), None, length=n_chunks)
