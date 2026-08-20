@@ -109,58 +109,76 @@ FROZEN = dict(enabled=True, explore_sigma=0.0, eta=0.0, eta_out=0.0, eta_pred=0.
               scaling_strength=0.0, readout_scaling_strength=0.0,
               pred_enabled=True, pred_centred=True)
 
-print(f"E083 -- M_PECK-only anchor, {SEEDS} seeds, {MINUTES:.0f} min, no learning")
-print(f"planted P=cell {P} {CEN[P].round(1)}, control P'=cell {P2} {CEN[P2].round(1)}, "
-      f"food at both, spacing {SPACING:.2f} m\n")
-t0 = time.perf_counter()
 _PLANT_CFG = PlasticConfig(**FROZEN, pred_gain=1.0)
-PLANTED = {}
-for s_ in range(SEEDS):
-    k = jax.random.key(s_)
-    _p = connectome.build(jax.random.fold_in(k, 1), regions.DEFAULT_REGIONS, n_hens=HENS,
-                          gakel_scaffold=True, shared_place_map=True)
-    PLANTED[s_] = plant(_p, _PLANT_CFG)
-print("pre-flight -- predicted gakel at P per seed: "
-      + ", ".join(f"{v[1]:.3f}" for v in PLANTED.values()))
-_worst = min(v[1] for v in PLANTED.values())
-assert _worst >= PREFLIGHT_MIN, (
-    f"PRE-FLIGHT FAILED: plant reads {_worst:.4f} at P, need >={PREFLIGHT_MIN}. "
-    "The plant is not firing -- do not interpret anything downstream of this. "
-    "Check that z_lag_bar has converged (E071) and that the plant is built against "
-    "the same centred signal the runtime reads (E082).")
-print("pre-flight OK\n")
 
-print(f"{'pred_gain':>10}{'occupancy P':>13}{'occupancy P2':>14}{'hunger':>9}"
-      f"{'fwd':>8}{'peck@P':>9}{'pred@gakel':>12}")
-ROWS = {}
-for gain in (0.0, 0.5, 1.0, 2.0):
-    pc = PlasticConfig(**FROZEN, pred_gain=gain)
-    oP, o2, hu, fw, pk, pr = [], [], [], [], [], []
-    for s in range(SEEDS):
-        k = jax.random.key(s)
-        w = world.reset(k, CFG)
-        w = w._replace(food_pos=jnp.asarray(np.stack([CEN[P], CEN[P2]]), dtype=jnp.float32))
-        p = PLANTED[s][0]
-        x = brain.initial_state(p, HENS); ps = plasticity.initial_state(p, HENS, pc)
-        a, b, c, dd, e, f = run(w, x, p, ps, jax.random.fold_in(k, 2), CFG, pc, STEPS)
-        oP.append(float(jnp.mean(a))); o2.append(float(jnp.mean(b)))
-        hu.append(float(jnp.mean(c))); fw.append(float(jnp.mean(dd)))
-        pk.append(float(jnp.mean(e))); pr.append(float(jnp.mean(f)))
-    ROWS[gain] = (np.mean(oP), np.mean(o2), np.mean(hu), np.mean(fw), np.mean(pk), np.mean(pr))
-    print(f"{gain:>10.1f}{np.mean(oP):>13.4f}{np.mean(o2):>14.4f}{np.mean(hu):>9.3f}"
-          f"{np.mean(fw):>8.3f}{np.mean(pk):>9.3f}{np.mean(pr):>12.4f}")
+# Everything below is the E083 driver. It is guarded because E084 and E085 import this
+# module for its constants, `plant()` and `run()` -- and an unguarded driver re-ran the
+# full 15-minute gain ladder on every import, which wasted a run and, when the import
+# sat behind a pipe, produced an empty output file that looked like a silent crash.
 
-b0, c0 = ROWS[0.0][0], ROWS[0.0][1]
-b2, c2 = ROWS[2.0][0], ROWS[2.0][1]
-print(f"\nwall clock: {time.perf_counter()-t0:.0f} s")
-print("--- pre-registered falsifiers (E083 section 4) ---")
-mono = all(ROWS[g][0] >= ROWS[h][0] for g, h in ((0.0, 0.5), (0.5, 1.0), (1.0, 2.0)))
-print(f"primary   occupancy P {b0:.4f} -> {b2:.4f} = {100*(b2-b0)/b0:+.1f}% "
-      f"(need <=-15%, monotonic={mono}) -> "
-      f"{'PASS' if (b2-b0)/b0 <= -0.15 and mono else 'FIRES'}")
-print(f"agitation occupancy P' {c0:.4f} -> {c2:.4f} = {100*(c2-c0)/c0:+.1f}% "
-      f"(fires if <=-10%) -> {'FIRES' if (c2-c0)/c0 <= -0.10 else 'clear'}")
-print(f"starve    hunger at gain 2.0 = {ROWS[2.0][2]:.3f} "
-      f"(fires if >0.60) -> {'FIRES' if ROWS[2.0][2] > 0.60 else 'clear'}")
-print(f"reflex    live pred@gakel at gain 2.0 = {ROWS[2.0][5]:.3f} "
-      f"(fires if <0.80) -> {'FIRES' if ROWS[2.0][5] < 0.80 else 'clear'}")
+
+# The driver lives in a function so E084/E085 can import this module for its
+# constants, `plant()` and `run()` without side effects. An unguarded driver re-ran
+# the full 15-minute gain ladder on every import; a `raise SystemExit` guard was
+# worse still, killing the importing process with exit code 0 and an empty output
+# file that looked exactly like a silent crash. See E085 section 6.
+def _main():
+    print(f"E083 -- M_PECK-only anchor, {SEEDS} seeds, {MINUTES:.0f} min, no learning")
+    print(f"planted P=cell {P} {CEN[P].round(1)}, control P'=cell {P2} {CEN[P2].round(1)}, "
+          f"food at both, spacing {SPACING:.2f} m\n")
+    t0 = time.perf_counter()
+    PLANTED = {}
+    for s_ in range(SEEDS):
+        k = jax.random.key(s_)
+        _p = connectome.build(jax.random.fold_in(k, 1), regions.DEFAULT_REGIONS, n_hens=HENS,
+                              gakel_scaffold=True, shared_place_map=True)
+        PLANTED[s_] = plant(_p, _PLANT_CFG)
+    print("pre-flight -- predicted gakel at P per seed: "
+          + ", ".join(f"{v[1]:.3f}" for v in PLANTED.values()))
+    _worst = min(v[1] for v in PLANTED.values())
+    assert _worst >= PREFLIGHT_MIN, (
+        f"PRE-FLIGHT FAILED: plant reads {_worst:.4f} at P, need >={PREFLIGHT_MIN}. "
+        "The plant is not firing -- do not interpret anything downstream of this. "
+        "Check that z_lag_bar has converged (E071) and that the plant is built against "
+        "the same centred signal the runtime reads (E082).")
+    print("pre-flight OK\n")
+
+    print(f"{'pred_gain':>10}{'occupancy P':>13}{'occupancy P2':>14}{'hunger':>9}"
+          f"{'fwd':>8}{'peck@P':>9}{'pred@gakel':>12}")
+    ROWS = {}
+    for gain in (0.0, 0.5, 1.0, 2.0):
+        pc = PlasticConfig(**FROZEN, pred_gain=gain)
+        oP, o2, hu, fw, pk, pr = [], [], [], [], [], []
+        for s in range(SEEDS):
+            k = jax.random.key(s)
+            w = world.reset(k, CFG)
+            w = w._replace(food_pos=jnp.asarray(np.stack([CEN[P], CEN[P2]]), dtype=jnp.float32))
+            p = PLANTED[s][0]
+            x = brain.initial_state(p, HENS); ps = plasticity.initial_state(p, HENS, pc)
+            a, b, c, dd, e, f = run(w, x, p, ps, jax.random.fold_in(k, 2), CFG, pc, STEPS)
+            oP.append(float(jnp.mean(a))); o2.append(float(jnp.mean(b)))
+            hu.append(float(jnp.mean(c))); fw.append(float(jnp.mean(dd)))
+            pk.append(float(jnp.mean(e))); pr.append(float(jnp.mean(f)))
+        ROWS[gain] = (np.mean(oP), np.mean(o2), np.mean(hu), np.mean(fw), np.mean(pk), np.mean(pr))
+        print(f"{gain:>10.1f}{np.mean(oP):>13.4f}{np.mean(o2):>14.4f}{np.mean(hu):>9.3f}"
+              f"{np.mean(fw):>8.3f}{np.mean(pk):>9.3f}{np.mean(pr):>12.4f}")
+
+    b0, c0 = ROWS[0.0][0], ROWS[0.0][1]
+    b2, c2 = ROWS[2.0][0], ROWS[2.0][1]
+    print(f"\nwall clock: {time.perf_counter()-t0:.0f} s")
+    print("--- pre-registered falsifiers (E083 section 4) ---")
+    mono = all(ROWS[g][0] >= ROWS[h][0] for g, h in ((0.0, 0.5), (0.5, 1.0), (1.0, 2.0)))
+    print(f"primary   occupancy P {b0:.4f} -> {b2:.4f} = {100*(b2-b0)/b0:+.1f}% "
+          f"(need <=-15%, monotonic={mono}) -> "
+          f"{'PASS' if (b2-b0)/b0 <= -0.15 and mono else 'FIRES'}")
+    print(f"agitation occupancy P' {c0:.4f} -> {c2:.4f} = {100*(c2-c0)/c0:+.1f}% "
+          f"(fires if <=-10%) -> {'FIRES' if (c2-c0)/c0 <= -0.10 else 'clear'}")
+    print(f"starve    hunger at gain 2.0 = {ROWS[2.0][2]:.3f} "
+          f"(fires if >0.60) -> {'FIRES' if ROWS[2.0][2] > 0.60 else 'clear'}")
+    print(f"reflex    live pred@gakel at gain 2.0 = {ROWS[2.0][5]:.3f} "
+          f"(fires if <0.80) -> {'FIRES' if ROWS[2.0][5] < 0.80 else 'clear'}")
+
+
+
+if __name__ == "__main__":
+    _main()

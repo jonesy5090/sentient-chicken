@@ -1392,12 +1392,12 @@ consequence, which remains separately open.
 **Status: NOT SUPPORTED instrumentally — and, after a positive control
 ([E069](experiments/E069-t2-positive-control.md)), for a now-settled architectural
 reason rather than an instrumentation one. The *associative* route (T2-revised) has a
-chain that demonstrably conducts (E082). **Nothing about its mechanisms has been tested
-yet.** There are now two independent, individually sufficient reasons why: the plant is
-anti-selective, so there was no valid treatment
-([E083](experiments/E083-gakel-anchor-produces-leaving.md)); and the occupancy metric
-cannot resolve the effect the experiments predicted, so there was no valid measurement
-([E084](experiments/E084-live-place-decoding.md)). Both are below.** A `sickness_penalty` sweep across a
+chain that demonstrably conducts (E082). Both of its instrument defects are now fixed and
+measured — but the route is blocked on the model itself: **mechanism 2 is insufficient as
+built** ([E085](experiments/E085-repaired-instrument.md)). Position is linearly decodable
+from pallial state at about **four points above chance while the hen moves**, against
+84.6% when she is parked. There is not enough place signal for `W_pred` to bind a place to
+a call.** A `sickness_penalty` sweep across a
 thousandfold range produces no learned avoidance at any magnitude: `late−early` runs
 +1.00, +0.08, +0.08, +1.25, −0.33 with no trend. The signal does reach the weights
 (mean `|W−W₀|` rises 26% at penalty 1000) but produces undirected perturbation, not
@@ -1677,6 +1677,58 @@ a percentage threshold without checking the metric could resolve it. That check 
 arithmetic on a variance estimate and costs one baseline run; it should precede any future
 falsifier that names a percentage.
 
+**The instrument is repaired, and the route is now blocked on the representation
+([E085](experiments/E085-repaired-instrument.md)).** E085 made no behavioural claim; its
+output is an instrument and a number saying what it can resolve.
+
+**The metric fix works.** Choosing the target feeder **per seed from an independent
+baseline run** holds up: occupancy at the target is 0.600 in the selection run and 0.602
+in the test run, minimum 0.405, drift +0.8% and symmetric across seeds. Occupancy at a
+per-seed target resolves **9.7% at n=4 and 5.1% at n=8**, against E084's 18.3% at n=4 for
+a fixed cell. Measured from a **null–null contrast** — two null runs differing only in
+dynamics RNG — so the threshold is not derived from the treatment it will judge. *Mean
+dwell per visit was tried as an alternative and is much worse* (MDE 74.3% at n=8): it is
+heavy-tailed, because a hen who essentially never leaves produces one enormous visit that
+dominates the mean. That prediction was recorded and was wrong.
+
+**And the decodability gate fires.** A discriminant fitted on live trajectory states and
+evaluated on a held-out run of the same world scores **59.6%** balanced accuracy, ratio
+1.70, profile not decreasing — all three gate conditions fail. That headline is itself
+mostly class imbalance: per-seed accuracy correlates with split skew at **r=+0.870**, and
+on the **six seeds with balanced splits** it is **54.3%**, +4.3 ± 1.5, t=+2.95. So the
+signal is real and about **four percentage points above chance**. E081 measured 84.6% on
+parked states; the tasks are not identical and the numbers should not be subtracted, but
+the gap and its direction are the finding — **the place code is legible when she is
+standing still and nearly illegible while she is moving.** Even the live-fitted
+discriminant fires *least* when she is closest to the target (innermost bin 0.653, lowest
+of seven): fitting on live states removed the parked-fit *inversion* but did not produce
+selectivity.
+
+**E083's diagnosis replicates on data that did not generate it**: the parked-fit plant
+scores 48.7% held-out — chance — with ratio 0.60 against E083's 0.53.
+
+**This is the first result in this arc about the model rather than about our measurement
+of it.** `W_pred` is a linear readout, so a linear decoder is the relevant class, and the
+same estimator recovers 84.6% from the same population when the hen is parked. The place
+cells work. What defeats them is that pallial state under free movement is dominated by
+hunger, pecking, flockmates and calls, and **E063 deliberately gave the place channels no
+innate anchors** — so nothing amplifies them into the variance a linear readout can find.
+That was E085's recorded prediction and it held.
+
+**Next, in order: (1)** give the place channels a weak innate anchor — the one structural
+asymmetry that made H2f work is that the rule amplifies what innate wiring already
+emphasises (E058/E059, E069), and this wires *that there are places*, not *which place is
+aversive*; **(2)** widen the place population, 25 cells at `place_sigma` 2.0 in a 20 m
+arena is coarse and `OBS_DIM` growth is cheap; **(3)** failing both, re-scope T2 — if
+position cannot be made legible under movement without distorting the model, then durable
+avoidance of *this specific feeder* is not reachable in this architecture, and that is a
+finding rather than a failure. **Do not run the behavioural contrast against the current
+representation**; it would be a fifth null with a known cause.
+
+*One limitation recorded: E085's determinism check ran on seed 0 and cleared, while
+E084's bit-identical anomaly was on seed 4 under a different design. That anomaly is not
+resolved, only shown not to be universal.*
+
 **Falsifier:** with the scaffold validated (Stage 1) and the H2f-style learning rule
 applied, if `L` (intact channel) does not out-perform `C?` (shuffled/yoked, matching
 H4's own control design) on flock-wide sickness per rotation, the anchor was not enough
@@ -1805,6 +1857,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E085 | **T2's instrument repaired and measured -- and the route is now blocked on the representation, not the instrument.** Makes no behavioural claim. **Metric fix works**: choosing the target feeder per seed from an independent baseline run holds up (occ 0.600 selection -> 0.602 test, min 0.405, drift +0.8% and symmetric), and resolves **9.7% at n=4, 5.1% at n=8** against E084's 18.3% at n=4 for a fixed cell -- measured from a **null-null contrast** so the threshold is not derived from the treatment it will judge. Mean dwell per visit was tried and is far worse (MDE 74.3%): heavy-tailed, since a hen who never leaves yields one enormous visit. That prediction was recorded and wrong. **Decodability gate fires**: a discriminant fitted on live states and evaluated held-out scores **59.6%**, ratio 1.70, profile not decreasing. The headline is mostly class imbalance -- accuracy correlates with split skew at **r=+0.870**, and on the six balanced-split seeds it is **54.3%, +4.3 +/- 1.5, t=+2.95**: real, reliable, and about four points above chance, against E081's 84.6% parked. Even the live-fit discriminant fires *least* closest to the target (innermost bin 0.653, lowest of seven). E083's diagnosis replicates on fresh data (parked-fit 48.7%, ratio 0.60 vs 0.53). **First result in this arc about the model rather than our measurement of it**: `W_pred` is linear, the place cells work parked, and E063 gave them no innate anchors, so nothing lifts position into the variance a linear readout can reach. Next: innate place anchor, then a wider place population, then re-scope T2. Also records two engineering faults that both presented as exit 0 with an empty file (unguarded module driver; 3.9 GB/run OOM from emitting state every scan step). |
 | E084 | **T2's occupancy metric cannot resolve the effect E082 and E083 predicted -- both falsifiers were guaranteed to fire before either ran.** Set out to fit the place discriminant on live states rather than parked ones; **crashed on seed 1 with 0 of 19 200 samples** within 3.33 m of the planted feeder (16 hens, 20 min) while the same connectome's other run gave 0.424. Diagnostics (post-hoc): **the flock aggregates** -- `approach_flockmates` works, so 16 hens behave as one clump (spread 1.66-7.21 m in a 20 m arena) that settles where it starts, and occupancy of a fixed cell runs **0.000 to 0.481 on world key alone**; effective n for a spatial metric is nearer one animal per seed than sixteen. **And the metric is under-resolved**: 8 seeds give baseline 0.4244 +/- 0.2751 (seeds spanning 0.0948-0.9651), paired-difference sd 0.0487, **minimum detectable effect at n=4 = 18.3% of baseline against a pre-registered 15%**. Observed at n=8: +6.4%, t=+1.57, ns and positive. Two seeds sit at ceiling/floor (CLAUDE.md check 5) on top of check 6. Second independent sufficient reason -- with E083's anti-selective plant -- why this arc produced nulls, neither about the hen. **Part A's question stays open**: one seed completed, at chance (44.4% live-fit vs 44.8% parked-fit, held-out). Next: pick the target cell per seed from an independent baseline run so every seed has room to fall, n=8 minimum. |
 | E083 | **T2's gakel anchor redesigned to produce leaving -- and the plant found to be anti-selective, invalidating this arc's behavioural readouts.** `_add_gakel_scaffold` now suppresses `M_PECK` only, never `M_FORWARD`. The redesign works: the freeze is gone (fwd flat 0.633 -> 0.626 vs E082's 17% fall) and pecking at the planted feeder falls monotonically (0.550 -> 0.504). **Occupancy at P still did not fall** -- it rose 9%, non-monotonically, so the primary falsifier fired. Then the diagnostic that matters: `pred@gakel` averaged 0.90 while the hen is at P only ~42% of the time, and splitting by position gives **0.656 at P vs 1.244 elsewhere** (ratio 0.53), live magnitude varying **9-fold across seeds** against a pre-flight of exactly 1.000 on all four. A distance profile rules out disc width: innermost bin (0-1 m) is the **lowest of seven** at 0.655, peak in a 5-7 m ring at 2.128. **The plant is inverted** -- E082 and E083 both drove the channel hardest where she was not meant to be avoiding, which explains both results in the right direction. Cause: the discriminant is fitted on a **parked** hen and read back on a **moving** one -- the third instance of E071's error shape, and the amplitude-only pre-flight added after E082 cannot catch it (it never checks *elsewhere*). Withdraws E082's "she slows and stays" diagnosis (its "the chain conducts" stands) and re-scopes E081's 84.6% to parked states. Next: fit the discriminant on live trajectory states; make the pre-flight assert selectivity, not amplitude. |
 | E082 | **T2's whole-chain control redone with a discriminative plant: the chain conducts, and fails on one wrong reflex.** E070's plant never fired; this one does -- pre-flight **1.000 at the planted place per seed**, 0.86-0.96 live -- and **forward drive falls 17%** (0.622 -> 0.519) as `pred_gain` rises, so every link works end to end. **But occupancy at the planted feeder does not fall** (0.4501 -> 0.4339, non-monotonic, ~3% of a 45% baseline). Diagnosed: `_add_gakel_scaffold` suppresses `M_FORWARD` and `actuation.py` derives speed from it, so a hen already at the bad feeder **slows and stays**. The anchor produces lingering where avoidance requires leaving -- and its own docstring explicitly declines to borrow the anti-predator response while the implementation is a functional freeze anyway. Hunger flat (0.427 -> 0.437) and control-feeder occupancy flat, so neither the hallucination nor the smearing falsifier fired; **selectivity was the flagged risk and did not bind**. **The first run was invalid**: planted against raw `z_lag` while the runtime reads a converged `z_lag - z_lag_bar`, giving `pred@gakel` 0.04 instead of 1.0 -- the identical timescale error E071 documented, repeated two experiments later. Next: redesign mechanism 1 to produce *leaving* (suppress `M_PECK` only), and no L vs. C? until it passes. |
