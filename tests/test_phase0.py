@@ -446,8 +446,16 @@ def test_gakel_scaffold_is_off_by_default_and_narrowly_scoped():
     on = innate.reflex_matrix(gakel_scaffold=True)
     gakel = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_GAKEL)
 
-    assert on[spec.M_FORWARD, gakel] < 0.0, "must suppress approach"
     assert on[spec.M_PECK, gakel] < 0.0, "must suppress ingestion"
+
+    # And must NOT touch locomotion (E083, correcting E082's finding). Damping
+    # M_FORWARD makes a hen who is already at the aversive place stay at it, because
+    # actuation.py derives speed from it -- lingering, where avoidance needs leaving.
+    # It is also a functional freeze, which the anti-predator clause below forbids by
+    # another route. Departure is meant to come via hunger: she keeps walking, declines
+    # to eat, stays hungry, and hunger drives M_FORWARD harder.
+    assert on[spec.M_FORWARD, gakel] == off[spec.M_FORWARD, gakel], (
+        "the scaffold suppressed forward drive; that produces lingering, not avoidance")
 
     # No other call channel moves -- the response is to this call, not to hearing.
     for i in range(spec.N_CALLS):

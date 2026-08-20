@@ -298,7 +298,7 @@ means nothing at all until those are answered.
 The hen is born knowing a handful of reflexes and nothing else — she pecks at small
 objects, crouches at things overhead, runs from things on the ground, calls when she is
 lonely, and huddles when she is cold. All of it is measured against real published chick
-behaviour. **7 out of 7 behavioural tests pass**, and that part has held up throughout.
+behaviour. **13 out of 13 behavioural assays pass**, and that part has held up throughout.
 
 Then she learns. Except she doesn't.
 
@@ -342,6 +342,7 @@ answer:
 | Can she even **represent the difference** between hearing a call and seeing a hawk? | **Barely.** The two brain states differ by about 7% of resting activity — enough to measure, not enough to obviously learn from. |
 | Does a **trained** connection to the muscles do anything at all, once those two problems are set aside? | **Open again.** It looked settled — removing a trained connection cost more than removing a random one — until E025's food-competition bug turned out to be driving the result. Clean measurement: no detectable effect either way (E038). |
 | Is the learning rule even the **right kind** for this job? | **Yes, when it isn't reward-gated — the project's first genuine positive result.** Wiring in by hand the one piece she was missing (a reflex to *hearing* an alarm) still didn't produce learned, audience-sensitive calling under the normal, reward-modulated rule (E018/E036). Swapping to a non-reward-gated, correlation-based update on the same pathway did: a real, twice-replicated, predominantly audience-conditional increase in alarm calling (+0.232, t=40.90 pooled across 16 seeds) that the reward-modulated rule never produced on the identical task. Not a clean, audience-*only* effect — a smaller, real, context-specific (not indiscriminate) general component rides alongside it — but the falsifier this question was waiting on has cleared (`docs/hypothesis.md`'s H2f, E055–E057). |
+| Can she learn *which specific place* is dangerous, from another hen's call? | **Not yet, and the last blocker is a wrong reflex rather than a limit of the rule.** Reward-driven learning is dead here — a thousandfold `sickness_penalty` sweep produced no avoidance at any magnitude, for a now-understood reason (E069). The associative route survives, and its whole chain has now been shown to conduct end to end with a hand-planted signal: forward drive falls 17% at the poisoned feeder (E082). But she **slows down instead of leaving**, because the innate response to hearing a gakel call suppresses walking, and a hen who stops walking while standing at the bad feeder stays at it. Fixing that response is the next step. |
 
 An unplanned finding along the way that still stands: the hens that **grow** new
 connections do *worse* than the ones that only prune. That inverts the obvious
@@ -705,7 +706,7 @@ re-measurement step is the rule rather than a footnote.
 ## Current state
 
 **Phase 0** — a credible newly-hatched hen — is done and measured, and it holds up: she
-does seven documented chick behaviours nobody taught her.
+does thirteen documented chick behaviours nobody taught her.
 
 **Phase 1** — she learns — is *built* but not *proven*, and the distinction is the honest
 part. The machinery all works: eligibility traces, a neuromodulator, synapses that grow
@@ -747,6 +748,21 @@ world-config bug that broke the trained-connection result above, and held. Joini
 two halves — a flock that *learns* what a call means, and then invents one nature never
 gave it — is the rest of the project, and H2f's result is the first evidence that the
 learning half is not a dead end.
+
+**The newest line of work — can a flock learn *which* feeder is poisoned — is a null
+with a mechanical diagnosis, and it cost two withdrawn claims of our own.** Teaching this
+by reward does not work and now has a settled reason (E069): the rule amplifies innate
+anchors, and the place cells were deliberately given none, so no reward magnitude can
+produce place-specific avoidance. The alternative is associative — pair the call with the
+place and let a non-reward-gated rule bind them, the same kind of rule that produced H2f's
+positive. That chain has now been shown to work end to end by planting the association by
+hand: her forward drive drops 17% at the poisoned feeder. **She just doesn't leave.** The
+innate response to hearing a gakel call suppresses walking, and a hen who stops walking
+while standing at the bad feeder stays at it — a freeze where the task needs a departure
+(E082). Along the way two scaffolds we had added ourselves — a contaminated feeder and a
+population of place cells — turned out to be silently changing the baseline of every
+experiment that ran after them, including one of our own positive results, which is
+withdrawn. Both are now off by default and the affected result reproduces cleanly.
 
 Full detail in [`docs/hypothesis.md`](docs/hypothesis.md), which is the authority when
 this file and it disagree.
