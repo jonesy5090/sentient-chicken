@@ -80,70 +80,74 @@ def evaluate(w, thr, Z, D, radius):
     return acc, ratio, prof / max(np.nanmean(prof), 1e-9)
 
 
-if __name__ != "__main__":
-    raise SystemExit
+# Driver in a function, for the reason recorded in e083_leaving_anchor.py.
+def _main():
+    pc = plasticity.PlasticConfig(**E.FROZEN, pred_gain=0.0)
+    t0 = time.perf_counter()
+    print(f"E084 Part A -- live-fitted vs parked-fitted place discriminant")
+    print(f"P = cell {P} {CEN[P].round(1)}, {E.SEEDS} seeds, {E.MINUTES:.0f} min/run, "
+          f"sample every {SAMPLE_EVERY} steps\n")
 
-pc = plasticity.PlasticConfig(**E.FROZEN, pred_gain=0.0)
-t0 = time.perf_counter()
-print(f"E084 Part A -- live-fitted vs parked-fitted place discriminant")
-print(f"P = cell {P} {CEN[P].round(1)}, {E.SEEDS} seeds, {E.MINUTES:.0f} min/run, "
-      f"sample every {SAMPLE_EVERY} steps\n")
+    res = {r: {"live_te": [], "live_tr": [], "park_te": [],
+               "rl": [], "rp": [], "pl": [], "pp": []} for r in RADII}
+    base = []
+    for s in range(E.SEEDS):
+        k = jax.random.key(s)
+        p = connectome.build(jax.random.fold_in(k, 1), regions.DEFAULT_REGIONS, n_hens=HENS,
+                             gakel_scaffold=True, shared_place_map=True)
+        Ztr, Dtr = run_one(p, pc, k, jax.random.fold_in(k, 2))                 # train run
+        Zte, Dte = run_one(p, pc, jax.random.fold_in(k, 6), jax.random.fold_in(k, 7))
+        base.append((Dtr < RADII[0]).mean())
 
-res = {r: {"live_te": [], "live_tr": [], "park_te": [],
-           "rl": [], "rp": [], "pl": [], "pp": []} for r in RADII}
-base = []
-for s in range(E.SEEDS):
-    k = jax.random.key(s)
-    p = connectome.build(jax.random.fold_in(k, 1), regions.DEFAULT_REGIONS, n_hens=HENS,
-                         gakel_scaffold=True, shared_place_map=True)
-    Ztr, Dtr = run_one(p, pc, k, jax.random.fold_in(k, 2))                 # train run
-    Zte, Dte = run_one(p, pc, jax.random.fold_in(k, 6), jax.random.fold_in(k, 7))
-    base.append((Dtr < RADII[0]).mean())
+        # the parked-fit plant E082/E083 used, as a directly comparable vector
+        p_pl, _ = E.plant(p, E._PLANT_CFG)
+        w_park = np.asarray(p_pl.W_pred)[0, E.GAKEL_CH, :]
+        w_park = w_park / (np.linalg.norm(w_park) + 1e-9)
 
-    # the parked-fit plant E082/E083 used, as a directly comparable vector
-    p_pl, _ = E.plant(p, E._PLANT_CFG)
-    w_park = np.asarray(p_pl.W_pred)[0, E.GAKEL_CH, :]
-    w_park = w_park / (np.linalg.norm(w_park) + 1e-9)
+        for r in RADII:
+            w_live, thr, _ = fit(Ztr, Dtr, r)
+            a_te, ra_te, pr_te = evaluate(w_live, thr, Zte, Dte, r)
+            a_tr, _, _ = evaluate(w_live, thr, Ztr, Dtr, r)
+            at = Dtr < r
+            thr_p = 0.5 * ((Ztr[at] @ w_park).mean() + (Ztr[~at] @ w_park).mean())
+            a_pk, ra_pk, pr_pk = evaluate(w_park, thr_p, Zte, Dte, r)
+            res[r]["live_te"].append(a_te); res[r]["live_tr"].append(a_tr)
+            res[r]["park_te"].append(a_pk)
+            res[r]["rl"].append(ra_te); res[r]["rp"].append(ra_pk)
+            res[r]["pl"].append(pr_te); res[r]["pp"].append(pr_pk)
+            print(f"  seed {s} r={r:.2f}: live held-out {a_te:.1%} (train {a_tr:.1%}, "
+                  f"ratio {ra_te:.2f}) | parked held-out {a_pk:.1%} (ratio {ra_pk:.2f})")
 
+    print(f"base rate 'at feeder' (radius {RADII[0]} m): {np.mean(base):.3f}\n")
+    print(f"{'radius':>8}{'fit':>8}{'held-out acc':>14}{'train acc':>11}{'ratio':>8}")
     for r in RADII:
-        w_live, thr, _ = fit(Ztr, Dtr, r)
-        a_te, ra_te, pr_te = evaluate(w_live, thr, Zte, Dte, r)
-        a_tr, _, _ = evaluate(w_live, thr, Ztr, Dtr, r)
-        at = Dtr < r
-        thr_p = 0.5 * ((Ztr[at] @ w_park).mean() + (Ztr[~at] @ w_park).mean())
-        a_pk, ra_pk, pr_pk = evaluate(w_park, thr_p, Zte, Dte, r)
-        res[r]["live_te"].append(a_te); res[r]["live_tr"].append(a_tr)
-        res[r]["park_te"].append(a_pk)
-        res[r]["rl"].append(ra_te); res[r]["rp"].append(ra_pk)
-        res[r]["pl"].append(pr_te); res[r]["pp"].append(pr_pk)
-        print(f"  seed {s} r={r:.2f}: live held-out {a_te:.1%} (train {a_tr:.1%}, "
-              f"ratio {ra_te:.2f}) | parked held-out {a_pk:.1%} (ratio {ra_pk:.2f})")
+        d = res[r]
+        print(f"{r:>8.2f}{'live':>8}{np.mean(d['live_te']):>14.1%}"
+              f"{np.mean(d['live_tr']):>11.1%}{np.mean(d['rl']):>8.2f}")
+        print(f"{'':>8}{'parked':>8}{np.mean(d['park_te']):>14.1%}{'--':>11}"
+              f"{np.mean(d['rp']):>8.2f}")
 
-print(f"base rate 'at feeder' (radius {RADII[0]} m): {np.mean(base):.3f}\n")
-print(f"{'radius':>8}{'fit':>8}{'held-out acc':>14}{'train acc':>11}{'ratio':>8}")
-for r in RADII:
-    d = res[r]
-    print(f"{r:>8.2f}{'live':>8}{np.mean(d['live_te']):>14.1%}"
-          f"{np.mean(d['live_tr']):>11.1%}{np.mean(d['rl']):>8.2f}")
-    print(f"{'':>8}{'parked':>8}{np.mean(d['park_te']):>14.1%}{'--':>11}"
-          f"{np.mean(d['rp']):>8.2f}")
+    print(f"\ndistance profile on held-out data (relative pred, radius {RADII[0]} m fit)")
+    print(f"{'bin (m)':>14}{'live-fit':>11}{'parked-fit':>13}")
+    PL, PP = np.nanmean(res[RADII[0]]["pl"], 0), np.nanmean(res[RADII[0]]["pp"], 0)
+    for i in range(NB):
+        print(f"{f'{EDGES[i]:.1f}-{EDGES[i+1]:.1f}':>14}{PL[i]:>11.3f}{PP[i]:>13.3f}")
 
-print(f"\ndistance profile on held-out data (relative pred, radius {RADII[0]} m fit)")
-print(f"{'bin (m)':>14}{'live-fit':>11}{'parked-fit':>13}")
-PL, PP = np.nanmean(res[RADII[0]]["pl"], 0), np.nanmean(res[RADII[0]]["pp"], 0)
-for i in range(NB):
-    print(f"{f'{EDGES[i]:.1f}-{EDGES[i+1]:.1f}':>14}{PL[i]:>11.3f}{PP[i]:>13.3f}")
+    acc = np.mean(res[RADII[0]]["live_te"]); ratio = np.mean(res[RADII[0]]["rl"])
+    tr = np.mean(res[RADII[0]]["live_tr"])
+    dec = bool(PL[0] > PL[1] > PL[2])
+    print(f"\nwall clock: {time.perf_counter()-t0:.0f} s")
+    print("--- pre-registered falsifiers (E084 section 4) ---")
+    print(f"gate      acc {acc:.1%} (need >={GATE_ACC:.0%}), ratio {ratio:.2f} "
+          f"(need >={GATE_RATIO}), profile decreasing={dec} -> "
+          f"{'PASS' if (acc >= GATE_ACC and ratio >= GATE_RATIO and dec) else 'FIRES'}")
+    print(f"diagnosis parked-fit held-out acc {np.mean(res[RADII[0]]['park_te']):.1%} "
+          f"(E083 wrong if >=70%) -> "
+          f"{'FIRES' if np.mean(res[RADII[0]]['park_te']) >= 0.70 else 'clear'}")
+    print(f"leakage   train {tr:.1%} vs held-out {acc:.1%} = {100*(tr-acc):+.1f} pts "
+          f"(fires if >15) -> {'FIRES' if (tr - acc) > 0.15 else 'clear'}")
 
-acc = np.mean(res[RADII[0]]["live_te"]); ratio = np.mean(res[RADII[0]]["rl"])
-tr = np.mean(res[RADII[0]]["live_tr"])
-dec = bool(PL[0] > PL[1] > PL[2])
-print(f"\nwall clock: {time.perf_counter()-t0:.0f} s")
-print("--- pre-registered falsifiers (E084 section 4) ---")
-print(f"gate      acc {acc:.1%} (need >={GATE_ACC:.0%}), ratio {ratio:.2f} "
-      f"(need >={GATE_RATIO}), profile decreasing={dec} -> "
-      f"{'PASS' if (acc >= GATE_ACC and ratio >= GATE_RATIO and dec) else 'FIRES'}")
-print(f"diagnosis parked-fit held-out acc {np.mean(res[RADII[0]]['park_te']):.1%} "
-      f"(E083 wrong if >=70%) -> "
-      f"{'FIRES' if np.mean(res[RADII[0]]['park_te']) >= 0.70 else 'clear'}")
-print(f"leakage   train {tr:.1%} vs held-out {acc:.1%} = {100*(tr-acc):+.1f} pts "
-      f"(fires if >15) -> {'FIRES' if (tr - acc) > 0.15 else 'clear'}")
+
+
+if __name__ == "__main__":
+    _main()
