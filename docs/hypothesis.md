@@ -1349,9 +1349,11 @@ consequence, which remains separately open.
 
 ## T2 — the rotating poisoned feeder: does the flock learn *which* feeder to avoid
 
-**Status: NOT SUPPORTED — and, after a positive control
+**Status: NOT SUPPORTED instrumentally — and, after a positive control
 ([E069](experiments/E069-t2-positive-control.md)), for a now-settled architectural
-reason rather than an instrumentation one.** A `sickness_penalty` sweep across a
+reason rather than an instrumentation one. The *associative* route (T2-revised) is
+unblocked (E081) and its chain now demonstrably conducts; it is blocked on one wrong
+reflex ([E082](experiments/E082-t2-chain-control-redone.md), below).** A `sickness_penalty` sweep across a
 thousandfold range produces no learned avoidance at any magnitude: `late−early` runs
 +1.00, +0.08, +0.08, +1.25, −0.33 with no trend. The signal does reach the weights
 (mean `|W−W₀|` rises 26% at penalty 1000) but produces undirected perturbation, not
@@ -1529,6 +1531,32 @@ precisely the "build a new, durable, referential contingency" claim H2f's own re
 optional scaffolding, it is the specific, tested precondition for T2 to have any chance
 of succeeding at all, chosen for that reason and stated as such.
 
+**The associative chain conducts, and fails on one wrong reflex
+([E082](experiments/E082-t2-chain-control-redone.md)).** E082 redid E070's whole-chain
+positive control with a *discriminative* plant instead of a correlational one (the
+distinction E081 established). This time the plant fires — pre-flight 1.000 at the
+planted place per seed, 0.86–0.96 live — and **forward drive falls 17%** (0.622 → 0.519)
+as `pred_gain` rises. So every link works end to end: place cells → pallium →
+discriminant → `W_pred` → `relu` → `reflex_in` → gakel scaffold → motor. E070 could
+establish none of that, because its plant never fired. **But occupancy at the planted
+feeder does not fall** (0.4501 → 0.4339, non-monotonic, ~3% of a 45% baseline), and the
+reason is mechanical rather than neural: `_add_gakel_scaffold` suppresses `M_FORWARD`,
+and `coop/actuation.py` derives speed from it — so a hen already *at* the bad feeder who
+slows down **stays there**. The anchor produces lingering where avoidance requires
+leaving. Its own docstring explicitly declines to borrow the anti-predator response
+("*no crouch or flee — this is bad food, not a predator*") and the implementation is
+functionally a freeze regardless. Hunger stays flat (0.427 → 0.437) and control-feeder
+occupancy stays flat, so neither the hallucination nor the smearing falsifier fired —
+**selectivity was the risk flagged as most likely to bind, and it did not.** Next:
+redesign mechanism 1 so the response produces *leaving* rather than *stopping*
+(suppressing `M_PECK` alone is the cheapest candidate, and its ethogram assay already
+exists), and **do not re-run the L vs. C? contrast until a redesigned anchor passes this
+control.** *(The first run of E082 was invalid and is recorded as such: it planted
+against raw `z_lag` while the runtime reads a converged `z_lag − z_lag_bar`, giving
+`pred@gakel` 0.04 instead of 1.0 — the identical timescale error E071 documented, made
+two experiments after writing it down. Corrected with a 300 s tour-settle and a
+pre-flight assertion.)*
+
 **Falsifier:** with the scaffold validated (Stage 1) and the H2f-style learning rule
 applied, if `L` (intact channel) does not out-perform `C?` (shuffled/yoked, matching
 H4's own control design) on flock-wide sickness per rotation, the anchor was not enough
@@ -1657,6 +1685,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E082 | **T2's whole-chain control redone with a discriminative plant: the chain conducts, and fails on one wrong reflex.** E070's plant never fired; this one does -- pre-flight **1.000 at the planted place per seed**, 0.86-0.96 live -- and **forward drive falls 17%** (0.622 -> 0.519) as `pred_gain` rises, so every link works end to end. **But occupancy at the planted feeder does not fall** (0.4501 -> 0.4339, non-monotonic, ~3% of a 45% baseline). Diagnosed: `_add_gakel_scaffold` suppresses `M_FORWARD` and `actuation.py` derives speed from it, so a hen already at the bad feeder **slows and stays**. The anchor produces lingering where avoidance requires leaving -- and its own docstring explicitly declines to borrow the anti-predator response while the implementation is a functional freeze anyway. Hunger flat (0.427 -> 0.437) and control-feeder occupancy flat, so neither the hallucination nor the smearing falsifier fired; **selectivity was the flagged risk and did not bind**. **The first run was invalid**: planted against raw `z_lag` while the runtime reads a converged `z_lag - z_lag_bar`, giving `pred@gakel` 0.04 instead of 1.0 -- the identical timescale error E071 documented, repeated two experiments later. Next: redesign mechanism 1 to produce *leaving* (suppress `M_PECK` only), and no L vs. C? until it passes. |
 | E081 | **H2d measures distance, not decodability -- and that unblocks T2.** `pallial_sep` has been RMS distance since E009. But `W_pred`/`W_out` are linear readouts, and what they need is linear *decodability*; two distributions can be highly correlated, tiny in RMS distance, and perfectly separable by a hyperplane. Measured: hawk-vs-call pallial states are **0.9928 correlated**, `pallial_sep` 0.1113, and **98.8% held-out linearly decodable**. **The title claim of H2d is false as written.** Also re-examined E070's blocker: it planted a **matched filter** (copy P's pattern), which scores **18.8%** -- below chance -- where a **discriminant** on the same states scores **84.6%**. E070's 'the chain does not compose' was about the readout I planted, not the network, so **T2-revised is unblocked**. Relocates the problem from representation to **rule type**: correlational rules (Hebbian/covariance, `W_out` under `hebbian_readout`) converge toward matched filters; delta rules (`W_pred`) toward discriminants. Caveats kept prominent -- these are supervised discriminants using labels the network lacks, and nothing here shows any rule actually learns them, only that the information is available. Fifth instrument-not-bird finding this session; second where the instrument was mine. |
 | E080 | **The dilution mechanism, standing since E017, explains 1-2% of H2d.** Progressively zeroed the channels identical between hawk and call -- by construction uninformative -- across 12 paired genomes. Max effect **1.21x** (only significant point 1.20x at half removal, t=2.34) against a **14.5-17x loss**. Non-monotonic, and the pre-registered confound explains why: drive falls 0.4602 -> 0.2724 as channels go, and E079 showed lower drive hurts below the optimum, so the curve is dilution-gain minus drive-penalty. Correcting for that headwind might reach 1.3x, not 14.5x. **E017's localisation stands (loss is at sensory->pallium, replicated E034); its mechanism does not.** Three interventions were built on that explanation -- modality segregation, density, balanced E/I -- all null or reversed, testing a mechanism one cheap graded measurement could have shown was too small to matter. **H2d's magnitude now has no identified mechanism**: dilution too small, saturation wrong-signed (E079), recurrent mixing wrong-signed (E017/E034), common-mode DC null (E077). Remaining lead named precisely, with its counter-evidence: pallial recurrence *strength* (distinct from global gain and from removing recurrence), against E070's finding that place similarity is identical at 1-300 settle steps. |
 | E079 | **The gain default was also set on the sparse probe -- but it turns out already optimal, and the saturation framing is withdrawn.** Both probes, 12 genomes, paired. Naturalistic separability **peaks exactly at the shipped 0.95**, declining significantly in *both* directions (0.80 -> 0.80x t=2.52; 1.10 -> **0.27x** t=6.54, far sharper than sparse's null 0.84x). Second default validated rather than moved this session. **The live-rate row matters more**: gain 0.40 pulls live pallial rate 0.6861 -> **0.1796**, comprehensively out of saturation, and separability gets **worse** (0.35x). That is the second independent demonstration -- `balanced_ei` cut live rate 0.73 -> 0.12 for a null. **Reducing drive does not improve separability; raising it hurts.** So E009's saturation diagnosis, and my own E073 write-up that leaned on it, mis-identify the constraint: saturation correlates with the best regime rather than causing the low value. **H2d now has no remaining lead.** New hypothesis: it is a property of random projection without learned feature extraction, not a fixable defect -- with the circularity that the pallium cannot learn separating features because separation is the precondition for having anything to learn from. Also fixes `docs/hypothesis.md`'s claim that `connectome.py:48` has `gain = 0.70`: it is **0.95 at line 81**, a stale correction of a stale doc. |
