@@ -613,25 +613,57 @@ Worth writing down now, while it is still cheap to be honest:
 
 ## 7. Order of work
 
-1. **Phase 1 plasticity — REOPENED, and it blocks everything below.**
-   [E013](experiments/E013-clean-test-of-h2.md) is the first clean test and learning
-   comes out *significantly worse* than no learning (t=3.85). E004's positive result is
-   best explained as an artefact of the saturated regime.
+> **Rewritten (2026-08-20).** The list below had gone badly stale: it still ranked T1
+> and the condition harness as future work when both were long done, and its blocking
+> item cited E013–E015, which E020 superseded around sixty experiments ago. What it
+> described was the project as of roughly E015. Kept as a record beneath the current
+> ordering, because the route is part of the record.
 
-   The reason is **not** connectome damage, though E013 said so at the time: that was a
-   units bug, fixed in [E014](experiments/E014-strike-units-bug.md), and
-   [E015](experiments/E015-decomposing-the-harm.md) measured pruning as nearly free
-   (22% of the connectome for +0.010). The harm is the learned pathways themselves,
-   superadditively. Nothing below is worth running until a rule exists that does not
-   make the bird worse.
-2. Condition harness: the six-way ladder as a config, sharing one simulation path.
-   `run/experiment.py` has the matched-seed skeleton; it currently knows three
-   conditions, not six.
-3. T1 shared vigilance — validates the harness against a known biological effect.
-4. Rotation-period sweep to locate the social-learning band.
-5. T2 poisoned feeder — the headline experiment.
-6. Playback and lesion assays.
-7. T3 safe corridor.
+**Current order:**
+
+1. **T2-revised's whole-chain positive control, with a *discriminative* plant.**
+   Immediate, and newly unblocked. [E070](experiments/E070-t2-revised-chain-positive-control.md)
+   paused T2-revised after a planted place→gakel association proved unselective — but
+   [E081](experiments/E081-separability-vs-decodability.md) showed that plant was a
+   **matched filter**, which scores 18.8% (below chance) where a discriminant scores
+   84.6% on the same states. Redo the control properly. If selective avoidance appears,
+   T2-revised reaches its L vs C? contrast for the first time.
+2. **Rewrite the H2d node around E081.** Its title claim is false as written and the six
+   experiments beneath it are framed around the superseded reading. *(In progress.)*
+3. **Fix the `|W_out|` "is the rule active?" diagnostic.** It reads a pathway that
+   structurally cannot respond under `hebbian_readout`, and returned a falsely
+   reassuring identical value across E065, E066 and E068. Should read `|W|`.
+4. **Audit `strike_penalty`'s reward-eligibility defect.** HIGH PRIORITY and unresolved:
+   [E067](experiments/E067-reward-eligibility-sampling-defect.md) measured discrete
+   reward events reaching `consolidate()` ~2% of the time, and **no prior conclusion has
+   been checked against it.** `CLAUDE.md` records `strike_penalty` as 87% of reward
+   variance at the H4 configuration, so this plausibly touches several recorded results.
+5. **T3 — the safe corridor.** The only original task candidate never attempted, and the
+   only remaining item from the old list.
+6. **Generational turnover** (§4 above, "not optional"), and the behaviours the tree
+   needs but the code lacks — spatial memory (currently environment-blocked, see T2's
+   section), social hierarchy.
+
+**~~Superseded ordering, kept for the record:~~**
+
+1. ~~**Phase 1 plasticity — REOPENED, and it blocks everything below.** E013 is the
+   first clean test and learning comes out significantly worse than no learning
+   (t=3.85)... Nothing below is worth running until a rule exists that does not make the
+   bird worse.~~ **Superseded by [E020](experiments/E020-h2-after-the-fixes.md)**: after
+   E019's three fixes the harm is gone (+0.062 → +0.001, t=0.08). H2 is a clean null,
+   not a harm.
+2. ~~Condition harness: the six-way ladder as a config.~~ **Done** — `run/h4.py`'s
+   `LADDER` carries all six plus a lesioned arm.
+3. ~~T1 shared vigilance.~~ **Done** — [E045](experiments/E045-t1-pareto.md),
+   [E046](experiments/E046-t1-vigilance-flocksize.md). Both original predictions settled.
+4. ~~Rotation-period sweep to locate the social-learning band.~~ **Done** —
+   [E062](experiments/E062-t2-contamination-period-calibration.md); no reason found to
+   move off 300 s.
+5. ~~T2 poisoned feeder — the headline experiment.~~ **Run, and answered instrumentally**
+   — `NOT SUPPORTED` (E065/E066/E068/E069). The associative route is item 1 above.
+6. ~~Playback and lesion assays.~~ **Done** — `run/audience.py` for playback, `h4.py`'s
+   `Lx lesioned` condition for lesions.
+7. ~~T3 safe corridor.~~ Still open — item 5 above.
 
 ## 7-. What to do next, after the second review ([E022](experiments/E022-second-review-verified.md))
 

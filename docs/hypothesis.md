@@ -505,6 +505,13 @@ justification behind it.
 
 ## H2c — a learned cue can recruit an innate response via top-down association
 
+> **Blocker re-scoped ([E081](experiments/E081-separability-vs-decodability.md)).** H2c has
+> been recorded as blocked by H2d. It is not blocked by the *representation*: the pallium
+> supports 98.8% held-out linear decoding of the hawk-vs-call contrast. What H2d actually
+> establishes is that the *distance* between mean pallial states is small. If H2c is
+> blocked, it is blocked by whether its learning rule finds a discriminant — a question
+> about rule type, not about what the pallium encodes — and that has never been tested.
+
 **Status: NOT STARTED** — opened after E007, and it supersedes the resolution E007
 proposed.
 
@@ -667,22 +674,48 @@ its own stabiliser works.
 
 ---
 
-## H2d — the pallium does not form separable representations of distinct stimuli
+## H2d — ~~the pallium does not form separable representations of distinct stimuli~~ → pallial states are *close in distance* but *linearly decodable*
 
-> **The title is false as written, established by
+> **The original title is false, established by
 > [E081](experiments/E081-separability-vs-decodability.md).** Pallial states for hawk vs
 > alarm call are 0.9928 correlated with `pallial_sep` 0.1113 — and support **98.8%
-> held-out linear decoding**. The accurate statement is: *mean pallial states for
-> distinct stimuli are very close in distance, and no structural intervention moves that,
-> but the stimuli are nonetheless linearly decodable at high accuracy.* The whole series
-> below measured **distance**; what a readout needs is **decodability**, and nobody
-> measured it until E081. Downstream hypotheses were blocked on the first clause when
-> only the second is load-bearing. The series is not wrong — it is about something else.
-> The problem relocates from *representation* to *rule type*: correlational rules
-> converge toward matched-filter directions (poor discriminators on correlated inputs),
-> delta rules toward discriminants. Read everything below with that correction.
+> held-out linear decoding**. Both facts are true; only the second bears on whether a
+> readout can use the representation.
+>
+> **How to read the rest of this node.** Everything below measured `pallial_sep`, which is
+> `RMS(hawk − call) / mean|rest|` — a **distance**. Those measurements are correct and
+> replicate. What none of them measured is **decodability**, which is what `W_pred` and
+> `W_out`, being linear readouts, actually require. So the series is not wrong; it is
+> about a quantity that turned out not to be load-bearing. Read every "separability"
+> figure below as "distance between mean states", and do not read any of them as "the
+> distinction is unavailable to a readout" — it is available, at 98.8%.
+>
+> **What this leaves standing:**
+> - The **localisation** is solid and replicated: whatever compresses the distance
+>   happens at sensory→pallium (E017, E034).
+> - Every **structural intervention** is null or negative: E/I identity (E023), modality
+>   segregation (E035), density — which *reverses* naturalistically (E041/E078),
+>   balanced E/I (E077), recurrent gain — already optimal (E079), removing recurrence —
+>   worse (E017/E034).
+> - Every **mechanism story** is now measured rather than assumed, and none survives:
+>   fan-in dilution explains 1–2% (E080), saturation is wrong-signed (E079), recurrent
+>   mixing is wrong-signed (E017/E034), common-mode DC is null (E077).
+>
+> **Where the problem actually moved.** From *representation* to **rule type**.
+> Correlational rules (Hebbian/covariance — `W_out` under `hebbian_readout`) converge
+> toward matched-filter-shaped directions, which are poor discriminators on highly
+> correlated inputs; delta rules (`W_pred`) converge toward discriminants. E081 measured
+> the gap directly on place: matched filter **18.8%**, discriminant **84.6%**. Whether any
+> rule in this codebase *finds* the discriminant has never been tested, because H2d was
+> believed to have foreclosed it. **That is the open question this node now names**, and
+> it is a question about learning rules, not about the pallium.
+>
+> **Consequence for downstream nodes.** H2c, H3 and T2 were each recorded as blocked by
+> H2d. They are not blocked by the representation. T2's associative route is unblocked
+> (see its node). H2c and H3 should be re-read against decodability rather than distance
+> before any further work on them.
 
-**Status: SUPPORTED as a limitation — and after
+**Status: SUPPORTED as a limitation *on distance, not on decodability* (see the note above) — and after
 [E077](experiments/E077-reread-balanced-ei.md)/[E078](experiments/E078-density-under-naturalistic-input.md)/[E079](experiments/E079-gain-under-naturalistic-input.md),
 every structural intervention tried is null or negative under naturalistic input**
 (E/I identity null, modality segregation null, density *reversed*, balanced E/I null,
@@ -859,6 +892,13 @@ top of the queue.
 ---
 
 ## H3 — learned usage reproduces the audience effect without being programmed
+
+> **Blocker re-scoped ([E081](experiments/E081-separability-vs-decodability.md)).** H3 has
+> been recorded as blocked by H2d. It is not blocked by the *representation*: the pallium
+> supports 98.8% held-out linear decoding of the hawk-vs-call contrast. What H2d actually
+> establishes is that the *distance* between mean pallial states is small. If H3 is
+> blocked, it is blocked by whether its learning rule finds a discriminant — a question
+> about rule type, not about what the pallium encodes — and that has never been tested.
 
 ~~**Status: UNDER TEST** (phase 2/3) — two nulls recorded, and **blocked by H2b**.~~
 
