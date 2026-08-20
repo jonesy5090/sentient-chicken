@@ -82,12 +82,75 @@ PYTHONPATH=. .venv/bin/python scratchpad/e080_dilution_test.py
 
 ## 6. Result
 
-_Not yet run._
+Staged naturalistic observation: **15 active channels, 2 informative, 13
+irrelevant-but-active.** 12 genomes, paired, threshold t=2.201.
+
+| fraction removed | irrelevant kept | separability | settle rate | vs no removal |
+|---|---|---|---|---|
+| 0% | 13 | 0.0814 | 0.4602 | — |
+| 25% | 10 | 0.0895 | 0.4023 | 1.10×, t=1.63, null |
+| 50% | 7 | **0.0976** | 0.3501 | **1.20×, t=2.34, significant** |
+| 75% | 3 | **0.0984** | 0.2960 | 1.21×, t=1.68, null |
+| 100% | 0 | 0.0902 | 0.2724 | 1.11×, t=1.00, null |
+
+At 100% removal separability lands at 0.0902 with rate 0.2724 against the sparse probe's
+0.0961 at 0.2724 — the built-in consistency check passes.
 
 ## 7. Interpretation
 
-_Pending §6._
+**Dilution is real and negligible.** The largest effect anywhere in the sweep is
+**1.21×**, and the only significant point is 1.20× at half removal. **H2d's loss is
+14.5–17×.** Even taking the best number at face value, dilution accounts for on the
+order of **1–2%** of the phenomenon it has been invoked to explain since E017.
+
+**The non-monotonicity is the confound §5 predicted, and it works in my favour rather
+than against.** Settle rate falls 0.4602 → 0.2724 as channels are removed, and E079
+established that lower drive hurts separability below the 0.95 optimum. So the curve is
+dilution-gain minus drive-penalty, which is why it peaks at 75% and falls back at 100%.
+Correcting for that headwind would raise the true dilution effect somewhat — but from
+1.2× to perhaps 1.3×, not to anything approaching 14.5×. §3 named the result that would
+have changed my mind (a steep or accelerating rise near full removal); the opposite
+happened.
+
+**E017's localisation stands; its mechanism does not.** The loss is at the
+sensory→pallium projection — E017 measured it, E034 replicated it, and nothing here
+touches that. What fails is the *explanation*: "one or two informative inputs among ~19
+drowned by the rest" predicts that removing the rest recovers the signal, and it recovers
+1.2× of a 15× loss.
+
+**Three interventions were built on that explanation** — modality segregation (E017/E035),
+the density sweep (E041/E078), and balanced E/I (E072/E077). All null or reversed. In
+hindsight they were testing a mechanism that a single graded measurement could have shown
+was too small to matter, and the measurement was cheap.
 
 ## 8. Consequence
 
-_Pending §6._
+**H2d's magnitude now has no identified mechanism.** The position is worth stating
+precisely, because it is more honest than "unsolved":
+
+- **Where** the loss happens is established and replicated: sensory→pallium (E017, E034).
+- **Why** is not. Dilution is measured and too small (here). Saturation is measured and
+  wrong-signed (E079). Recurrent mixing is measured and wrong-signed — removing
+  recurrence makes it *worse* (E017, E034). Common-mode DC is measured and null (E077).
+- Every structural intervention tried is null or negative (E079's table).
+
+**One candidate remains untested and is worth naming precisely** so it is not confused
+with what has already been ruled out: the *strength* of pallial recurrence, as distinct
+from global `gain` (E079, which scales every projection including afferents) and from
+*removing* recurrence entirely (E017/E034). A network whose recurrent dynamics dominate
+its input would converge toward input-independent states, which is the shape of the
+observation. Note the counter-evidence already on record: E070 found place-pattern
+similarity identical at 1, 10, 50 and 300 settle steps, which is not what attractor
+convergence looks like. So this is a lead with a strike against it, not a promising one.
+
+**The alternative remains that H2d is not a defect** (E079 §8): a two-channel distinction
+in a high-dimensional observation, projected randomly into a recurrent pool, may simply
+differ by ~7–8% of mean rate. Notably, a random *expansion* (64-unit stub → 256-unit
+pallium) should preserve distances by Johnson–Lindenstrauss, so this account requires the
+nonlinearity to be doing the work — and that is testable, which makes it a better next
+question than another intervention.
+
+**What this session established about H2d overall**: not a fix, but a much sharper map of
+what is not true. Four mechanism stories are now measured rather than assumed, and the
+three interventions that consumed the most effort were all downstream of the one that
+turns out to explain 1–2% of the effect.
