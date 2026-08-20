@@ -115,6 +115,25 @@ baseline of 45%.
 pallium → discriminant → `W_pred` → `relu` → `reflex_in` → the gakel scaffold → motor.
 E070 could not establish any of that, because its plant never fired.
 
+> **⚠️ Withdrawn by [E083](E083-gakel-anchor-produces-leaving.md).** The diagnosis in the
+> next two paragraphs is wrong, and E082 could not have observed the thing it describes.
+> E083 measured what neither this experiment's pre-flight nor its successor's checked —
+> whether the plant is **silent away from P** — and found it *anti*-selective in the live
+> run: it drives the gakel channel at 0.656 at P and 1.244 elsewhere, with the innermost
+> distance bin (0–1 m) the **lowest** of seven and the peak in a ring 5–7 m away at 3.2×
+> that. So the 17% fall in forward drive below was a slowdown concentrated *away from* P,
+> not at it, and it says nothing about whether a hen slows and stays.
+>
+> The cause is the same error E071 recorded and this experiment's own first run repeated,
+> in a third form: the discriminant is fitted on a hen **parked** at a grid centre and
+> read back on a hen **moving**. Those pallial states have little in common.
+>
+> **§6's measurements stand, and so does "the chain conducts"** — the plant demonstrably
+> drives the motor system end to end, which was E070's open question and remains this
+> experiment's real contribution. What does not stand is any claim about *where* it drove
+> it. §8's ranked candidates also survive as design reasoning; option 1 was built and
+> tested in E083 and remains untested as a mechanism, for the same reason.
+
 **The failure is in mechanism 1's response type, and it is diagnosable.**
 `_add_gakel_scaffold` suppresses `M_FORWARD` and `M_PECK`. `actuation.py` computes
 `speed = mobility * (fwd * walk_speed + flee * flee_speed)` — so suppressing forward
@@ -155,6 +174,9 @@ Option 1 is the cheapest and the most conservative, and its ethogram assay alrea
 direction, near ceiling). Try it before anything more elaborate.
 
 **Do not re-run the L vs C? contrast until a redesigned anchor passes this control.**
+*(E083 keeps this conclusion and moves its reason: the blocker is not that the anchor
+cannot produce the outcome, it is that the association being planted is not the
+association intended.)*
 The chain now demonstrably conducts, so a contrast run against the current anchor would
 measure a real signal driving a behaviour that cannot produce the outcome — a null with
 a known cause, which is the category of experiment this project has already run four

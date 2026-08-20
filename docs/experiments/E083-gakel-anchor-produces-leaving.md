@@ -161,12 +161,165 @@ for whether the anchor can produce avoidance at all, not a learning run.
 
 ## 6. Result
 
-*To be filled after the run.*
+The anchor change landed as intended. 13/13 ethogram, 86/86 suite. In the assay,
+forward drive now reads **0.786 under a gakel call and 0.786 under a contact call** —
+identical, the channel is disconnected from locomotion entirely — while pecking still
+falls, 0.989 → 0.954.
+
+Pre-flight **1.000 on every seed**. 4 seeds, 20 simulated minutes per cell, 885 s wall.
+
+| `pred_gain` | occupancy P | occupancy P′ | hunger | fwd | peck@P | pred@gakel |
+|---|---|---|---|---|---|---|
+| 0.0 | 0.4246 | 0.2021 | 0.437 | 0.633 | 0.550 | 0.9079 |
+| 0.5 | 0.4030 | 0.2495 | 0.432 | 0.621 | 0.533 | 0.9065 |
+| 1.0 | 0.4150 | 0.2374 | 0.441 | 0.622 | 0.512 | 0.9510 |
+| 2.0 | 0.4627 | 0.1955 | 0.453 | 0.626 | 0.504 | 0.9511 |
+
+Against the pre-registered falsifiers:
+
+- **Primary — FIRES.** Occupancy at P runs **+9.0%** (0.4246 → 0.4627) where ≤−15% was
+  required, and non-monotonically.
+- **Agitation — clear.** P′ occupancy −3.3%, threshold −10%.
+- **Starvation — clear.** Hunger 0.453 at gain 2.0, threshold 0.60.
+- **Reflex — clear.** Live `pred@gakel` 0.951, threshold 0.80.
+
+Two things did work exactly as designed. **The freeze is gone**: forward drive is flat
+across the ladder (0.633 → 0.626) where E082 had it falling 17%. And **the reflex has
+its intended proximal effect**: pecking at the planted feeder falls monotonically,
+0.550 → 0.504.
+
+### 6b. The diagnostic that makes the above uninterpretable
+
+`pred@gakel` came back at **0.90 as a run-wide mean while the hen is at P only ~42% of
+the time**. A place-selective plant should average near 0.42. That is the wrong shape,
+and it prompted a check that neither E082's pre-flight nor this one performs: the
+pre-flight measures that the plant fires **at P** and never measures that it is **silent
+anywhere else**.
+
+Splitting live `relu(pred@gakel)` by whether each hen is within one grid spacing of P
+(`$CLAUDE_JOB_DIR/tmp/plant_live_selectivity.py`, 4 seeds, gain 1.0):
+
+| seed | pre-flight @P | live @P | live elsewhere | ratio |
+|---|---|---|---|---|
+| 0 | 1.000 | 1.650 | 3.278 | 0.50 |
+| 1 | 1.000 | 0.188 | 0.479 | 0.39 |
+| 2 | 1.000 | 0.185 | 0.430 | 0.43 |
+| 3 | 1.000 | 0.601 | 0.788 | 0.76 |
+| **mean** | **1.000** | **0.656** | **1.244** | **0.53** |
+
+The plant is not weakly selective, it is **anti-selective** — it drives the gakel channel
+about twice as hard where the hen is *not* meant to be avoiding. Its live magnitude also
+varies **9-fold across seeds** (1.650 / 0.188 / 0.185 / 0.601) while pre-flight reads
+exactly 1.000 on all four.
+
+Controlling for the possibility that the "at P" disc is simply wider than the place code
+— radius 3.33 m against `place_sigma` 2.0 — by profiling against distance instead
+(`plant_distance_profile.py`, per-seed normalised so no single seed sets the shape):
+
+| distance from P (m) | relative `pred@gakel` |
+|---|---|
+| 0.0–1.0 | **0.655** |
+| 1.0–2.0 | 0.626 |
+| 2.0–3.3 | 0.632 |
+| 3.3–5.0 | 1.230 |
+| 5.0–7.0 | **2.128** |
+| 7.0–10.0 | 0.907 |
+| 10.0–99.0 | 0.822 |
+
+The innermost bin — the most on-target position possible — is the **lowest of all seven**,
+and the peak sits in a ring 5–7 m away at 3.2× that. The inversion is real and is not an
+artefact of the disc radius.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**The primary falsifier fired, and it must not be counted against the mechanism, because
+the instrument was inverted.** E083 did not test whether declining to eat produces
+leaving. It tested what happens when you suppress pecking hardest 5–7 m *away* from the
+feeder you are trying to make aversive, and weakest while standing on it.
+
+Read that way, the result is not a null at all — **it is the mechanism working correctly
+on a signal with the wrong sign.** Occupancy at P rose 9% because the hen was being
+pushed off every location *except* P. The same reading rehabilitates E082: its forward
+suppression was likewise strongest away from P, and a hen slowed everywhere-but-P
+concentrates at P.
+
+**Why the plant inverts: it was measured in one regime and read back in another.** The
+discriminant is built from a hen **parked motionless at a grid centre with heading 0**,
+settled for 300 s. It is then applied to a hen moving continuously, turning, pecking,
+hungry, hearing flockmates. Those pallial states have almost nothing in common, so the
+direction that separates *parked at P* from *parked elsewhere* projects onto live states
+in a way unrelated to where she is.
+
+**This is the third instance of one error, and `CLAUDE.md` names it exactly** — "a
+quantity verified in the place it had just been moved *from*". E071 found the centring
+bar measured on one timescale and read on another. E082's first run planted against raw
+`z_lag` while the runtime reads `z_lag − z_lag_bar`. This is the same shape again:
+measure the discriminant on parked states, read it on moving ones. Each time the
+verification was performed and looked at the wrong place.
+
+**And the pre-flight I added *after* E082 does not catch it**, which is the part worth
+sitting with. It asserts the plant fires at P. It asserts nothing about elsewhere. That
+is precisely the gap that let E024's "shuffled" control retain 98% of the information it
+claimed to destroy: a control or a plant must be measured on **what it is supposed to
+suppress**, not only on what it is supposed to produce.
+
+### E081's 84.6% does not license what E082 and E083 asked of it
+
+E081 is the experiment that unblocked this route, and its headline number has the same
+scope limit (`scratchpad/e081_decodability.py:16`, `e081_place_discriminant.py:17-24`).
+It was measured on hens **parked at five cell centres under 0.35 m of jitter**, holding a
+single static observation for 200 steps, reading raw `rate(x)`.
+
+The live regime differs on every axis: continuous movement across the whole arena rather
+than five discrete points, varying heading, an observation that changes every step, the
+lagged-centred trace rather than raw rate, and a 3.33 m radius rather than 0.35 m.
+
+**84.6% is not withdrawn — it is correct for what it measured.** What is withdrawn is the
+inference E082 and E083 both drew from it: that a linear readout which separates five
+parked point-locations will separate *where the hen is* during free movement. That was
+never measured, and the selectivity profile above is the first evidence on it — pointing
+the other way.
+
+### What still stands
+
+**The `M_FORWARD` removal is correct and is not affected by any of this.** Its
+justification is a reading of `coop/actuation.py` — speed derives from `M_FORWARD`, so
+damping it makes a hen already at the aversive place stay there, and suppressing
+locomotion is a functional freeze that the arc's own anti-predator clause forbids by
+another route. That argument needs no experiment. The assay guard and the connectome
+test are likewise sound, and both now run at the configuration where the defect appeared.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**Withdrawn from E082:** its §7 diagnosis that occupancy failed to fall *because* the hen
+slows and stays. The mechanism it describes is real in the code, but E082 could not have
+observed it, because its own drive was strongest away from P. E082's §6 measurements
+stand, and so does "**the chain conducts**" — the plant demonstrably drives the motor
+system end to end, and that was E070's open question.
+
+**Withdrawn from E083:** the primary falsifier as evidence about mechanism 1. Whether
+declining to eat produces leaving is **still untested**.
+
+**Not withdrawn:** E081's 84.6%, within its stated scope; the anchor redesign; the guards.
+
+**Next, and it is now a prerequisite rather than an option — build the plant from live
+states.** Sample `z_lag − z_lag_bar` from the free-running simulation, labelled by
+whether the hen is within the target radius of P, and fit the discriminant on *those*.
+This is not a refinement of the current plant, it is the only version of it that
+addresses the question.
+
+**And the pre-flight must assert selectivity, not just amplitude.** Fires at P **and**
+near-silent elsewhere, with the distance profile monotonically decreasing, checked before
+any behavioural contrast runs. An amplitude-only pre-flight has now passed twice while
+the plant was useless, and both times it produced a confident, wrong, mechanistic story.
+
+**Do not re-run the L vs. C? contrast**, unchanged from E082 — and note that the reason
+has moved. It is no longer "the anchor cannot produce the outcome"; it is "the
+association we plant is not the association we think we are planting."
+
+**Open question this raises for T2-revised as a whole.** If a discriminant fitted on live
+states also fails to separate *at P* from *elsewhere*, then the place code is not linearly
+decodable under free movement, and mechanism 2 — the shared allocentric population — is
+insufficient as built. That would be a finding about the representation rather than the
+plumbing, and the first one in this arc that is genuinely about the hen rather than the
+instrument.
