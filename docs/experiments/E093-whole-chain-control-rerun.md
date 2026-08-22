@@ -114,12 +114,100 @@ target, and `pred@gakel` split by at-target versus elsewhere.
 
 ## 6. Result
 
-*To be filled after the run.*
+### The anchor works. The run is invalid.
+
+| `pred_gain` | occ target | occ ctrl | hunger | fwd | peck@T | pred@T | pred elsewhere |
+|---|---|---|---|---|---|---|---|
+| 0.0 | 0.6758 | 0.7044 | 0.455 | 0.627 | 0.767 | 1.122 | 1.230 |
+| 0.5 | 0.6726 | 0.7086 | 0.456 | 0.627 | 0.715 | 1.064 | 1.114 |
+| 1.0 | 0.6321 | 0.6708 | 0.459 | 0.629 | 0.665 | 1.100 | 1.102 |
+| 2.0 | 0.6760 | 0.7111 | 0.468 | 0.632 | 0.542 | 1.087 | 1.136 |
+
+**The anchor falsifier clears, and this is a real positive.** Peck at the target falls
+**0.767 → 0.542 = 29.4%**, against E089's inert 2.9%. E090's weights work in a live
+free-running flock, not only on the staged assay. Agitation and starvation clear.
+
+**The primary falsifier fires** — occupancy +0.0%, non-monotonic — **and it must not be
+read**, because the plant was not selective in this run.
+
+### 6b. The plant gate passed on a number it should never have passed on
+
+| seed | held-out acc | selectivity ratio | decreasing |
+|---|---|---|---|
+| 0 | 68.1% | 3.03 | yes |
+| 1 | 85.8% | 2.46 | yes |
+| **2** | 65.2% | **5 909 203.50** | **no** |
+| 3 | 86.7% | 2.34 | yes |
+| 4 | 86.2% | 8.32 | yes |
+| 5 | 94.0% | 4.97 | yes |
+| 6 | 83.5% | 4.25 | yes |
+| 7 | 88.5% | 3.79 | yes |
+| **mean** | 82.2% | **738 654** | 7/8 |
+
+**Two defects, both mine, both visible in the output.**
+
+**(1) The gate aggregates by mean.** Seed 2's ratio is degenerate — the discriminant's
+scores away from the target are all negative, `relu` sends them to ~0, and the ratio
+explodes. One such seed carries `mean(ratios) >= 2.0` regardless of the other seven. A
+per-seed minimum would have caught it immediately.
+
+**(2) The gate measures the wrong quantity.** It checks the *fitted discriminant's*
+separation on held-out samples. Behaviour is driven by the *installed, normalised*
+`W_pred` row through the runtime einsum. These are different quantities, and the live one
+was printed in the results table all along:
+
+| | E089 | E093 |
+|---|---|---|
+| live `pred@target` | 1.037 | 1.122 |
+| live `pred elsewhere` | 0.459 | 1.230 |
+| **live ratio** | **2.26×** | **0.91×** |
+
+**The plant fires slightly harder away from the target than at it.** E083 found exactly
+this failure mode and my response was to add the live split as a **reported column** rather
+than as the **gate**. It has been sitting in the output reading 0.91 while the gate
+announced PASSED.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**This is the fourth invalid whole-chain control, and the third distinct reason.** E082's
+plant was a matched filter. E083's was fitted on parked states and read on moving ones.
+E093's is fitted and gated in one space and installed in another. Each time the gate
+measured something adjacent to the thing that drives behaviour.
+
+**What changed between E089 and E093 is depletion**, and that is the likely cause: the
+selection run now has hens leaving patches, so the states the discriminant is fitted on
+differ from the states it is read on. The fit-space accuracy stays respectable (82.2%)
+because the discriminant still separates *sampled* states; the live projection does not,
+because the normalisation and the runtime path differ. That is a hypothesis, not a
+measurement, and it is written here as one.
+
+**E093 therefore says nothing about T2's behaviour.** The primary falsifier fired against
+a plant driving 0.91× at the target, which is not the manipulation the experiment intended
+and cannot support the conclusion the falsifier was written to license.
+
+**What E093 does establish** is worth separating from what it does not. E090's anchor
+produces **29.4% peck suppression in a free-running flock** — the first time the gakel
+response has done anything measurable outside a staged assay. That was the change E089's
+null was blamed on, and it is now fixed and confirmed in situ.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**Not adopted, nothing propagated to T2's status.** E089's node stands as it is; this does
+not replace it, because a fourth invalid run is not evidence either way.
+
+**The gate must be rebuilt to measure the live quantity, and this is now the blocker for
+the whole arc.** Specifically: gate on `relu(pred@gakel)` **at the target versus
+elsewhere, in a live run with the plant installed**, per seed, with a minimum rather than
+a mean — the exact column that has been reported and ignored for three experiments. The
+fit-space accuracy can stay as a secondary diagnostic; it must not be the gate.
+
+**And a per-seed minimum everywhere a gate aggregates.** The mean is wrong for any gate
+whose statistic can diverge, and this one can by construction, since it is a ratio with a
+`relu` in the denominator.
+
+**Recorded as a pattern, because it is now unmistakable.** E092 named three mis-specified
+falsifiers in four experiments — each measuring a proxy cheaper to compute than the thing
+itself. This is the fourth, and it is worse: the correct quantity was **already being
+computed and printed**, and I gated on a different one anyway. The standing correction from
+E092 §7 needs strengthening: *where the correct quantity is already available, the gate
+must use it, and a gate that aggregates must not use a mean.*
