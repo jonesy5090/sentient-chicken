@@ -118,9 +118,83 @@ at `n_hens=16`.
 
 ---
 
+## 5b. Pre-registered replication rule — written after Part A/B, before the replication ran
+
+*Sequencing stated plainly: §6 below reports Parts A and B. This subsection was written
+and committed **after** seeing them and **before** the replication in §6c was run. It is
+therefore a pre-registration for the replication only, and Parts A/B remain the
+data that generated the hypothesis it tests.*
+
+Parts A and B fired the selectivity falsifier as written, and the reason is a defect in
+my decision rule rather than in the mechanism. The rule selected the freeze time that
+maximises **decodability** and then tested **selectivity** there — selecting on one axis
+and testing the other, which is exactly what E087's lesson said not to do, and which I
+restated in §3 prediction 3 of this document before contradicting it in §4.
+
+The freeze time it picked (20 s) is one where the baseline had reached only **0.600** of
+the trace's magnitude — it had not yet converged, so it is a poor estimate of the DC term,
+which is the one thing the centring exists to remove. That is not a discovered excuse:
+§5's design reports convergence at the freeze moment *precisely* so "a baseline frozen
+before it represented anything is visible rather than reported as a result".
+
+**The corrected rule, fixed now for the replication:**
+
+1. **Admissible** freeze times are those with convergence ≥ **0.80** at the freeze moment.
+   A baseline frozen before it represents the trace is not a candidate, whatever it scores.
+2. Among admissible times, the operating point is the one maximising decodability.
+3. Both bars must clear **at that same point**: decodability ≥85% and selectivity ≥2.0.
+
+**Replication:** seeds **8–15**, disjoint from Parts A/B's 0–7, at the two admissible
+candidates (40 s and 60 s) plus the never-freeze control. `CLAUDE.md`'s standing rule —
+no status changes on one seed block, and test a post-hoc observation on data that did not
+generate it — applies here in full. **If 40 s does not clear both bars on fresh seeds, it
+is not adopted.**
+
 ## 6. Result
 
-*To be filled after the run.*
+### Parts A and B — 8 seeds (0–7), 3771 s
+
+| freeze (s) | held-out | balanced-split | convergence @ freeze | pred @ P | pred elsewhere | selectivity |
+|---|---|---|---|---|---|---|
+| 10 | 90.2% | 90.4% | 0.336 | 1.0000 | 1.0683 | **0.94** |
+| 20 | 86.8% | **90.9%** | 0.600 | 1.0000 | 1.5003 | **0.67** |
+| **40** | 82.9% | **90.5%** | **0.862** | 1.0000 | 0.1365 | **7.33** |
+| 60 | 80.3% | 88.3% | 0.952 | 1.0000 | 0.1982 | 5.04 |
+| 120 | 77.2% | 79.4% | 1.013 | 1.0000 | −0.0347 | 28.80 |
+| None (control) | 69.2% | **73.7%** | 0.994 | 1.0000 | 0.1145 | 8.73 |
+
+**The control reproduces E087 exactly** — 73.7% balanced, against E087's 73.7%. Matched.
+
+**Primary falsifier: clear.** Freezing recovers the whole loss. At 10–40 s decodability is
+90.4–90.9%, against the runtime's 73.7%, E087's idealised constant at 89.8% and the raw
+ceiling at 90.0%. **A causally computable frozen baseline matches the oracle constant.**
+
+**Selectivity falsifier: FIRES as written.** At the argmax-decodability freeze (20 s) the
+ratio is 0.67 — the prediction at a control place *exceeds* the prediction at the target,
+which is E070's failure returning in a worse form.
+
+**Calibration-window falsifier: clear.** Spread across freeze times is 11.5 points against
+a 15-point threshold, and it has a clear trend rather than being a lottery.
+
+**And the trend is the whole story: selectivity tracks convergence, decodability opposes
+it.** Frozen before the baseline represents the trace (conv 0.34, 0.60) selectivity
+collapses to 0.94 and 0.67. Frozen once it does (conv 0.86, 0.95) selectivity is 7.33 and
+5.04 while decodability is still 90.5% and 88.3%. Frozen long after (conv 1.01) selectivity
+reaches 28.80 but decodability has fallen to 79.4%.
+
+**So both bars clear simultaneously at 40 s: 90.5% decodability and 7.33 selectivity.**
+
+### 6c. Replication on fresh seeds
+
+*To be filled after the replication runs, under §5b's rule.*
+
+## 7. Interpretation
+
+*To be filled after the replication.*
+
+## 8. Consequence
+
+*To be filled after the replication.*
 
 ## 7. Interpretation
 
