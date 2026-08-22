@@ -597,3 +597,56 @@ def test_sustains_real_time_factor(flock):
     factor = 2_000 * CFG.dt / (time.perf_counter() - t0)
 
     assert factor > 5.0, f"only {factor:.1f}x real time; a rearing run would crawl"
+
+
+def test_place_to_hippocampus_is_off_by_default_and_routes_both_spatial_blocks():
+    """E086. The region named for spatial memory must actually receive place, and
+    `W_pred` must be able to read it -- but only when asked for.
+
+    Runs at n_hens=16, the configuration these experiments use, per CLAUDE.md's rule
+    that a guard runs where the defect appears. The defect this guards against is the
+    one E086 found: `regions.py` names HIPPOCAMPUS "place and spatial memory" and E063
+    was written up as giving it its first real function, while `W_in` wrote only into
+    the sensory stub, so the region received nothing spatial and `pred_src` excluded it
+    anyway. Both halves are needed; either alone is close to pointless.
+    """
+    reg = regions.DEFAULT_REGIONS
+    hp_lo, hp_hi = reg.bounds(regions.HIPPOCAMPUS)
+
+    def build(flag):
+        return connectome.build(jax.random.key(0), reg, n_hens=16,
+                                shared_place_map=True, place_to_hippocampus=flag)
+
+    off, on = build(False), build(True)
+
+    # Off must be inert -- the E076/E077 lesson, where two scaffolds silently moved
+    # every downstream baseline.
+    assert jnp.array_equal(off.W_in, build(False).W_in)
+    assert jnp.array_equal(jnp.asarray(off.pred_src), jnp.asarray(build(False).pred_src))
+    assert not jnp.any(jnp.abs(off.W_in[hp_lo:hp_hi, spec.PLACE_LO:spec.PLACE_HI]) > 0), \
+        "the hippocampus received place afferents with the switch off"
+    assert not jnp.any(jnp.asarray(off.pred_src)[hp_lo:hp_hi]), \
+        "the hippocampus was in pred_src with the switch off"
+
+    # On: both halves, and both spatial blocks.
+    place_rows = jnp.sum(
+        jnp.abs(on.W_in[hp_lo:hp_hi, spec.PLACE_LO:spec.PLACE_HI]) > 0, axis=1)
+    testimony_rows = jnp.sum(
+        jnp.abs(on.W_in[hp_lo:hp_hi, spec.GAKEL_PLACE_LO:spec.GAKEL_PLACE_HI]) > 0, axis=1)
+    assert jnp.all(place_rows > 0), "some hippocampal units get no self-location input"
+    assert jnp.all(testimony_rows > 0), "shared_place_map did not reach the hippocampus"
+    assert jnp.all(jnp.asarray(on.pred_src)[hp_lo:hp_hi]), \
+        "the hippocampus is not readable by W_pred, so routing place there does nothing"
+
+    # The sensory stub keeps its place afferents -- this adds a route, it does not move
+    # one, so no existing pathway is silently removed.
+    s_lo, s_hi = reg.bounds(regions.SENSORY)
+    assert jnp.array_equal(off.W_in[s_lo:s_hi, spec.PLACE_LO:spec.PLACE_HI],
+                           on.W_in[s_lo:s_hi, spec.PLACE_LO:spec.PLACE_HI])
+
+    # Routing, not amplification: same afferent statistics as everywhere else.
+    hp_mag = jnp.mean(jnp.abs(on.W_in[hp_lo:hp_hi, spec.PLACE_LO:spec.PLACE_HI]))
+    s_mag = jnp.mean(jnp.abs(on.W_in[s_lo:s_hi, spec.PLACE_LO:spec.PLACE_HI]))
+    assert 0.5 < float(hp_mag / (s_mag + 1e-9)) < 2.0, (
+        f"hippocampal place afferents are {float(hp_mag/s_mag):.2f}x the sensory ones; "
+        "E086 is a routing change, not a magnitude change")

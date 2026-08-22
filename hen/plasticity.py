@@ -150,6 +150,15 @@ class PlasticConfig(NamedTuple):
     # numbers describe that rule. Applies to both halves: the readout in `brain.py`
     # and `W_pred`'s own update below, which had the identical defect.
     pred_centred: bool = False
+    # Time constant for `z_lag_bar`, the prediction pathway's centring baseline.
+    # `None` inherits `baseline_tau_s`, which is what this shared with until E087 --
+    # two unrelated quantities on one constant, and not stated anywhere as a choice.
+    # They want opposite things: the reward baseline should track on the timescale of
+    # reinforcement, while this one must be *slow compared to whatever the prediction
+    # is about* or it subtracts the signal along with the DC. E086 measured the cost of
+    # getting that wrong: at 20 s against dwell times of 17-75 s, the baseline tracks
+    # the hen's position and removes it, costing ~20 points of decodability.
+    pred_bar_tau_s: float | None = None
 
     # Restores E067's pre-fix behaviour: `m` read as a single-step snapshot at the
     # consolidation boundary rather than averaged over the window since the last one.
@@ -353,6 +362,8 @@ def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,
     a_s = cfg.dt / pc.tau_slow
     a_m = cfg.dt / pc.tau_motor
     a_b = cfg.dt / pc.baseline_tau_s
+    a_pb = cfg.dt / (pc.pred_bar_tau_s if pc.pred_bar_tau_s is not None
+                     else pc.baseline_tau_s)
     err = ps.z_err if pred_err is None else ps.z_err + a_s * (pred_err - ps.z_err)
     a_l = cfg.dt / pc.tau_lag
     # The slow means track each trace on the same time constant as the reward
@@ -366,7 +377,7 @@ def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,
     return ps._replace(
         z_err=err,
         z_lag=ps.z_lag + a_l * (r - ps.z_lag),
-        z_lag_bar=ps.z_lag_bar + a_b * (ps.z_lag - ps.z_lag_bar),
+        z_lag_bar=ps.z_lag_bar + a_pb * (ps.z_lag - ps.z_lag_bar),
         z_fast=ps.z_fast + a_f * (r - ps.z_fast),
         z_slow=ps.z_slow + a_s * (r - ps.z_slow),
         z_motor=ps.z_motor + a_m * (motor - ps.z_motor),

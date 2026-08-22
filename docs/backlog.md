@@ -619,20 +619,51 @@ Worth writing down now, while it is still cheap to be honest:
 > described was the project as of roughly E015. Kept as a record beneath the current
 > ordering, because the route is part of the record.
 
-**Current order:**
+**Current order (revised 2026-08-20, after E082–E085):**
 
-1. **T2-revised's whole-chain positive control, with a *discriminative* plant.**
-   Immediate, and newly unblocked. [E070](experiments/E070-t2-revised-chain-positive-control.md)
-   paused T2-revised after a planted place→gakel association proved unselective — but
-   [E081](experiments/E081-separability-vs-decodability.md) showed that plant was a
-   **matched filter**, which scores 18.8% (below chance) where a discriminant scores
-   84.6% on the same states. Redo the control properly. If selective avoidance appears,
-   T2-revised reaches its L vs C? contrast for the first time.
-2. **Rewrite the H2d node around E081.** Its title claim is false as written and the six
-   experiments beneath it are framed around the superseded reading. *(In progress.)*
-3. **Fix the `|W_out|` "is the rule active?" diagnostic.** It reads a pathway that
-   structurally cannot respond under `hebbian_readout`, and returned a falsely
-   reassuring identical value across E065, E066 and E068. Should read `|W|`.
+1. ~~**T2-revised's whole-chain positive control with a discriminative plant.**~~ **Done,
+   and it opened three further instrument defects rather than closing one.**
+   [E082](experiments/E082-t2-chain-control-redone.md) established that the chain
+   conducts end to end. [E083](experiments/E083-gakel-anchor-produces-leaving.md) found
+   the plant **anti-selective** in the live run (0.656 at the target, 1.244 elsewhere) —
+   fitted on a *parked* hen, read back on a *moving* one — and removed a functional freeze
+   from the gakel anchor. [E084](experiments/E084-live-place-decoding.md) found the
+   occupancy metric could resolve only 18.3% at n=4 against a pre-registered 15%, so both
+   falsifiers were guaranteed to fire. [E085](experiments/E085-repaired-instrument.md)
+   repaired both and measured the result.
+2. ~~**Rewrite the H2d node around E081.**~~ **Done** (PR #55).
+3. ~~**Fix the `|W_out|` "is the rule active?" diagnostic.**~~ **Done.** `run/simulate.py`
+   now also reports `w_norm` — mean `|W|` over live synapses — and `run/diagnose.py`
+   prints both with the distinction stated. Measured on a 3-minute default run: `|W_out|`
+   is **flat at 0.0608 → 0.0608 (1.00×)** while `|W|` moves 0.08643 → 0.08557. Under
+   `hebbian_readout` the neuromodulator is replaced by a constant for `W_out` only, so it
+   drifts identically whether or not a reward arrived; `W` stays reward-gated. Masked,
+   because ~86% of the matrix is structurally zero.
+
+**Blocking everything in T2 — the place representation.** E085 measured position as
+linearly decodable from pallial state at about **four points above chance while the hen is
+moving** (54.3% on balanced-split seeds, t=+2.95), against 84.6% when she is parked. There
+is not enough place signal for `W_pred` to bind a place to a call. The architecture review
+in the same session traced why, and it is concrete:
+
+- **The hippocampus is not in the loop.** `regions.py:17` names it "place and spatial
+  memory" and E063 was written up as giving it its first real function. Measured: of the
+  64 units receiving place afferents, **64 are in the sensory stub and 0 are in the
+  hippocampus** — and the hippocampus (320–400) is **excluded from `pred_src`**, so even
+  if place reached it, `W_pred` could not read it.
+- **A 64-unit bottleneck carries all 138 observation channels**, so 50 spatial channels
+  compete with hunger, vision and audio at 30% afferent density.
+- **Nothing amplifies place.** The asymmetry that made H2f work is that the rule amplifies
+  what innate wiring emphasises (E058/E059, E069); E063 deliberately gave the place
+  channels no innate anchors, correctly, and the cost is that position has no route to
+  dominance in pallial variance.
+
+Fixes, in order: **(a)** route place cells to the hippocampus and add it to `pred_src`;
+**(b)** a weak innate place→hippocampus projection, wiring *that there are places* and not
+*which place is aversive*; **(c)** widen the place population; **(d)** failing all three,
+re-scope T2 as not reachable in this architecture, which is a finding rather than a
+failure. **Do not run the L vs C? contrast against the current representation.**
+
 4. **Audit `strike_penalty`'s reward-eligibility defect.** HIGH PRIORITY and unresolved:
    [E067](experiments/E067-reward-eligibility-sampling-defect.md) measured discrete
    reward events reaching `consolidate()` ~2% of the time, and **no prior conclusion has
