@@ -210,6 +210,20 @@ const runSelect = document.getElementById('runSelect');
 const runNameEl = document.getElementById('runName');
 const runMetaEl = document.getElementById('runMeta');
 const runDescEl = document.getElementById('runDesc');
+const runProblemEl = document.getElementById('runProblem');
+const problemSecEl = document.getElementById('problemSec');
+
+// Remember which sidebar sections the reader collapsed. Someone comparing two runs
+// reloads a lot, and re-collapsing the legend every time is the kind of small friction
+// that stops people using the viewer at all.
+for (const id of ['legendSec', 'problemSec', 'descSec']) {
+  const el = document.getElementById(id);
+  if (!el) continue;
+  const key = 'viz.sec.' + id;
+  const saved = localStorage.getItem(key);
+  if (saved !== null) el.open = saved === '1';
+  el.addEventListener('toggle', () => localStorage.setItem(key, el.open ? '1' : '0'));
+}
 const scrub = document.getElementById('scrub');
 const clockEl = document.getElementById('clock');
 const playBtn = document.getElementById('playBtn');
@@ -240,6 +254,11 @@ async function loadRun(id) {
   runNameEl.textContent = m.name;
   runMetaEl.textContent = `${m.hens} hens · ${m.minutes} min · ${m.plastic ? 'plastic' : 'innate'}`;
   runDescEl.textContent = m.description || '(no description recorded for this run)';
+  // Recordings made before --problem existed have no such field; show nothing rather
+  // than an empty heading, so an old run does not look like it has a missing answer.
+  const problem = (m.problem || '').trim();
+  runProblemEl.textContent = problem;
+  problemSecEl.style.display = problem ? '' : 'none';
 
   buildFloor(m.coop_size);
   buildHens(m.hens);

@@ -14,9 +14,24 @@
   #sidebar select { width: 100%; }
   #runName { font-size: 15px; font-weight: 600; margin: 14px 0 2px; color: #e6e6e6; }
   #runMeta { margin: 0 0 10px; color: #9aa0ab; font-size: 12px; }
-  #runDesc { margin: 0 0 18px; color: #cdd3dd; font-size: 12.5px; line-height: 1.5; }
-  #legendTitle { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
-    color: #6b7280; margin: 0 0 8px; border-top: 1px solid #262b38; padding-top: 14px; }
+  /* Collapsible sidebar sections. Native <details> so this needs no JS to work and
+     stays keyboard-accessible; app.js only persists the open/closed state. */
+  details.sec { border-top: 1px solid #262b38; }
+  details.sec > summary { font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #6b7280; padding: 12px 0 10px; cursor: pointer;
+    list-style: none; user-select: none; display: flex; align-items: center; gap: 6px; }
+  details.sec > summary::-webkit-details-marker { display: none; }
+  details.sec > summary::before { content: '▸'; font-size: 9px; color: #4b5563;
+    transition: transform 0.12s ease; }
+  details.sec[open] > summary::before { transform: rotate(90deg); }
+  details.sec > summary:hover { color: #9aa0ab; }
+  details.sec > .body { padding-bottom: 14px; }
+  #runDesc { margin: 0; color: #cdd3dd; font-size: 12.5px; line-height: 1.5; }
+  /* The short-term goal this recording sits inside -- why anyone was looking, as
+     opposed to what is on screen. Tinted rather than grey so it reads as project
+     state and not as more caption. */
+  #runProblem { margin: 0; color: #d9c9a8; font-size: 12.5px; line-height: 1.5; }
+  #problemSec { display: none; }
   #legend { font-size: 11.5px; color: #9aa0ab; line-height: 1.7; }
   .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
   .dot.pulse { animation: pulse 0.9s ease-in-out infinite; }
@@ -39,8 +54,9 @@
   <select id="runSelect"></select>
   <div id="runName"></div>
   <p id="runMeta"></p>
-  <p id="runDesc"></p>
-  <p id="legendTitle">Legend</p>
+  <details class="sec" id="legendSec" open>
+    <summary>Legend</summary>
+    <div class="body">
   <div id="legend">
     <div><span class="dot" style="background:#e0e0e0"></span>contact call</div>
     <div><span class="dot" style="background:#5ad86b"></span>food call</div>
@@ -55,6 +71,18 @@
     <div><span class="dot" style="background:#ff2a2a"></span>hen flashes red when struck</div>
     <div><span class="dot pulse" style="background:#ff3b3b"></span>hen sick -- pulsing red marker above her (also tinted body, slowed)</div>
   </div>
+    </div>
+  </details>
+
+  <details class="sec" id="problemSec" open>
+    <summary>What we're trying to fix</summary>
+    <div class="body"><p id="runProblem"></p></div>
+  </details>
+
+  <details class="sec" id="descSec" open>
+    <summary>About this recording</summary>
+    <div class="body"><p id="runDesc"></p></div>
+  </details>
 </div>
 <div id="bar">
   <button id="playBtn">pause</button>

@@ -159,6 +159,21 @@ class PlasticConfig(NamedTuple):
     # getting that wrong: at 20 s against dwell times of 17-75 s, the baseline tracks
     # the hen's position and removes it, costing ~20 points of decodability.
     pred_bar_tau_s: float | None = None
+    # Freeze `z_lag_bar` once the hen reaches this age, holding it constant thereafter.
+    # `None` never freezes, which is the behaviour every result before E088 was measured
+    # under.
+    #
+    # Why a frozen baseline rather than a slower one. E087 swept `pred_bar_tau_s` and
+    # found the cost of centring is the baseline *tracking*, not its timescale: longer
+    # taus made decodability worse, not better, and destroyed selectivity (at 300 s the
+    # prediction at a control place exceeded the prediction at the target). What did
+    # work was a *constant* baseline -- selectivity 5.00 at 89.8% place decodability,
+    # against the moving average's 23.28 at 73.7%. But E087's constant was the mean
+    # across settled place states, which requires knowing the places in advance and is
+    # therefore a diagnostic, not a mechanism. Freezing is the causal version of it: a
+    # developmental calibration of what "average activity" means, estimated once and
+    # then fixed, rather than re-estimated forever.
+    pred_bar_freeze_s: float | None = None
 
     # Restores E067's pre-fix behaviour: `m` read as a single-step snapshot at the
     # consolidation boundary rather than averaged over the window since the last one.
@@ -364,6 +379,10 @@ def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,
     a_b = cfg.dt / pc.baseline_tau_s
     a_pb = cfg.dt / (pc.pred_bar_tau_s if pc.pred_bar_tau_s is not None
                      else pc.baseline_tau_s)
+    # 1.0 while still calibrating, 0.0 once frozen. A float rather than a bool so it
+    # multiplies the update cleanly under jit.
+    frozen = (1.0 if pc.pred_bar_freeze_s is None
+              else (ps.age_s < pc.pred_bar_freeze_s).astype(jnp.float32))
     err = ps.z_err if pred_err is None else ps.z_err + a_s * (pred_err - ps.z_err)
     a_l = cfg.dt / pc.tau_lag
     # The slow means track each trace on the same time constant as the reward
@@ -377,7 +396,10 @@ def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,
     return ps._replace(
         z_err=err,
         z_lag=ps.z_lag + a_l * (r - ps.z_lag),
-        z_lag_bar=ps.z_lag_bar + a_pb * (ps.z_lag - ps.z_lag_bar),
+        # Frozen once past `pred_bar_freeze_s` (E088). Traced rather than branched:
+        # `age_s` is a JAX scalar, so a Python conditional here would bake in whichever
+        # value it held at trace time.
+        z_lag_bar=ps.z_lag_bar + a_pb * frozen * (ps.z_lag - ps.z_lag_bar),
         z_fast=ps.z_fast + a_f * (r - ps.z_fast),
         z_slow=ps.z_slow + a_s * (r - ps.z_slow),
         z_motor=ps.z_motor + a_m * (motor - ps.z_motor),

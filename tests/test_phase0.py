@@ -11,7 +11,7 @@ import jax.numpy as jnp
 import pytest
 
 from coop import sensing, spec, world
-from hen import brain, connectome, innate, neurons, regions
+from hen import brain, connectome, innate, neurons, plasticity, regions
 from run import probes, simulate
 
 CFG = spec.DEFAULT_COOP
@@ -650,3 +650,64 @@ def test_place_to_hippocampus_is_off_by_default_and_routes_both_spatial_blocks()
     assert 0.5 < float(hp_mag / (s_mag + 1e-9)) < 2.0, (
         f"hippocampal place afferents are {float(hp_mag/s_mag):.2f}x the sensory ones; "
         "E086 is a routing change, not a magnitude change")
+
+
+def test_pred_bar_freeze_holds_the_centring_baseline_after_its_window():
+    """E088. `z_lag_bar` must track normally up to `pred_bar_freeze_s` and then stop.
+
+    Runs at n_hens=16, the configuration the T2 experiments use. The default (`None`)
+    must be inert: every result before E088 was measured with a continuously-tracking
+    baseline, and E076/E077 are the standing reminder of what a silently-changed default
+    costs.
+    """
+    cfg = CFG._replace(n_hens=16)
+    freeze = 5.0
+
+    def trace(freeze_s):
+        pc = plasticity.PlasticConfig(enabled=True, pred_enabled=True, pred_centred=True,
+                                      pred_bar_freeze_s=freeze_s)
+        p = connectome.build(jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=16)
+        x = brain.initial_state(p, 16)
+        ps = plasticity.initial_state(p, 16, pc)
+        w = world.reset(jax.random.key(0), cfg)
+        obs = sensing.observe(w, cfg)
+        out = {}
+        for t in range(int(3 * freeze / cfg.dt)):
+            x, motor, _d = brain.step(x, obs, p, cfg.dt)
+            ps = plasticity.update_traces(ps, neurons.rate(x), motor,
+                                          jnp.zeros((16,)), cfg, pc)
+            if t + 1 in (int(freeze / cfg.dt), int(3 * freeze / cfg.dt)):
+                out[t + 1] = float(jnp.mean(jnp.abs(ps.z_lag_bar)))
+        return out
+
+    at_freeze, at_3x = int(freeze / cfg.dt), int(3 * freeze / cfg.dt)
+    frozen, running = trace(freeze), trace(None)
+
+    # Identical up to the freeze point -- the window itself must behave normally.
+    assert frozen[at_freeze] == pytest.approx(running[at_freeze], rel=1e-6)
+    # Then held: the frozen one must not move, the running one must.
+    assert frozen[at_3x] == pytest.approx(frozen[at_freeze], rel=1e-6), \
+        "z_lag_bar kept moving after pred_bar_freeze_s"
+    assert running[at_3x] > running[at_freeze] * 1.5, \
+        "the unfrozen control did not grow, so the test cannot detect a freeze"
+
+
+def test_pred_bar_freeze_default_is_inert():
+    """`pred_bar_freeze_s=None` must reproduce the pre-E088 trajectory exactly."""
+    cfg = CFG._replace(n_hens=8)
+
+    def run(**kw):
+        pc = plasticity.PlasticConfig(enabled=True, pred_enabled=True,
+                                      pred_centred=True, **kw)
+        p = connectome.build(jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=8)
+        x = brain.initial_state(p, 8)
+        ps = plasticity.initial_state(p, 8, pc)
+        w = world.reset(jax.random.key(0), cfg)
+        obs = sensing.observe(w, cfg)
+        for _ in range(300):
+            x, motor, _d = brain.step(x, obs, p, cfg.dt)
+            ps = plasticity.update_traces(ps, neurons.rate(x), motor,
+                                          jnp.zeros((8,)), cfg, pc)
+        return ps.z_lag_bar
+
+    assert jnp.array_equal(run(), run(pred_bar_freeze_s=None))
