@@ -101,6 +101,32 @@ def _mean(trace, channel, hen=0):
 # Probes
 # ---------------------------------------------------------------------------
 
+# --- How a modulation assay must be written (E090) --------------------------
+#
+# An assay of the form "X changes Y" must test the SIZE of the change, not its sign.
+#
+# E089 is why. The gakel scaffold suppresses pecking by 3.5% at full amplitude, because
+# food drives `M_PECK` at +7.0 against a scaffold weight of 1.5 and both sit deep in
+# sigmoid saturation. That is behaviourally inert -- E089 planted a correct association,
+# validated every other link in the chain, and measured occupancy move by +0.3% against
+# an instrument resolving 5.1%. And the 3.5% was printed by every ethogram run for seven
+# experiments, under an assay whose own docstring warned that "a scaffold that damped
+# everything on the audio bus would pass a bare sign test while being useless" -- and
+# which then applied a bare sign test.
+#
+# `MIN_MODULATION` is a judgement, and stated as one. Its grounds: 3.5% demonstrably
+# produces nothing, so the bar must sit far above it; and every other modulation assay
+# in this file clears 25% comfortably (contact call 72% relative; sick-flockmate 0.63 of
+# separation), so it is not a threshold invented to fail one thing.
+MIN_MODULATION = 0.25          # relative change required of a modulated motor channel
+MIN_BIAS = 0.05                # absolute bias required where the read-out is a bias
+
+
+def _modulation(base: float, modulated: float) -> float:
+    """Relative reduction of `modulated` against `base`; negative if it went up."""
+    return (base - modulated) / max(abs(base), 1e-9)
+
+
 def peck_at_food(cfg: CoopConfig) -> Probe:
     """Chicks peck at small objects from hatching, hungry or not."""
     cfg = cfg._replace(n_hens=1)
@@ -204,8 +230,10 @@ def contact_call_when_isolated(cfg: CoopConfig) -> Probe:
     _, tr_huddled = _run(cfg4, huddled)
     v_huddled = _mean(tr_huddled, spec.M_CALL_CONTACT)
 
-    return Probe("contact call when isolated", v_alone > v_huddled + 0.1,
-                 f"alone={v_alone:.2f} vs in-flock={v_huddled:.2f}")
+    drop = _modulation(v_alone, v_huddled)
+    return Probe("contact call when isolated", drop >= MIN_MODULATION,
+                 f"alone={v_alone:.2f} vs in-flock={v_huddled:.2f} "
+                f"({100*drop:.0f}% quieter in flock, want >={100*MIN_MODULATION:.0f}%)")
 
 
 def approach_flockmates(cfg: CoopConfig) -> Probe:
@@ -218,7 +246,8 @@ def approach_flockmates(cfg: CoopConfig) -> Probe:
     left_bias = _mean(tr, spec.M_TURN_L) - _mean(tr, spec.M_TURN_R)
     closed = float(jnp.linalg.norm(w.pos[0] - w.pos[1])
                    - jnp.linalg.norm(w_end.pos[0] - w_end.pos[1]))
-    return Probe("approach flockmates when cold", left_bias > 0.0 and closed > 0.0,
+    return Probe("approach flockmates when cold",
+                left_bias >= MIN_BIAS and closed >= MIN_BIAS,
                  f"left-bias={left_bias:+.2f} closed={closed:+.3f} m")
 
 
@@ -309,7 +338,10 @@ def avoid_a_sick_flockmate(cfg: CoopConfig) -> Probe:
         return _mean(tr, spec.M_TURN_R) - _mean(tr, spec.M_TURN_L)   # positive = away
 
     away_bias, toward_bias = bias(True), bias(False)
-    passed = away_bias > 0.0 and away_bias > toward_bias
+    # Separation, not ordering: "away is bigger than toward" is true of a 0.001
+    # difference, which no hen could act on.
+    separation = away_bias - toward_bias
+    passed = away_bias >= MIN_BIAS and separation >= 4 * MIN_BIAS
     return Probe("avoid a sick flockmate", passed,
                 f"right-bias sick={away_bias:+.2f} vs healthy={toward_bias:+.2f} "
                 f"(healthy should be negative -- attraction)")
@@ -352,11 +384,33 @@ def withdraw_on_hearing_a_gakel_call(cfg: CoopConfig) -> Probe:
     fwd_c, peck_c = drive(contact)
     # 0.01 of motor range: the two conditions differ only in which audio channel is hot,
     # so anything larger than numerical wobble here is a real path onto M_FORWARD.
-    passed = peck_g < peck_c and fwd_g >= fwd_c - 0.01
+    suppression = _modulation(peck_c, peck_g)
+    passed = suppression >= MIN_MODULATION and fwd_g >= fwd_c - 0.01
     return Probe("withdraw on hearing a gakel call", passed,
-                f"gakel peck={peck_g:.3f} vs contact peck={peck_c:.3f} (must be lower); "
+                f"gakel peck={peck_g:.3f} vs contact peck={peck_c:.3f} "
+                f"({100*suppression:.1f}% suppression, want "
+                f">={100*MIN_MODULATION:.0f}% -- see E089); "
                 f"gakel fwd={fwd_g:.3f} vs contact fwd={fwd_c:.3f} "
                 f"(must NOT be lower -- see E082)")
+
+
+# Assays known to fail, with the reason and what would fix them. Registered here rather
+# than weakened in place: an assay that has been softened to pass stops being a guard,
+# which is the whole finding of E089/E090. `tests/test_phase0.py` marks these xfail
+# *strictly*, so if one starts passing the suite fails and someone has to come and
+# update this list.
+EXPECTED_FAILURES = {
+    "withdraw_on_hearing_a_gakel_call":
+        "E089: 3.5% peck suppression against a 25% bar. Food drives M_PECK at +7.0 and "
+        "SCAFFOLD_WEIGHT is 1.5, both deep in sigmoid saturation, so the response is "
+        "behaviourally inert -- a correctly planted association moved occupancy by "
+        "+0.3%. Fixing it is a design decision, not a tuning one: the scaffold is "
+        "deliberately held below the visual arc's weights so first-hand information "
+        "dominates second-hand, and E089 showed those two goals are incompatible "
+        "through a saturating sigmoid. The proposed fix is a hunger term on M_PECK, so "
+        "risk tolerance scales with need and the call matters conditionally rather "
+        "than always or never.",
+}
 
 
 ALL = (peck_at_food, crouch_at_hawk, head_down_blindness, flee_from_fox,
@@ -382,9 +436,26 @@ def main() -> None:
           f"{' [balanced E/I]' if BALANCED_EI else ''}\n")
     results = run_all()
     width = max(len(r.name) for r in results)
-    for r in results:
-        print(f"  {'PASS' if r.passed else 'FAIL'}  {r.name:<{width}}  {r.detail}")
-    print(f"\n{sum(r.passed for r in results)}/{len(results)} assays passed")
+    for fn, r in zip(ALL, results):
+        expected = fn.__name__ in EXPECTED_FAILURES
+        tag = "PASS" if r.passed else ("XFAIL" if expected else "FAIL")
+        print(f"  {tag:<5} {r.name:<{width}}  {r.detail}")
+    n_pass = sum(r.passed for r in results)
+    xfail = [fn.__name__ for fn, r in zip(ALL, results)
+             if not r.passed and fn.__name__ in EXPECTED_FAILURES]
+    surprise = [fn.__name__ for fn, r in zip(ALL, results)
+                if not r.passed and fn.__name__ not in EXPECTED_FAILURES]
+    fixed = [fn.__name__ for fn, r in zip(ALL, results)
+             if r.passed and fn.__name__ in EXPECTED_FAILURES]
+    print(f"\n{n_pass}/{len(results)} assays passed"
+          + (f", {len(xfail)} known-failing" if xfail else ""))
+    for name in xfail:
+        print(f"\n  XFAIL {name}\n    " + EXPECTED_FAILURES[name].replace(". ", ".\n    "))
+    if fixed:
+        print(f"\n  {len(fixed)} assay(s) in EXPECTED_FAILURES now PASS: "
+              + ", ".join(fixed) + "\n  Remove them from the registry.")
+    if surprise:
+        print(f"\n  {len(surprise)} UNEXPECTED failure(s): " + ", ".join(surprise))
 
 
 if __name__ == "__main__":

@@ -574,7 +574,18 @@ def test_blind_hen_does_nothing_purposeful(flock):
 # --- Behaviour ------------------------------------------------------------
 
 @pytest.mark.parametrize("probe", probes.ALL, ids=lambda f: f.__name__)
-def test_neonatal_ethogram(probe):
+def test_neonatal_ethogram(probe, request):
+    """Every ethogram assay, with known failures registered rather than softened.
+
+    `probes.EXPECTED_FAILURES` names assays that currently fail for a recorded reason.
+    They are marked xfail **strictly**, so an assay that starts passing turns the suite
+    red and someone has to come and update the registry. An assay quietly weakened until
+    it passes stops being a guard, which is exactly what E089/E090 found: a bare sign
+    test signed off a response capable of 3.5% suppression for seven experiments.
+    """
+    reason = probes.EXPECTED_FAILURES.get(probe.__name__)
+    if reason is not None:
+        request.node.add_marker(pytest.mark.xfail(strict=True, reason=reason))
     result = probe(CFG)
     assert result.passed, result.detail
 
