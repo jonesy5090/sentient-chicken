@@ -122,12 +122,95 @@ Part A ~15 minutes. Part B is open-ended and gated on A.
 
 ## 6. Result
 
-*To be filled after the run.*
+### Part A — the screening falsifier fires, and the audit closes
+
+8 seeds, 30 simulated minutes, H4 configuration (hawk every 20 s), `legacy_m_sampling`
+True against False on matched world keys.
+
+| seed | strike events | on a consolidation boundary | `|W|` legacy | `|W|` fixed | diff |
+|---|---|---|---|---|---|
+| 0 | 3479 | 70 | −0.005323 | −0.005265 | +1.1% |
+| 1 | 3940 | 70 | −0.005316 | −0.005359 | −0.8% |
+| 2 | 7514 | 155 | −0.005439 | −0.005426 | +0.2% |
+| 3 | 3841 | 77 | −0.005260 | −0.005267 | −0.1% |
+| 4 | 2384 | 49 | −0.005235 | −0.005255 | −0.4% |
+| 5 | 8748 | 177 | −0.005303 | −0.005314 | −0.2% |
+| 6 | 3854 | 78 | −0.005515 | −0.005549 | −0.6% |
+| 7 | 1782 | 49 | −0.005260 | −0.005262 | −0.1% |
+
+**The defect is confirmed independently, at E067's rate.** 725 of 35,542 strike events land
+on a consolidation boundary — **2.0%**. E067 obtained ~2% by an exhaustive sweep over
+timing offsets; this counted events in a running flock. Same quantity, different method,
+same answer.
+
+**And fixing it moves the weights by 0.1%.** `|W|` drift: legacy −0.005331, fixed
+−0.005337. Paired difference −0.000006 ± 0.000011, **t=−0.52** against t(7)=2.365 — not
+significant. The pre-registered screening falsifier (<5%) fires, so **Part B does not
+run.**
+
+### 6b. Direction check — added because the pre-registered screen was too weak
+
+*Post-hoc, and it makes the result stronger rather than weaker, which is why it is worth
+separating from the screen it supplements.*
+
+`|W|` is a **magnitude**. Two conditions can show identical drift while moving different
+synapses in different directions, and the pre-registered screen could not have detected
+that. Cosine similarity between the two conditions' per-synapse weight *changes*:
+
+| seed | cos(ΔW legacy, ΔW fixed) | max elementwise diff |
+|---|---|---|
+| 0 | 0.983614 | 3.60e-01 |
+| 1 | 0.982547 | 4.49e-01 |
+| 2 | 0.979304 | 2.31e-01 |
+| 3 | 0.986432 | 1.94e-01 |
+| **mean** | **0.982974** | |
+
+**98.3% aligned — and not 1.0.** The residual is real: individual synapses differ by up to
+0.36, which is far larger than the mean drift of 0.005. So the discrete term *does* move
+individual synapses noticeably, and those movements **cancel in aggregate**.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**A term can dominate reward *variance* and still not move the weights.** That is the
+finding, and it dissolves an alarm that has stood for twenty-five experiments.
+`CLAUDE.md` records `strike_penalty` at 87.3% of reward variance at this configuration, and
+the natural inference — that a defect suppressing 98% of it must have distorted everything
+downstream — is wrong. `consolidate()` multiplies the modulator by eligibility traces, so a
+spike arriving with no particular eligibility pattern produces **undirected perturbation**
+that averages out. The direction check shows exactly that shape: large per-synapse
+differences, 98.3% aggregate alignment.
+
+**This is E069's finding from the other side.** E069 measured a thousandfold
+`sickness_penalty` sweep producing "undirected perturbation, not behaviour" — the signal
+reached the weights (`|W−W₀|` rose 26%) and changed nothing. E094 measures the converse:
+removing 98% of a discrete signal also changes nothing. Both say the same thing about this
+rule — **discrete reward events are not what moves `W`.** The continuous `d_drive` pathway
+is, and it is a genuine trace that the defect never touched.
+
+**What this does not establish, stated plainly.** The 1.7% residual is not zero, and no
+behavioural re-run was performed — Part B was gated on Part A and Part A did not implicate
+it. So the claim is "the weight trajectory is 98.3% identical and its magnitude is
+statistically indistinguishable", **not** "no behavioural conclusion could possibly have
+differed". Those are different, and the second would need H2, H4 and T1 re-run under the
+flag. The judgement that 98.3% alignment does not warrant that expense is a judgement, and
+it is recorded as one.
+
+**The confidence ordering in §3 was not tested**, because Part A closed. H4, H2 and T1 are
+all unimplicated by the same measurement rather than individually cleared.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**The audit closes: the defect is real, confirmed at E067's rate by an independent method,
+and inconsequential for every recorded conclusion.** The backlog's longest-open
+high-priority item is resolved after twenty-five experiments — and resolved as a null,
+which is the outcome the staging was designed to reach cheaply if it were true.
+
+**`legacy_m_sampling` stays** as a bisection tool. E075 used it; it costs nothing and it is
+now the thing that made this audit a fifteen-minute comparison rather than a rebuild.
+
+**Recorded for the next audit of this shape: screen on direction, not just magnitude.** The
+pre-registered screen was `|W|` drift, which is a scalar summary that cannot distinguish
+"nothing changed" from "the same amount changed elsewhere". It happened to be adequate
+here because the direction check agreed. It would not have been adequate if the fix had
+redistributed weight, and I would have closed the audit on a number that could not have
+told me.
