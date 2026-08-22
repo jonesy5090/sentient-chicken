@@ -87,7 +87,8 @@ def _record(w, x, p, ps, key, cfg, pc, n_frames: int, steps_per_frame: int):
 
 
 def record_and_save(key, cfg, pc, minutes: float, fps: float = 15.0, seed: int = 0,
-                    name: str | None = None, desc: str = "") -> Path:
+                    name: str | None = None, desc: str = "",
+                    problem: str = "") -> Path:
     """Roll out a recording and write it to `runs/`. Returns the output directory.
 
     Shared by `main()` below and by other entry points' `--record` flag (`run.lifetime`
@@ -148,6 +149,10 @@ def record_and_save(key, cfg, pc, minutes: float, fps: float = 15.0, seed: int =
         "id": run_id,
         "name": name or run_id,
         "description": desc,
+        # What the project was stuck on when this was recorded. Separate from
+        # `description`, which says what is on screen: this says why anyone was
+        # looking. It is expected to go stale, which is what dates the run.
+        "problem": problem,
         "created_at": ts,
         "seed": seed,
         "hens": cfg.n_hens,
@@ -164,6 +169,9 @@ def record_and_save(key, cfg, pc, minutes: float, fps: float = 15.0, seed: int =
     }
     (out_dir / "meta.json").write_text(json.dumps(meta, indent=2))
     print(f"wrote {out_dir}")
+    if not problem.strip():
+        print("no --problem given -- the viewer will not show what this recording was "
+              "made to investigate")
     if not desc.strip():
         print("no --desc given -- the viewer's sidebar will show nothing to explain "
              "this run to someone with no context. See this module's docstring for "
@@ -186,6 +194,12 @@ def main() -> None:
                     help="a paragraph a total newcomer could read and understand "
                          "what they're about to watch and why -- see this file's "
                          "module docstring for the full guidance and an example")
+    ap.add_argument("--problem", type=str, default="",
+                    help="the short-term goal this recording sits inside: what is "
+                         "currently blocking, and what would unblock it. Distinct from "
+                         "--desc, which explains what is on screen. This is a snapshot "
+                         "of project state at recording time and is expected to go "
+                         "stale -- that is the point, it dates the run.")
     ap.add_argument("--t2", action="store_true",
                     help="turn on the T2 scaffolds: a rotating contaminated feeder, "
                          "sickness, the gakel call, allocentric place cells and the "
@@ -206,7 +220,7 @@ def main() -> None:
     key = jax.random.key(args.seed)
 
     record_and_save(key, cfg, pc, args.minutes, args.fps, args.seed,
-                    args.name, args.desc)
+                    args.name, args.desc, args.problem)
 
 
 if __name__ == "__main__":
