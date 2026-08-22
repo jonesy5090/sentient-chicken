@@ -89,7 +89,8 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           gakel_scaffold_gain: float = 1.0,
           shared_place_map: bool = False,
           testimony_gain: float = 0.5,
-          balanced_ei: bool = False) -> BrainParams:
+          balanced_ei: bool = False,
+          place_to_hippocampus: bool = False) -> BrainParams:
     """Sample a newly hatched flock.
 
     `readout_scale` is small on purpose: at hatch the cortical pathway is near-silent
@@ -271,6 +272,30 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     else:
         w_in[s_lo:s_hi, extero] = _random_afferents(s_lo, s_hi, extero)
 
+    if place_to_hippocampus:
+        # T2-revised mechanism 2, second attempt (E086).
+        #
+        # The problem. `regions.py` names HIPPOCAMPUS "place and spatial memory" and
+        # E063 was written up as giving it its first real function -- but E063 added
+        # place *channels*, and `W_in` writes only into the sensory stub above, so the
+        # region never received them. Measured before this change: of the 64 units
+        # taking place afferents, 64 were in the sensory stub and 0 in the hippocampus.
+        # Position therefore reached `pred_src` only after competing with 113 other
+        # channels through a 64-unit bottleneck, and E085 measured the result -- about
+        # four points above chance while the hen moves, against 84.6% parked.
+        #
+        # The fix is a routing change, deliberately not a magnitude change: the same
+        # afferent statistics used everywhere else (gamma(2.0, 0.5), 30% density), into
+        # a region that already projects to the pallium at 0.20. Nothing is scaled up;
+        # place simply stops sharing a stub with hunger, vision and audio.
+        #
+        # Both spatial blocks are routed, and the `shared_place_map` relationship
+        # between them is preserved below, so E064's "a place is the same place however
+        # you learned of it" continues to hold in the new region.
+        hp_lo, hp_hi = reg.bounds(regions.HIPPOCAMPUS)
+        place_ch = list(range(spec.PLACE_LO, spec.PLACE_HI))
+        w_in[hp_lo:hp_hi, place_ch] = _random_afferents(hp_lo, hp_hi, place_ch)
+
     if shared_place_map:
         # T2-revised mechanism 2: a shared allocentric map.
         #
@@ -353,6 +378,23 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     # from the relay, is also where top-down predictions come from in a real brain.
     p_lo, p_hi = reg.bounds(regions.PALLIUM)
     pred_src = jnp.zeros((n,), dtype=bool).at[p_lo:p_hi].set(True)
+    if place_to_hippocampus:
+        # The half that makes the routing above useful: `W_pred` may now source from
+        # units that actually carry position. Either change alone is close to pointless
+        # -- afferents into a region nothing reads, or a readable region with no place
+        # in it.
+        #
+        # This knowingly re-creates the shape E008 fixed -- a `pred_src` region with
+        # direct sensory afferents -- and E086 section 5 records why that is acceptable
+        # *here* and what it obliges next. In short: the association T2 needs is
+        # cross-modal (source place, write the gakel call, which is not a hippocampal
+        # afferent), the source is the lagged centred trace rather than instantaneous
+        # rate, and E086 plants rather than learns. **A learning run on this must carry
+        # an autoencoder control**, because `shared_place_map` also routes the testimony
+        # channels here, and predicting testimony-about-P from being-at-P would be
+        # circular in exactly E008's sense while looking like successful association.
+        hp_lo, hp_hi = reg.bounds(regions.HIPPOCAMPUS)
+        pred_src = pred_src.at[hp_lo:hp_hi].set(True)
 
     tau = jnp.asarray(np.asarray(regions.REGION_TAU, dtype=np.float32)[rid])
 
