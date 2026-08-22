@@ -102,8 +102,13 @@ def record_and_save(key, cfg, pc, minutes: float, fps: float = 15.0, seed: int =
     frame_dt = steps_per_frame * cfg.dt
 
     w = world.reset(key, cfg)
+    # The T2 scaffolds are opt-in everywhere else (E076/E077: two of them silently moved
+    # every downstream baseline), so the recorder has to ask for them explicitly too.
     p = connectome.build(jax.random.fold_in(key, 1), regions.DEFAULT_REGIONS,
-                         n_hens=cfg.n_hens)
+                         n_hens=cfg.n_hens,
+                         gakel_scaffold=cfg.contamination_enabled,
+                         shared_place_map=cfg.place_cells_enabled,
+                         place_to_hippocampus=cfg.place_cells_enabled)
     x = brain.initial_state(p, cfg.n_hens)
     ps = plasticity.initial_state(p, cfg.n_hens, pc)
     food_pos, water_pos = w.food_pos, w.water_pos
@@ -181,6 +186,11 @@ def main() -> None:
                     help="a paragraph a total newcomer could read and understand "
                          "what they're about to watch and why -- see this file's "
                          "module docstring for the full guidance and an example")
+    ap.add_argument("--t2", action="store_true",
+                    help="turn on the T2 scaffolds: a rotating contaminated feeder, "
+                         "sickness, the gakel call, allocentric place cells and the "
+                         "innate response to hearing a gakel call. Off by default "
+                         "everywhere, so the recorder asks for them explicitly too.")
     ap.add_argument("--hawk-period", type=float, default=None,
                     help="seconds between hawk dives (default: DEFAULT_COOP's 900s -- "
                          "a several-minute recording will often show none at all; "
@@ -188,6 +198,8 @@ def main() -> None:
     args = ap.parse_args()
 
     cfg = spec.DEFAULT_COOP._replace(n_hens=args.hens)
+    if args.t2:
+        cfg = cfg._replace(contamination_enabled=True, place_cells_enabled=True)
     if args.hawk_period is not None:
         cfg = cfg._replace(hawk_period_s=args.hawk_period)
     pc = plasticity.PlasticConfig(enabled=args.plastic)
