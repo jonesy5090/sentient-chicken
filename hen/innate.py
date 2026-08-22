@@ -335,8 +335,17 @@ def _add_gakel_scaffold(w, gain: float = 1.0, peck_weight: float | None = None) 
     # ordering the docstring above argues for, and it is only defensible alongside
     # `hunger_peck_weight`: the ordering is restored *conditionally* rather than
     # abandoned, since a sated hen still defers and only a hungry one overrides.
-    w(spec.M_PECK, gakel_call, -(peck_weight if peck_weight is not None
-                                 else SCAFFOLD_WEIGHT) * gain)
+    _w = (peck_weight if peck_weight is not None else SCAFFOLD_WEIGHT) * gain
+    w(spec.M_PECK, gakel_call, -_w)
+    # Scratching too (E091), at the same weight and for the same reason the alarm
+    # scaffold suppresses both: `head_down = max(M_PECK, M_SCRATCH)`, and `sensing.py`
+    # scales the aerial channel by `(1 - head_down)`. Suppressing pecking alone leaves
+    # the gate held shut by scratching at sigmoid(hunger*3.0 + REST_BIAS) -- 0.269 at
+    # hunger 0.5 -- so a hen who has just been warned about a place still cannot look
+    # at it. E083 narrowed this response to pecking to stop it suppressing *locomotion*,
+    # which was right; scratching is not locomotion, it is the other half of the
+    # head-down posture, and `M_SCRATCH` has no other effect anywhere in the model.
+    w(spec.M_SCRATCH, gakel_call, -_w)
 
     # Deliberately NOT wired:
     #

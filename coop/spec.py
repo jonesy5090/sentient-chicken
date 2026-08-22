@@ -309,6 +309,15 @@ class CoopConfig(NamedTuple):
     # long enough that leaving is worthwhile, short enough that the coop does not run
     # out of food over a 20-minute run.
     food_deplete_rate: float = 2.0e-2   # per second per hen feeding at the patch
+    # Fraction of locomotion a head-down posture removes (E092). 0.0 is the pre-E092
+    # model, where a hen walks and pecks at the same time indefinitely; 1.0 stops her
+    # dead while her beak is down. Real hens forage intermittently -- peck in one spot,
+    # move, peck again -- and that cycle needs two things the model had separately and
+    # never together: a patch that runs out (`food_deplete_rate`, which the whole T2 arc
+    # had switched off) and a reason to stand still while eating. Applied in
+    # `actuation.py` next to the crouch and sickness gates, because it is a mechanical
+    # consequence of posture rather than a decision.
+    peck_stops_walking: float = 0.0
     food_regrow_s: float = 300.0        # seconds for an empty patch to refill
     huddle_warm_rate: float = 4.0e-4  # per second, per flockmate within huddle_radius
     huddle_max: int = 3               # a hen needs 2-3 close neighbours to stay warm

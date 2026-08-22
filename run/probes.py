@@ -120,6 +120,11 @@ def _mean(trace, channel, hen=0):
 # separation), so it is not a threshold invented to fail one thing.
 MIN_MODULATION = 0.25          # relative change required of a modulated motor channel
 MIN_BIAS = 0.05                # absolute bias required where the read-out is a bias
+# Hunger levels a conditional response is tested at (E090/E091). The free-running flock
+# lives at p10-p90 = 0.285-0.433, so `SATED` sits at its lower edge and `STARVING` well
+# outside it -- the response must be strong where the hens actually are, and weaker where
+# need is extreme.
+SATED, STARVING = 0.2, 0.8
 
 
 def _modulation(base: float, modulated: float) -> float:
@@ -371,25 +376,45 @@ def withdraw_on_hearing_a_gakel_call(cfg: CoopConfig) -> Probe:
     gakel = spec.CALL_MOTOR_IDX.index(spec.M_CALL_GAKEL)
     contact = spec.CALL_MOTOR_IDX.index(spec.M_CALL_CONTACT)
 
-    def drive(channel):
+    def drive(channel, hunger):
         # Food under her beak so peck is genuinely active and has room to fall.
         w = _staged(cfg, pos=[[10.0, 10.0], [10.0, 10.6]], heading=0.0,
-                    food=[[10.05, 10.0]], hunger=0.8)
+                    food=[[10.05, 10.0]], hunger=hunger)
         calls = jnp.zeros((cfg.n_hens, spec.N_CALLS)).at[1, channel].set(1.0)
         w = w._replace(calls=calls)
         _, tr = _run(cfg, w, steps=1, gakel_scaffold=True)
-        return _mean(tr, spec.M_FORWARD), _mean(tr, spec.M_PECK)
+        # head_down is max over HEAD_DOWN_ACTIONS, and sensing.py scales the aerial
+        # channel by (1 - head_down) -- so this is literally whether she can look at
+        # the place she has just been warned about (E091).
+        head_down = max(_mean(tr, c) for c in spec.HEAD_DOWN_ACTIONS)
+        return _mean(tr, spec.M_FORWARD), _mean(tr, spec.M_PECK), head_down
 
-    fwd_g, peck_g = drive(gakel)
-    fwd_c, peck_c = drive(contact)
+    # Both ends, per the specification E090 §8 recorded *before* this was measured: a
+    # conditional response cannot be validated at one staged hunger. Sated is where the
+    # warning is supposed to win; starving is where she is supposed to override it.
+    fwd_g, peck_g, hd_g = drive(gakel, SATED)
+    fwd_c, peck_c, hd_c = drive(contact, SATED)
+    _f, peck_g_hungry, _h = drive(gakel, STARVING)
+    _f, peck_c_hungry, _h = drive(contact, STARVING)
     # 0.01 of motor range: the two conditions differ only in which audio channel is hot,
     # so anything larger than numerical wobble here is a real path onto M_FORWARD.
     suppression = _modulation(peck_c, peck_g)
-    passed = suppression >= MIN_MODULATION and fwd_g >= fwd_c - 0.01
+    supp_hungry = _modulation(peck_c_hungry, peck_g_hungry)
+    # A warning she cannot look up from is useless: E091 measured the gakel scaffold
+    # suppressing pecking while scratching held the head-down gate shut at 0.269, so a
+    # hen who had just been told a place was bad still saw 73% rather than 90% of it.
+    # The contact clause keeps this specific -- hearing *anything* must not free her.
+    passed = (suppression >= MIN_MODULATION and fwd_g >= fwd_c - 0.01
+              and hd_g < 0.15 and hd_c > 0.5
+              and supp_hungry < suppression)
     return Probe("withdraw on hearing a gakel call", passed,
                 f"gakel peck={peck_g:.3f} vs contact peck={peck_c:.3f} "
                 f"({100*suppression:.1f}% suppression, want "
                 f">={100*MIN_MODULATION:.0f}% -- see E089); "
+                f"suppression when starving {100*supp_hungry:.1f}% "
+                f"(must be < sated -- the response is conditional, E090); "
+                f"head_down {hd_g:.3f} vs contact {hd_c:.3f} "
+                f"(gakel must be <0.15 so she can look up -- E091); "
                 f"gakel fwd={fwd_g:.3f} vs contact fwd={fwd_c:.3f} "
                 f"(must NOT be lower -- see E082)")
 
