@@ -141,12 +141,60 @@ reproduction as the regression gate, and it must not ride along with this one.
 
 ## 6. Result
 
-*To be filled after the run.*
+Measured at the E090 adopted weights (W=9, H=4), hen on food, flockmate calling:
+
+| condition | M_PECK | M_SCRATCH | head_down | vision |
+|---|---|---|---|---|
+| gakel, before E091 (hunger 0.5) | 0.102 | 0.269 | 0.269 | 73% |
+| **gakel, after E091** (hunger 0.5) | 0.102 | **0.00007** | **0.102** | **90%** |
+| gakel, after E091 (hunger 0.2, sated) | 0.033 | ~0 | **0.033** | **97%** |
+| contact control, after E091 | 0.998 | 0.269 | 0.998 | 0% |
+
+**All four predictions hold.** `head_down` falls to 0.102 at hunger 0.5 and 0.033 sated,
+against a 0.15 falsifier; vision reaches 90–97% against an 85% bar; the contact control
+stays fully blind, so the response remains specific to this call; and E090's suppression
+figures are unchanged (96.7% sated, 72.6% starving) because scratch suppression does not
+touch `M_PECK`.
+
+Ethogram 12/13 at adopted weights and **88 passed / 1 xfailed** at defaults — the gakel
+assay remains the registered expected failure at `SCAFFOLD_WEIGHT` 1.5, correctly, since
+E090's weights are not yet the default.
+
+**The assay now tests both hunger ends**, implementing the specification E090 §8 recorded
+*before* this was measured. A conditional response cannot be validated at one staged
+hunger: sated is where the warning should win, starving is where she should override it.
+The old assay staged hunger 0.8 only — an arbitrary choice when nothing depended on it,
+and load-bearing once conditionality existed. It now requires ≥25% suppression when sated,
+strictly less suppression when starving, `head_down < 0.15` under gakel and `> 0.5` under
+contact.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**A warning she cannot look up from is useless, and one channel was holding the gate
+shut.** E083 narrowed the gakel response to pecking so it would stop suppressing
+*locomotion* — which was right, and which this does not undo. But scratching is not
+locomotion; it is the other half of the head-down posture, and `M_SCRATCH` has no other
+effect anywhere in the model. Suppressing it costs nothing and returns 17–24 points of
+vision.
+
+**E090 had already done most of this by accident.** Raising the gakel weight from 1.5 to
+9.0 took vision from 4.6% to 73% as a side effect nobody designed or noticed. E091 is the
+remaining quarter, found only because the question was asked directly.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**Adopted**, and guarded: the assay's vision clause runs where it matters — a hen on food,
+the only configuration where `M_PECK` is high enough for the gate to be shut.
+
+**Recorded and deliberately not fixed: the aerial alarm scaffold leaves a foraging hen
+with 1% of her vision.** It suppresses both head-down channels, but at `SCAFFOLD_WEIGHT`
+1.5 against a food drive of 7.0 — E089's saturation problem again. She crouches, because
+the call drives `M_CROUCH` directly, but she cannot look up to see what she was warned
+about. Raising the effective weight to 7.0 would give 56%, to 9.0 gives 90%.
+
+This is a bigger claim than it looks and it is now a backlog item in its own right. A
+receiver who cannot verify what she was told cannot learn what a call *means*, which is
+H2c; and it sits directly on the asymmetry H1a is built from. But `SCAFFOLD_WEIGHT` is
+load-bearing for H4, H2f and E018/E036, so it needs its own experiment with an H2f
+reproduction as the regression gate. E089's lesson — changing two reflexes at once
+confounds the gate — applies.
