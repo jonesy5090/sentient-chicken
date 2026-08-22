@@ -1917,6 +1917,49 @@ anything else checked the same way. **Then** the scope call on T2: raise the gak
 weight to ~7 and re-run E089 (one line, ~30 min, every other link validated), or re-scope
 T2 on the tension above.
 
+**The anchor now works, and the conditional behaviour it was built for has a ceiling set
+by the project's founding premise ([E090](experiments/E090-assay-magnitude-and-hunger-gated-pecking.md)).**
+
+*Part 1 — the assays tested sign, not magnitude.* Three of thirteen were bare sign tests.
+`MIN_MODULATION = 0.25` now requires a modulation assay to show a 25% relative change;
+the threshold is a judgement, and its grounds are that 3.5% demonstrably produces nothing
+while every other modulation assay clears 25% comfortably (contact call 72%, sick
+flockmate 0.63 separation) — checked *before* the number was fixed. The gakel assay
+consequently failed, and was **registered in `probes.EXPECTED_FAILURES` and marked xfail
+strictly** rather than softened: if it starts passing, the suite goes red and someone must
+update the registry.
+
+*Part 2 — a hunger term on pecking.* E089's tension and T2's rotation question converge on
+one missing wire, but `hunger → M_PECK = 0.0` is **deliberate and cited** (`innate.py:78`,
+neonatal pecking is indiscriminate). The arithmetic showed the original design unworkable
+*before it ran* and it was revised in place: **neither term alone can work.** At
+`SCAFFOLD_WEIGHT` 1.5 the drive never leaves saturation so any hunger weight is swallowed
+(3.5% → 0.7%); at hunger 0 the suppression is identical sated and starving at every
+weight. Together they work, and the cited fact survives — unwarned pecking spreads
+**0.47%** between hunger 0.2 and 0.8, because saturation hides the term until a warning
+pulls the drive out of it.
+
+**Adopted for T2: `gakel_peck_weight=9.0`, `hunger_peck_weight=4.0`.** 72.6% suppression
+at hunger 0.8 against E089's 3.5%, full ethogram **13/13**, and hens feed slightly *better*
+(mean hunger 0.3847 against 0.3997). Defaults unchanged and bit-identical.
+
+**But H=8 is rejected on the head-down gate, and that is the finding.** The flock lives at
+hunger p10–p90 **0.285–0.433**; H=4 varies by only **3.4 points** across that range, so its
+conditionality happens where the hens never go, while H=8 varies by **19.9**. At H=8 the
+head-down blindness assay returns **399 head-down / 0 head-up steps** — she pecks
+continuously and never looks up. **You cannot make hunger drive pecking hard enough to
+produce meaningful risk-tolerance variation without destroying the information asymmetry
+the whole project rests on.** That is E089's shape again, colliding this time with the
+founding premise rather than a scaffold weight. Resolving it needs a **multiplicative
+gate** — hunger scaling the aversion rather than adding to the peck drive — which is a
+change to how the reflex arc composes and should not be smuggled in as tuning.
+
+*Also recorded: my selection rule picked H=4 by "strongest sated suppression", optimising
+one axis and checking the other — E088's error repeated, caught only by measuring where
+the flock actually sits. And the gakel assay stages hunger 0.8, an arbitrary choice that is
+now load-bearing under a conditional design; it should test both ends, specified before
+being changed.*
+
 **Falsifier:** with the scaffold validated (Stage 1) and the H2f-style learning rule
 applied, if `L` (intact channel) does not out-perform `C?` (shuffled/yoked, matching
 H4's own control design) on flock-wide sickness per rotation, the anchor was not enough
@@ -2045,6 +2088,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E090 | **Assays now test magnitude; the anchor works; and the conditional behaviour has a ceiling set by the head-down gate.** *Part 1*: three of thirteen assays were bare sign tests. `MIN_MODULATION = 0.25`, justified by checking every other modulation assay clears it comfortably *before* fixing the number. The gakel assay duly failed and was **registered as an expected failure and marked xfail strictly** rather than softened. *Part 2*: `hunger -> M_PECK` is 0.0 **deliberately and cited** (neonatal pecking is indiscriminate), so the design was revised **before running** once arithmetic showed neither term alone can work -- at scaffold 1.5 hunger is swallowed by saturation (3.5% -> 0.7%), at hunger 0 suppression is identical sated and starving at every weight. Together they work and the cited fact survives: unwarned pecking spreads **0.47%** between hunger 0.2 and 0.8. **Adopted for T2: W=9, H=4** -- 72.6% suppression against E089's 3.5%, ethogram **13/13**, hens feed slightly better. **H=8 rejected on the head-down gate**: the flock lives at hunger 0.285-0.433 where H=4 varies only **3.4 points** and H=8 varies **19.9**, but at H=8 the head-down assay returns **399 head-down / 0 head-up** -- she pecks continuously and never looks up. **You cannot make hunger drive pecking hard enough for risk tolerance to vary without destroying the information asymmetry the project rests on.** E089's shape again, colliding with the founding premise. Needs a multiplicative gate, not a weight. Selection rule again optimised one axis; caught by measuring where the flock sits. |
 | E089 | **The whole-chain control finally ran validly -- and fires on the last two millimetres.** Backlog staging step 3, the step E065 skipped. **The plant gate passed for the first time in the arc**: 84.8% held-out decoding, 5.22 selectivity, 7/8 decreasing profiles, firing **1.037 at the target vs 0.459 elsewhere** where E083's read 0.53 (anti-selective). An association has now been correctly planted in this model. **Occupancy still does not move**: 0.6997 -> 0.7020, **+0.3%**, non-monotonic, against a metric resolving 5.1% at n=8; agitation and starvation falsifiers clear. **The reason needed no experiment.** Measured directly: `reflex_in[gakel]` goes 0 -> **1.0000**, fully saturated, and `M_PECK` moves **0.9894 -> 0.9543** -- a **3.5%** suppression at full amplitude, because food drives `M_PECK` at **+7.0** and `SCAFFOLD_WEIGHT` is **1.5**, both deep in sigmoid saturation. To halve pecking the scaffold must roughly match the food drive. **E026's lesson repeated exactly** -- two numbers in the source, eleven lines apart, never multiplied together -- and the 3.5% has been printed by every ethogram run since E083 while the assay's own docstring warns against the bare sign test it then performs. **The finding underneath: with a linear reflex arc into a saturating sigmoid, a second-hand signal held below first-hand weights cannot change behaviour at all.** Either the call matters or it stays subordinate; no `SCAFFOLD_WEIGHT` gives both, and the same applies to the alarm scaffold. Highest-priority fix now: the ethogram assays test sign, not magnitude. |
 | E088 | **A frozen centring baseline recovers the whole readout loss -- and it replicates.** E087's constant was the mean across settled place states, computable only with the places known in advance. E088 tests the causal version -- track for a calibration window, then hold (`pred_bar_freeze_s`, default `None`, nothing earlier moves). **Decodability 90.5% at 40 s and 89.0% on fresh seeds 8-15**, against the runtime's 73.7%, E087's idealised constant at 89.8% and a raw ceiling of 90.0%; the never-freeze control reproduces E087 exactly. **Coherent in both blocks: selectivity tracks convergence, decodability opposes it** -- frozen before the baseline represents the trace (conv 0.34, 0.60) selectivity collapses to 0.94 and 0.67, E070's failure returning; frozen once converged (0.86, 0.95) both hold; frozen late (1.01) selectivity hits 28.8 but decodability falls to 79.4%. **The original selectivity falsifier fired**, because it selected on decodability and tested selectivity -- the exact error E087 taught and this experiment's own prediction 3 restated. The corrected rule was **committed before the replication ran** on disjoint seeds, which is the only reason this is a result rather than a rescue. **The selectivity metric is measurably unstable**: an unchanged control moved **8.73 -> 134.66** between blocks, so 40 s's 2.13 is "in the working band with an unmeasured error bar", not "clears by 0.13" -- an error bar on it is owed after four experiments of bare point estimates. Recommends `pred_bar_freeze_s=60.0` as a judgement *beyond* the rule (which picks 40 s, and 40 s passes): 2.1 points of stable decodability bought for selectivity that moved 0.74x across blocks rather than 0.29x. **The chain is now complete and the blocker is no longer in the pathway.** Next: L vs C?, with the autoencoder control. |
 | E087 | **The prediction-centring cost is the baseline *tracking*, not its timescale -- and a constant baseline wins on both axes.** Decoupled `z_lag_bar` from the reward baseline (they shared `baseline_tau_s`, unstated as a choice) and swept the new `pred_bar_tau_s`. **Primary falsifier fires**: decodability does not climb with tau -- best at the current 20 s (73.7% balanced), worse at 60/150/300/600 (67.2, 58.1, 58.5, 64.3), convergence clear everywhere (0.855-0.994) so nothing is silently uncentred. **Part B earned its pre-registration**: selectivity is 32.0 at 20 s against E070's 1.04 and degrades monotonically with tau -- at 300 s the prediction at the *control* place (1.87) exceeds that at the target, worse than E070's original failure. **Two mechanisms proposed and both falsified**: the timescale story predicted longer tau helps (it hurts), the between-hen story predicted removing each hen's constant mean costs ~20 points (it costs nothing -- 89.8% vs 90.0% raw). What survives is the *form*: on identical states, raw gives selectivity **1.04** (replicating E070 exactly) at 90.0% decodability, a **constant** baseline gives **5.00 at 89.8%**, and the runtime's EMA gives 23.28 at 73.7%. A constant baseline clears both pre-registered bars. Centring is vindicated, not overturned. Next: a frozen baseline (`pred_bar_freeze_s`), pre-registered on both axes together. Why longer tau hurts is unexplained and recorded as a lead. |

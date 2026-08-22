@@ -201,12 +201,131 @@ regression gate.
 
 ## 6. Result
 
-*To be filled after the run.*
+### The sweep — the arithmetic holds in the running model
+
+Peck response with food underfoot, warned (gakel call in earshot) against unwarned
+(contact call, identical amplitude and position):
+
+| W | H | unwarned .2 / .8 | warned .2 | warned .8 | supp .2 | supp .8 | conditional |
+|---|---|---|---|---|---|---|---|
+| 1.5 | 0 | 0.9886 / 0.9886 | 0.9538 | 0.9538 | 3.5% | 3.5% | no |
+| 1.5 | 8 | 0.9977 / 1.0000 | 0.9903 | 0.9999 | 0.7% | 0.0% | useless |
+| 5.0 | 0 | 0.9886 / 0.9886 | 0.4174 | 0.4174 | 57.8% | 57.8% | no |
+| 7.0 | 8 | 0.9977 / 1.0000 | 0.3423 | 0.9844 | 65.7% | 1.6% | yes |
+| 9.0 | 0 | 0.9886 / 0.9886 | 0.0152 | 0.0152 | 98.5% | 98.5% | no |
+| **9.0** | **4** | 0.9949 / 0.9995 | 0.1895 | 0.2742 | **96.7%** | **72.6%** | marginal |
+| 9.0 | 8 | 0.9977 / 1.0000 | 0.0709 | 0.9026 | 92.9% | 9.7% | strongly |
+
+**Neither term alone works, as predicted.** At W=1.5 adding hunger makes suppression
+*worse* (3.5% → 0.7%) — the drive never leaves saturation, so the hunger term only
+deepens it. At H=0 suppression is bit-identical sated and starving at every weight, which
+is E089's tension reproduced exactly.
+
+**The neonatal falsifier is clear.** Unwarned pecking spreads 0.9977 → 1.0000 between
+hunger 0.2 and 0.8: **0.47%** against a 2% bar. Pecking stays indiscriminate when nothing
+is wrong, because saturation hides the hunger term until a warning pulls the drive out of
+it. The cited literature survives.
+
+**Starvation falsifier clear, and the term helps feeding.** Free-running, 8 seeds:
+
+| W | H | mean hunger | p10 | p50 | p90 | vs control |
+|---|---|---|---|---|---|---|
+| 1.5 | 0 (control) | 0.3997 | 0.311 | 0.364 | 0.504 | — |
+| 9.0 | 4 | 0.3847 | 0.295 | 0.344 | 0.507 | −0.0150 |
+| 9.0 | 8 | 0.3541 | 0.285 | 0.320 | 0.433 | −0.0456 |
+
+Hunger *falls*: hungry hens peck harder and feed better.
+
+### 6b. The conditionality is measured in the wrong place, and it matters
+
+*Post-hoc.* The sweep tested hunger 0.2 and 0.8. The free-running flock lives at
+**p10–p90 = 0.285–0.433, median 0.320** — it never approaches 0.8. Suppression across the
+range the hens actually occupy:
+
+| hunger | | W=9 H=4 | W=9 H=8 |
+|---|---|---|---|
+| 0.285 | flock p10 | 95.4% | 86.9% |
+| 0.320 | flock median | 94.7% | 83.4% |
+| 0.433 | flock p90 | 92.0% | 67.0% |
+| 0.800 | swept "starving" | 72.6% | 9.7% |
+| | **range within p10–p90** | **3.4 pts** | **19.9 pts** |
+
+**H=4 is effectively unconditional where the flock lives.** The conditionality that made
+it clear the falsifier happens at a hunger level the hens never reach. H=8 varies by 20
+points inside the occupied range and is genuinely conditional in practice.
+
+**And my selection rule picked H=4** — "strongest sated suppression among those clearing",
+which optimises one axis and checks the other. That is the same error as E088's, made
+again, and caught only by measuring where the flock actually sits.
+
+### 6c. But the regression falsifier fires at H=8, on the load-bearing assay
+
+| config | head-down blindness | gakel withdraw | ethogram |
+|---|---|---|---|
+| 1.5 / 0 (current) | PASS — 111/288 steps | FAIL (3.5%) | 12/13 |
+| **9.0 / 4** | PASS — 109/290 steps | **PASS (72.6%)** | **13/13** |
+| 9.0 / 8 | **FAIL — 399 head-down / 0 head-up** | FAIL (9.7%) | 11/13 |
+
+**At H=8 the hen pecks continuously and never lifts her head.** The assay stages hunger
+0.6; H=8 adds +4.8 to the peck drive and she never stops. That removes the
+vigilance/foraging alternation — the head-down gate, which `CLAUDE.md` calls "the whole
+thesis in one line" and "the load-bearing wall", because without it no signal is ever
+worth making at any brain size.
+
+The second H=8 failure is different in kind: `withdraw on hearing a gakel call` stages
+hunger **0.8** (`probes.py:377`), so it tests the *starving* case — exactly where a
+conditional design should show weak suppression. That hunger value was arbitrary when
+nothing depended on it and is now load-bearing.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**The hunger term resolves E089's tension, and the resolution has a ceiling set by
+something other than T2.**
+
+At W=9 H=4 the gakel anchor is behaviourally meaningful for the first time: 72.6%
+suppression at hunger 0.8 against E089's 3.5%, with the full ethogram at 13/13 and the
+previously-registered failure cleared. Unwarned pecking stays indiscriminate. Hens feed
+slightly *better*. That is a real fix to a real defect.
+
+**But the conditional behaviour it was built for is not available at any adoptable
+weight.** Push H high enough for risk tolerance to vary across the range the flock
+occupies, and the hen pecks continuously and stops looking up. **You cannot make hunger
+drive pecking hard enough to produce meaningful risk-tolerance variation without
+destroying the information asymmetry the entire project depends on.**
+
+That is a second instance of E089's shape — two desiderata that cannot both be satisfied
+by linear terms into a saturating sigmoid — and it is the more interesting one, because
+the thing it collides with is the project's founding premise rather than a scaffold
+weight.
+
+**What would resolve it is a mechanism this model does not have**: a multiplicative gate,
+where hunger scales the *aversion* rather than adding to the peck drive. Then risk
+tolerance could vary without pecking increasing at all. That is a change to how the reflex
+arc composes, not to a weight in it, and it should not be smuggled in as a tuning step.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**Recommended for T2: `gakel_peck_weight=9.0`, `hunger_peck_weight=4.0`.** It clears every
+pre-registered falsifier, passes 13/13, and turns a behaviourally inert anchor into a
+working one. Its conditionality is weak in practice (3.4 points across the occupied range)
+and it should be described as "the warning now works" rather than "the hen weighs risk
+against need".
+
+**Rejected: H=8**, on the head-down gate. Recorded with the number (399/0) rather than as
+a preference, because it is the more attractive configuration on every axis except the one
+that matters most.
+
+**Defaults unchanged.** `gakel_peck_weight=None` and `hunger_peck_weight=0.0` reproduce
+the current arc bit-identically; 88 passed, 1 xfailed. Per §5, the default moves only
+after the E089 re-run and an E057 H2f reproduction, neither of which has been done.
+
+**Owed: the gakel assay must test both ends.** Under a conditional design, one staged
+hunger value cannot validate the response — it should require ≥25% suppression when sated
+*and* meaningfully less when starving. Changing it now, having seen which end each config
+fails at, would be tuning the test to the result; it should be written as a specification
+first. Noting that W=9 H=4 passes at the existing hunger 0.8 anyway, so nothing depends on
+the change.
+
+**Next: re-run E089 at W=9 H=4.** Every other link is validated and the anchor can now
+compete. That is prediction 5, and it is the test of whether any of this reaches
+behaviour.

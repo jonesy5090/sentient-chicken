@@ -49,7 +49,9 @@ def reflex_matrix(auditory_scaffold: bool = False,
                   scaffold_gain: float = 1.0,
                   legacy_food_call: bool = False,
                   gakel_scaffold: bool = False,
-                  gakel_scaffold_gain: float = 1.0) -> np.ndarray:
+                  gakel_scaffold_gain: float = 1.0,
+                  gakel_peck_weight: float | None = None,
+                  hunger_peck_weight: float = 0.0) -> np.ndarray:
     """The innate arc as a fixed (MOTOR_DIM, OBS_DIM) matrix.
 
     `auditory_scaffold` adds an innate response to *hearing* an alarm call. It is off
@@ -82,6 +84,21 @@ def reflex_matrix(auditory_scaffold: bool = False,
     for b in _FRONT:
         w(spec.M_PECK, spec.vis_index(b, spec.CLS_FOOD), 7.0)
         w(spec.M_PECK, spec.vis_index(b, spec.CLS_WATER), 5.0)
+
+    # `hunger_peck_weight` (E090) does not contradict the paragraph above, and the
+    # reason is the saturation E089 found. The food drive is +7.0, so with nothing
+    # wrong a hen pecks at sigmoid(7.0) ~ 0.999 whether starving or sated -- adding a
+    # hunger term moves that to 0.9996 vs 1.0000, which is indiscriminate to four
+    # decimal places. The term only becomes visible once something has pushed the
+    # drive *out* of saturation, which in this model means an aversive signal.
+    #
+    # So it buys exactly one thing: risk tolerance that scales with need. A sated hen
+    # defers to a warning about a place; a starving one overrides it. That is a
+    # well-documented foraging trade-off, and it is what E089 showed the model could
+    # not express -- with only two terms, either the warning always wins or it never
+    # does. Default 0.0, so nothing moves until E090 says what the value should be.
+    if hunger_peck_weight:
+        w(spec.M_PECK, spec.IDX_HUNGER, hunger_peck_weight)
 
     # --- Orienting toward food and water ---
     for b in _LEFT:
@@ -190,7 +207,7 @@ def reflex_matrix(auditory_scaffold: bool = False,
         _add_auditory_scaffold(w, scaffold_gain)
 
     if gakel_scaffold:
-        _add_gakel_scaffold(w, gakel_scaffold_gain)
+        _add_gakel_scaffold(w, gakel_scaffold_gain, gakel_peck_weight)
 
     return r
 
@@ -258,7 +275,7 @@ def _add_auditory_scaffold(w, gain: float = 1.0) -> None:
 
 
 
-def _add_gakel_scaffold(w, gain: float = 1.0) -> None:
+def _add_gakel_scaffold(w, gain: float = 1.0, peck_weight: float | None = None) -> None:
     """An innate withdrawal response to *hearing* the gakel call. T2-revised.
 
     The one behavioural anchor T2-revised adds, and the reason it is not smuggling in
@@ -308,7 +325,18 @@ def _add_gakel_scaffold(w, gain: float = 1.0) -> None:
     """
     gakel_call = spec.AUDIO_LO + spec.CALL_MOTOR_IDX.index(spec.M_CALL_GAKEL)
 
-    w(spec.M_PECK, gakel_call, -SCAFFOLD_WEIGHT * gain)
+    # `peck_weight` overrides SCAFFOLD_WEIGHT for this one connection (E090). E089
+    # measured why it needs to: at 1.5 against a food drive of 7.0 the suppression is
+    # 3.5% and behaviourally inert, because both sit deep in sigmoid saturation. To
+    # matter at all the term has to be large enough to pull the drive out of it, which
+    # means roughly matching the food drive rather than staying far below it.
+    #
+    # That is a deliberate departure from the "first-hand dominates second-hand"
+    # ordering the docstring above argues for, and it is only defensible alongside
+    # `hunger_peck_weight`: the ordering is restored *conditionally* rather than
+    # abandoned, since a sated hen still defers and only a hungry one overrides.
+    w(spec.M_PECK, gakel_call, -(peck_weight if peck_weight is not None
+                                 else SCAFFOLD_WEIGHT) * gain)
 
     # Deliberately NOT wired:
     #
