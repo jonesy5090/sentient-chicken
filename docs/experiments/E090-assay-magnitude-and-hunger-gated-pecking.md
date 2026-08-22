@@ -79,6 +79,9 @@ acquires an aversive association. What happens then? Measured in the wiring:
 - `hunger → M_PECK` is **0.0**. Pecking is driven only by seeing food (+7.0) and water
   (+5.0), opposed by the gakel channel (−1.5). Hunger drives `M_FORWARD` (+2.0) — walking,
   not eating. **A starving hen pecks exactly as much as a sated one.**
+  **This is deliberate and cited**, not an oversight: `innate.py:78–80` records that
+  "neonatal pecking is famously indiscriminate: chicks peck at small objects whether or
+  not they are hungry, and refine by experience." Any change here has to preserve that.
 - Aversions *do* extinguish: `W_pred` is a delta rule
   (`pred_err = observability × (obs − predicted)`), so predicting a call that does not
   arrive drives the weight down. And because E083's redesign suppresses pecking but not
@@ -132,16 +135,51 @@ does not reproduce. This touches the innate arc, which every experiment sits on.
 **Starvation falsifier.** Mean hunger in a free-running flock rises above its current
 baseline by more than 0.1. A hunger term on pecking must not make hens *worse* at feeding.
 
+**Neonatal-indiscriminateness falsifier — added with the revised design.** Unwarned
+pecking must differ by less than **2%** between a sated hen (hunger 0.2) and a starving
+one (0.8). `innate.py` cites chicks pecking "whether or not they are hungry", and a change
+that makes ordinary foraging hunger-dependent contradicts the literature the model is
+built against, whatever it does for T2. The arithmetic predicts 0.9996 vs 1.0000 — well
+inside — but predicting it is not measuring it.
+
 ## 5. Design
+
+### Revised before running — the original design was unworkable, and the arithmetic says why
+
+*§5 originally held `SCAFFOLD_WEIGHT` at 1.5 and swept the hunger term alone, on the
+reasoning that raising the scaffold would be "winning the tension rather than dissolving
+it". That is impossible, and it took four lines of arithmetic to see. Recorded rather than
+silently amended; nothing had run.*
+
+| scaffold | hunger w | unwarned peck (sated/starving) | warned, sated | warned, starving |
+|---|---|---|---|---|
+| 1.5 | 0 | 0.9991 / 0.9991 | 0.9959 | 0.9959 |
+| 1.5 | 8 | 0.9998 / 1.0000 | 0.9992 | 1.0000 |
+| 7.0 | 0 | 0.9991 / 0.9991 | 0.5000 | 0.5000 |
+| **9.0** | **4** | **0.9996 / 1.0000** | **0.2315** | **0.7685** |
+| 9.0 | 8 | 0.9998 / 1.0000 | 0.4013 | 0.9879 |
+
+**Neither term alone can work.** With `SCAFFOLD_WEIGHT` at 1.5 the drive never leaves
+saturation, so any hunger weight is swallowed (0.9992 vs 1.0000). With hunger at 0 the
+suppression is identical sated and starving at *every* scaffold weight — no
+conditionality is available, which is E089's tension restated.
+
+**Together they work, and the reason is the saturation E089 identified.** Because food
+drives `M_PECK` at +7.0, adding hunger is invisible when nothing is wrong — unwarned
+pecking reads 0.9996 sated against 1.0000 starving — and decisive once a warning has
+pushed the drive out of saturation. **The cited neonatal fact is a claim about the
+unwarned case, and it survives intact.** That is what makes this a resolution rather than
+a trade.
 
 ### The change
 
 In `hen/innate.py`, add `w(spec.M_PECK, spec.IDX_HUNGER, +H)` alongside the existing food
-and water drives. Sweep `H ∈ {0, 2, 4, 6, 8}` — 0 is the current behaviour and the
-control.
+and water drives, and make `SCAFFOLD_WEIGHT`'s gakel→`M_PECK` term a separate, larger
+value `W`. Sweep the pair: `W ∈ {1.5, 5, 7, 9}` × `H ∈ {0, 4, 8}`, with (1.5, 0) as the
+current behaviour and the control.
 
-`SCAFFOLD_WEIGHT` stays at 1.5. The point is to test whether a third term dissolves the
-tension, not to win it by raising the second.
+The alarm scaffold's weight is **not** touched. E089 noted the same argument applies to
+it, but changing two reflexes at once would confound the regression gate.
 
 **Off by default is not available here** — this is the innate arc, and a config switch on
 a reflex would be the eighth opt-in flag. Instead the sweep runs first and the default
