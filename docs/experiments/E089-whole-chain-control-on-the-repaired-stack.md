@@ -129,12 +129,130 @@ invent post-hoc, now standard.
 
 ## 6. Result
 
-*To be filled after the run.*
+### The plant gate passed — for the first time in this arc
+
+| seed | target | ctrl | held-out acc | selectivity | decreasing |
+|---|---|---|---|---|---|
+| 0 | 2 | 7 | 68.0% | 9.48 | no |
+| 1 | 6 | 5 | 86.8% | 4.34 | yes |
+| 2 | 11 | 10 | 82.9% | 1.90 | yes |
+| 3 | 3 | 2 | 89.9% | 2.62 | yes |
+| 4 | 2 | 7 | 88.9% | 6.46 | yes |
+| 5 | 2 | 7 | 93.0% | 3.99 | yes |
+| 6 | 10 | 5 | 77.0% | 4.93 | yes |
+| 7 | 10 | 6 | 91.6% | 8.02 | yes |
+| **mean** | | | **84.8%** | **5.22** | **7/8** |
+
+Live, the plant fires at **1.037 at the target against 0.459 elsewhere** — 2.26× — where
+E083's read 0.53, i.e. *anti*-selective. This is the first validly-planted association in
+the T2 arc.
+
+### And the behaviour does not move
+
+| `pred_gain` | occ target | occ ctrl | hunger | fwd | peck@T | pred@T | pred elsewhere |
+|---|---|---|---|---|---|---|---|
+| 0.0 | 0.6997 | 0.7252 | 0.328 | 0.564 | 0.719 | 1.037 | 0.459 |
+| 0.5 | 0.6832 | 0.7211 | 0.331 | 0.565 | 0.719 | 1.033 | 0.450 |
+| 1.0 | 0.6938 | 0.7243 | 0.332 | 0.566 | 0.708 | 1.038 | 0.458 |
+| 2.0 | 0.7020 | 0.7287 | 0.330 | 0.564 | 0.698 | 1.033 | 0.472 |
+
+- **Primary falsifier FIRES.** Occupancy at the target runs **+0.3%** (0.6997 → 0.7020),
+  non-monotonic, against a metric resolving 5.1% at n=8.
+- Agitation falsifier clear (+0.5% at the control).
+- Starvation falsifier clear (hunger 0.330).
+
+### 6b. Why — and it is not the architecture
+
+*Post-hoc, and it changes the conclusion, so it is reported before the interpretation.*
+
+Peck at the target fell only **2.9%** across the whole ladder. That is far too little for a
+percept the plant drives to saturation, so the path was measured directly rather than
+reasoned about (`$CLAUDE_JOB_DIR/tmp/e089_path_check.py`, hens parked on the target with
+food underfoot, settled 90 s past the freeze):
+
+| `pred_gain` | predicted@gakel | `reflex_in[gakel]` | M_PECK | M_FORWARD |
+|---|---|---|---|---|
+| 0.0 | +0.5534 | 0.0000 | **0.9894** | 0.5947 |
+| 2.0 | +0.5534 | **1.0000** | **0.9543** | 0.5947 |
+
+**The pathway works perfectly.** `reflex_in[gakel]` goes 0 → 1.0, fully saturated. And a
+**full-amplitude** gakel percept moves pecking by **3.5%**.
+
+The arithmetic, available in the source without running anything: food drives `M_PECK` at
+**+7.0** (`innate.py:83`); `SCAFFOLD_WEIGHT` is **1.5** (`innate.py:45`); both sit deep in
+sigmoid saturation.
+
+| scaffold weight | peck with call | peck without | suppression |
+|---|---|---|---|
+| **1.5 (current)** | 0.9959 | 0.9991 | **0.3%** |
+| 3.0 | 0.9820 | 0.9991 | 1.7% |
+| 5.0 | 0.8808 | 0.9991 | 11.8% |
+| 7.0 | 0.5000 | 0.9991 | 50.0% |
+| 9.0 | 0.1192 | 0.9991 | 88.1% |
+
+**To halve pecking, the scaffold must roughly match the food drive.** At 1.5 it cannot
+move behaviour at all, whatever the association does.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**The stop condition fired, and its premise was false.** I pre-registered that a null here
+would be a statement about the architecture, because the plant, the representation, the
+metric and the anchor would all have been validated. Three of those four held. **The anchor
+had not been validated for magnitude — only for sign.**
+
+**And the number was printed in every ethogram run since E083.** The assay reports
+`gakel peck=0.954 vs contact peck=0.989`; it asserts `peck_g < peck_c` and passes. That
+assay's own docstring — which I wrote — warns that "a scaffold that damped everything on
+the audio bus would pass a bare sign test while being useless". It then applies a bare sign
+test. The 3.5% was on screen every time and nobody multiplied it through to ask whether it
+could move a behaviour.
+
+**This is E026's lesson, repeated exactly.** `CLAUDE.md` records it: *"Hearing an alarm
+drove crouch to sigmoid(1.5 − 2.5) = 0.269; hiding required > 0.5. Both numbers were in the
+source, written by the same person, never multiplied together."* Here: the gakel scaffold
+drives peck suppression to 0.3% against a food drive of 7.0, and avoidance requires far
+more. Both numbers are in `innate.py`, eleven lines apart.
+
+**But underneath the oversight is a real design tension, and it is the interesting part.**
+`_add_gakel_scaffold`'s docstring states the weight is deliberately small so that "it stays
+well below the visual arc's own weights so first-hand information continues to dominate
+second-hand". That is a defensible principle — a hen should trust her eyes over a rumour.
+The measurement says the two requirements are incompatible as built: **with a linear reflex
+arc feeding a saturating sigmoid, a second-hand signal held below first-hand weights cannot
+change behaviour at all.** Either the call matters or it stays subordinate. There is no
+setting of `SCAFFOLD_WEIGHT` that gives both.
+
+That is a genuine architectural finding rather than a tuning oversight, and it applies to
+the alarm scaffold on the same argument.
+
+**What E089 does establish, and it is not nothing.** The plant gate passed at 84.8% with
+2.26× live selectivity, so for the first time an association *has* been correctly planted
+in this model. Every link from place cells to `reflex_in` is now measured end to end. The
+failure is in the last two millimetres — reflex weight to motor output.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**I pre-committed to stopping on this falsifier, and I am not going to quietly convert that
+into a seventh repair.** The honest position:
+
+- The stop condition's *premise* was wrong, so the stop does not carry the meaning I
+  assigned it. This is a diagnosable instrument-class failure, the seventh in the arc.
+- But it is also the first one that reveals a **design tension rather than a defect** —
+  subordinate-by-construction signals cannot change behaviour through a saturating
+  reflex — and that tension is a finding worth recording whether or not T2 continues.
+
+**The decision on whether to continue is a scope call, not mine to make silently.** The two
+routes:
+
+1. **Raise the gakel→`M_PECK` weight to ~7 and re-run E089.** One line, ~30 minutes,
+   and every other link is already validated. It abandons the stated
+   first-hand-dominates-second-hand principle for this call, which should be argued for
+   explicitly rather than tuned into.
+2. **Re-scope T2** on the finding in §7: in this architecture a referential signal that
+   stays subordinate to direct perception cannot alter behaviour, which is a real result
+   about the design and arguably more interesting than the avoidance measurement.
+
+**Owed regardless: the ethogram assay must test magnitude, not sign.** Every behavioural
+scaffold assay in `run/probes.py` shares this shape. A guard that would pass on a 0.3%
+effect is not a guard. This is the highest-priority fix in the repo now, above T2 itself,
+because it plausibly affects the alarm scaffold and anything else validated the same way.
