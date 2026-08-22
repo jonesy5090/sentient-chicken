@@ -1397,8 +1397,10 @@ chain that demonstrably conducts (E082). Both instrument defects are fixed and m
 place cells to the hippocampus takes parked decodability to 99.5% and gives 90.0% under
 movement when read directly ([E086](experiments/E086-place-to-hippocampus.md)). What
 remains is narrower and specific — **`W_pred` cannot reach that signal**, because its
-source is diluted across 336 units and then high-passed by a centring baseline whose 20 s
-corner sits directly on the 17–75 s timescale of the hen's own dwell times.** A `sickness_penalty` sweep across a
+source is diluted across 336 units and then high-passed by its centring baseline. E087
+established that the damage is done by the baseline **tracking** rather than by its
+timescale: a *constant* DC removal keeps 89.8% decodability with selectivity 5.0, where the
+runtime's moving average keeps 73.7%.** A `sickness_penalty` sweep across a
 thousandfold range produces no learned avoidance at any magnitude: `late−early` runs
 +1.00, +0.08, +0.08, +1.25, −0.33 with no trend. The signal does reach the weights
 (mean `|W−W₀|` rises 26% at penalty 1000) but produces undirected perturbation, not
@@ -1777,6 +1779,50 @@ should climb from 73.7% toward 90.0% as the corner moves below the signal, **whi
 selectivity failure does not return** — that is the falsifier and it must be measured, not
 assumed, since it is the reason centring exists.
 
+**The centring's cost is the baseline *tracking*, not its timescale
+([E087](experiments/E087-prediction-centring-timescale.md)).** E087 decoupled `z_lag_bar`
+from the reward baseline — the two shared `baseline_tau_s` with nothing in the source
+stating that as a choice — and swept the new `pred_bar_tau_s`. **The primary falsifier
+fires: decodability does not climb with tau.** It is best at the current 20 s (73.7%
+balanced) and worse at every longer value (67.2, 58.1, 58.5, 64.3), with convergence clear
+everywhere (0.855–0.994), so the E071/E082 "silently uncentred" error is ruled out rather
+than assumed away.
+
+**Part B was pre-registered and it earned its place.** Selectivity is 32.0 at 20 s against
+E070's failure at 1.04, and **degrades monotonically as tau lengthens** — at 300 s the
+prediction at the *control* place (1.87) exceeds the prediction at the target, worse than
+E070's original failure. Without it, 300 s would have read as mediocre rather than
+catastrophic on the one thing the term exists for.
+
+**Two mechanisms proposed and both falsified**, recorded because the sequence is the useful
+part. The *timescale* story (a 20 s baseline tracking 17–75 s dwells) predicted longer tau
+would help; it hurts. The *between-hen* story (a per-hen baseline removing what is largely
+a between-hen variable in an aggregating flock) predicted that removing each hen's own
+constant mean would cost the same ~20 points; it costs **nothing** — 89.8% against 90.0%
+raw.
+
+**What survives is the form of the operation.** Measured on identical settled states:
+
+| baseline | pred @ P | pred elsewhere | selectivity | decodability |
+|---|---|---|---|---|
+| none (raw) | 1.0000 | 1.0101 | **1.04** | 90.0% |
+| **constant** | 1.0000 | −0.2000 | **5.00** | **89.8%** |
+| EMA, τ 20 s (runtime) | 1.0000 | 0.1145 | 23.28 | 73.7% |
+
+The `none` row **replicates E070's failure exactly** (E070: 1.0000 vs 0.9637, ratio 1.04)
+on an independent implementation. And a **constant** baseline clears both pre-registered
+bars at once — 89.8% decodability with selectivity 5.0 against a threshold of 2.0.
+
+**The centring is vindicated, not overturned**: at 20 s it buys a 32× selectivity ratio.
+E087 says it buys that at a price in signal, and that a different *form* of the same
+operation buys most of the selectivity at almost none of the price. **Next: a frozen
+baseline** — `z_lag_bar` tracks for a calibration period then holds constant
+(`pred_bar_freeze_s`, default never). Implementable in the runtime, unlike 6c's across-place
+mean, and biologically unembarrassing as a developmental calibration. **Its pre-registration
+must carry both axes together** — decodability ≥85% *and* selectivity ≥2.0 — because E087
+shows they trade. *Why longer tau made things worse is unexplained; the un-converged-transient
+lead is recorded as a lead, not a finding.*
+
 **Falsifier:** with the scaffold validated (Stage 1) and the H2f-style learning rule
 applied, if `L` (intact channel) does not out-perform `C?` (shuffled/yoked, matching
 H4's own control design) on flock-wide sickness per rotation, the anchor was not enough
@@ -1905,6 +1951,7 @@ scalar, not a report. See `docs/ethics.md` §6.
 | E026 | **H4 SUPPORTED.** Intact channel −0.198 ± 0.059 vs deaf on P(caught\|blind), 24 seeds, two blocks; **yoked control flat**. Required a working control, an unmovable metric, and a warning interval — all four fixes were measurement errors. |
 | E025 | **File finally written** (retrospective, from preserved commits). Food depletion does **not** disperse the flock (23.0% → 21.9% strike-radius overlap, noise); gregariousness's attraction-only wiring does, confirmed by ablation (21.9% → 6.8% with it removed). `food_deplete_rate` kept anyway on the assumption it "does not run out of food over a 20-minute run" — **shown false by [E037](E037-h2-rebaseline.md)** at the duration and flock size H2's own harness actually uses. |
 | E024 | H4 ladder built and run with no plasticity. **The control failed**: the shuffled channel keeps 90% of the intact channel's information, because 38.8% of the flock shares each hawk. No result recorded against H4; T1 retired as its vehicle. |
+| E087 | **The prediction-centring cost is the baseline *tracking*, not its timescale -- and a constant baseline wins on both axes.** Decoupled `z_lag_bar` from the reward baseline (they shared `baseline_tau_s`, unstated as a choice) and swept the new `pred_bar_tau_s`. **Primary falsifier fires**: decodability does not climb with tau -- best at the current 20 s (73.7% balanced), worse at 60/150/300/600 (67.2, 58.1, 58.5, 64.3), convergence clear everywhere (0.855-0.994) so nothing is silently uncentred. **Part B earned its pre-registration**: selectivity is 32.0 at 20 s against E070's 1.04 and degrades monotonically with tau -- at 300 s the prediction at the *control* place (1.87) exceeds that at the target, worse than E070's original failure. **Two mechanisms proposed and both falsified**: the timescale story predicted longer tau helps (it hurts), the between-hen story predicted removing each hen's constant mean costs ~20 points (it costs nothing -- 89.8% vs 90.0% raw). What survives is the *form*: on identical states, raw gives selectivity **1.04** (replicating E070 exactly) at 90.0% decodability, a **constant** baseline gives **5.00 at 89.8%**, and the runtime's EMA gives 23.28 at 73.7%. A constant baseline clears both pre-registered bars. Centring is vindicated, not overturned. Next: a frozen baseline (`pred_bar_freeze_s`), pre-registered on both axes together. Why longer tau hurts is unexplained and recorded as a lead. |
 | E086 | **The hippocampus was never in the circuit; putting it there fixes the representation and exposes the readout as the real blocker.** `regions.py` names HIPPOCAMPUS "place and spatial memory" and E063 was written up as giving it its first real function -- but `W_in` writes only into the sensory stub, so **64 of 64 place-receiving units were in the sensory stub and 0 in the hippocampus**, and `pred_src` excluded the region regardless. E086 routes place there and extends `pred_src`; off by default, guard at n_hens=16. **Parked decodability 84.6% -> 99.5%**, and the **distance profile decreases for the first time in this arc** (innermost bin 0.653 -> 1.604, lowest of seven to highest). Off arm reproduces E085 and E081 exactly. **Primary falsifier fires**: moving decodability 54.3% -> 58.9%, +4.6 +/- 3.3, t=+1.40, ns. Post-hoc diagnostic on identical data splits the cause: **dilution costs ~10 pts** (hippocampus alone 73.7% vs pooled 336 at 63.5%; pallium alone 54.4%, chance) and **the centring costs ~20** (`z_lag` uncentred 90.0%, raw rate 90.7%) while the lag itself costs nothing. `z_lag_bar` is a 20 s running mean against dwell times of 17-75 s -- a high-pass sitting on the signal's own timescale -- and it shares `baseline_tau_s` with the **reward** baseline, two unrelated quantities on one constant. Centring is not a mistake (E070: raw DC gave 1.0000 at P vs 0.9637 elsewhere), so this is a genuine tension. **Narrows E085**: the representation is now sufficient, the readout is not. Next: give `z_lag_bar` its own `pred_bar_tau_s` and sweep it, with E070's selectivity failure as the falsifier. |
 | E085 | **T2's instrument repaired and measured -- and the route is now blocked on the representation, not the instrument.** Makes no behavioural claim. **Metric fix works**: choosing the target feeder per seed from an independent baseline run holds up (occ 0.600 selection -> 0.602 test, min 0.405, drift +0.8% and symmetric), and resolves **9.7% at n=4, 5.1% at n=8** against E084's 18.3% at n=4 for a fixed cell -- measured from a **null-null contrast** so the threshold is not derived from the treatment it will judge. Mean dwell per visit was tried and is far worse (MDE 74.3%): heavy-tailed, since a hen who never leaves yields one enormous visit. That prediction was recorded and wrong. **Decodability gate fires**: a discriminant fitted on live states and evaluated held-out scores **59.6%**, ratio 1.70, profile not decreasing. The headline is mostly class imbalance -- accuracy correlates with split skew at **r=+0.870**, and on the six balanced-split seeds it is **54.3%, +4.3 +/- 1.5, t=+2.95**: real, reliable, and about four points above chance, against E081's 84.6% parked. Even the live-fit discriminant fires *least* closest to the target (innermost bin 0.653, lowest of seven). E083's diagnosis replicates on fresh data (parked-fit 48.7%, ratio 0.60 vs 0.53). **First result in this arc about the model rather than our measurement of it**: `W_pred` is linear, the place cells work parked, and E063 gave them no innate anchors, so nothing lifts position into the variance a linear readout can reach. Next: innate place anchor, then a wider place population, then re-scope T2. Also records two engineering faults that both presented as exit 0 with an empty file (unguarded module driver; 3.9 GB/run OOM from emitting state every scan step). |
 | E084 | **T2's occupancy metric cannot resolve the effect E082 and E083 predicted -- both falsifiers were guaranteed to fire before either ran.** Set out to fit the place discriminant on live states rather than parked ones; **crashed on seed 1 with 0 of 19 200 samples** within 3.33 m of the planted feeder (16 hens, 20 min) while the same connectome's other run gave 0.424. Diagnostics (post-hoc): **the flock aggregates** -- `approach_flockmates` works, so 16 hens behave as one clump (spread 1.66-7.21 m in a 20 m arena) that settles where it starts, and occupancy of a fixed cell runs **0.000 to 0.481 on world key alone**; effective n for a spatial metric is nearer one animal per seed than sixteen. **And the metric is under-resolved**: 8 seeds give baseline 0.4244 +/- 0.2751 (seeds spanning 0.0948-0.9651), paired-difference sd 0.0487, **minimum detectable effect at n=4 = 18.3% of baseline against a pre-registered 15%**. Observed at n=8: +6.4%, t=+1.57, ns and positive. Two seeds sit at ceiling/floor (CLAUDE.md check 5) on top of check 6. Second independent sufficient reason -- with E083's anti-selective plant -- why this arc produced nulls, neither about the hen. **Part A's question stays open**: one seed completed, at chance (44.4% live-fit vs 44.8% parked-fit, held-out). Next: pick the target cell per seed from an independent baseline run so every seed has room to fall, n=8 minimum. |

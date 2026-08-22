@@ -125,12 +125,134 @@ cheap.
 
 ## 6. Result
 
-*To be filled after the run.*
+### Part A — the sweep. Primary falsifier fires.
+
+8 seeds, 3164 s. Decodability from the hippocampus, held-out.
+
+| `pred_bar_tau_s` | held-out acc | balanced-split | convergence |
+|---|---|---|---|
+| 20 (current) | 69.2% | **73.7%** | 0.994 |
+| 60 | 63.6% | 67.2% | 0.992 |
+| 150 | 65.1% | 58.1% | 0.993 |
+| 300 | 63.3% | 58.5% | 0.974 |
+| 600 | 64.9% | 64.3% | 0.855 |
+
+**Decodability does not climb with tau. It is best at the current value and worse at every
+longer one**, non-monotonically, with no trend toward the 90.0% uncentred ceiling. The
+convergence falsifier is clear at every tau (0.855–0.994), so none of these is silently
+uncentred — the E071/E082 error is ruled out rather than assumed away.
+
+### Part B — selectivity. Prediction 2 held, and running it mattered.
+
+| `pred_bar_tau_s` | pred @ P | pred @ P′ | ratio |
+|---|---|---|---|
+| 20 | 1.0000 | −0.0312 | **32.04** |
+| 60 | 1.0000 | −0.0914 | 10.94 |
+| 150 | 1.0000 | 0.1044 | 9.58 |
+| 300 | 1.0000 | 1.8747 | **0.53** |
+| 600 | 1.0000 | 1.0432 | 0.96 |
+
+Selectivity is excellent at the current 20 s and **degrades monotonically as tau
+lengthens**. At 300 s the prediction at the *control* place (1.87) exceeds the prediction
+at the target — worse than E070's original failure. Had Part B not been pre-registered,
+300 s would have looked merely mediocre on decodability instead of catastrophic on the
+thing the term exists for.
+
+### 6b. Diagnostic — the between-hen hypothesis, also falsified
+
+*Post-hoc.* `z_lag_bar` is a **per-hen** baseline, and the flock aggregates (E084: spread
+1.66–7.21 m in a 20 m arena; E085: single-cell occupancy 0.09–0.97 across seeds), so
+position is partly a between-hen variable and a per-hen baseline might be removing it.
+Tested by removing the between-hen component by hand, at zero timescale:
+
+| variant | all seeds | balanced |
+|---|---|---|
+| raw `z_lag` | 89.3% | 90.0% |
+| minus the across-hen (global) mean | 88.4% | 89.2% |
+| minus **each hen's own full-run mean** | 89.1% | **89.8%** |
+
+**Removing each hen's own constant mean costs nothing** — 89.8% against 90.0% raw. The
+between-hen hypothesis is wrong too.
+
+### 6c. Diagnostic — it is the *form* of the baseline, not its timescale or its scope
+
+*Post-hoc.* What separates the 89.8% of a constant per-hen mean from the 73.7% of the
+runtime is that one is **constant** and the other **tracks**. Selectivity under all three,
+on identical settled states:
+
+| baseline | pred @ P | pred elsewhere | ratio | decodability (moving) |
+|---|---|---|---|---|
+| none (raw) | 1.0000 | 1.0101 | **1.04** | 90.0% |
+| **constant** | 1.0000 | −0.2000 | **5.00** | **89.8%** |
+| EMA, τ 20 s (runtime) | 1.0000 | 0.1145 | 23.28 | 73.7% |
+
+The `none` row **reproduces E070's failure exactly** — E070 measured 1.0000 vs 0.9637, a
+ratio of 1.04, and this returns 1.04 on an independent implementation. That is a clean
+replication of the finding that motivated the centring in the first place.
+
+And **a constant baseline clears both bars at once**: 89.8% decodability (against the
+runtime's 73.7%) with selectivity 5.00, comfortably above the pre-registered threshold of
+2.0.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**Prediction 1 was wrong, and so were both mechanisms I proposed for it.** The timescale
+story — a 20 s baseline tracking 17–75 s dwells and subtracting position — predicted that
+longer tau would help. It hurts. The between-hen story predicted that removing a per-hen
+constant would cost what the per-hen EMA costs. It costs nothing. Both were tested before
+being written anywhere, and both are recorded here because the sequence is the useful part:
+a plausible mechanism sitting next to a real number is not evidence, which is this
+project's oldest lesson and one I have now re-learned twice in two experiments.
+
+**What survives is narrower and better supported: the damage is done by the baseline
+*tracking*, not by its timescale, its scope, or the lag.** A constant DC removal keeps
+89.8%; an exponential moving average of the same quantity keeps 73.7%. A tracking baseline
+is a high-pass, and the hen's pallial state during free movement evidently carries position
+in components that a high-pass removes regardless of where its corner sits.
+
+**Why lengthening tau made things worse rather than better is not explained**, and I am not
+going to propose a third mechanism for it. The candidate worth noting is that
+`z_lag_bar` starts at zero and needs roughly 3τ to settle, so at 600 s it is still rising
+through a 1200 s run — a large, systematically decaying term that the convergence ratio
+(which compares magnitudes, not stationarity) does not detect. That is a hypothesis, it is
+untested, and it is written here as a lead rather than a finding.
+
+**The centring is vindicated on its own terms.** At the current 20 s it delivers a
+selectivity ratio of 32.0 against E070's failure at 1.04. Nobody should read this
+experiment as saying the centring was a mistake. It says the centring buys selectivity at a
+price in signal, and that **a different form of the same operation buys nearly all of the
+selectivity at almost none of the price**.
+
+**The trade-off is real but lopsided.** Constant gives 5.00 selectivity and 89.8%
+decodability; the EMA gives 23.28 and 73.7%. Whether 5.00 is behaviourally sufficient is
+genuinely open — it is 5× separation and well above the bar I set in advance, but no
+behaviour has been run on it, and the honest statement is that this is a measurement about
+readouts, not about hens.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**Kept: `pred_bar_tau_s`, defaulting to `None`.** It inherits `baseline_tau_s`, so every
+prior result is bit-identical (87/87). Its value is now documented as *not* a tuning knob:
+Part A shows no setting of it helps, and settings above ~150 s actively destroy
+selectivity. It stays because the coupling it removed — the prediction baseline sharing a
+constant with the *reward* baseline, with nothing in the source stating that as a choice —
+was worth breaking on its own.
+
+**Recommended next, and the design follows from 6c: a *frozen* baseline.** Let `z_lag_bar`
+track for a calibration period and then hold constant — `pred_bar_freeze_s`, default
+`None` meaning never freeze, so the default stays inert. That is implementable in the
+runtime, unlike the across-place mean used in 6c's measurement, which requires knowing the
+places in advance. It is also biologically unembarrassing: a developmental calibration of
+what "average activity" means, fixed once rather than continuously re-estimated.
+
+**Its pre-registration must carry both axes**, because 6c establishes they trade against
+each other: decodability ≥85% *and* selectivity ≥2.0, measured together, on the same
+configuration. Either alone is meaningless here.
+
+**Not recommended: sourcing `W_pred` from the hippocampus alone.** E086 recorded it as
+available (worth ~10 points) rather than advised, and that stands — it is a real effect,
+but a pallium that reads only its hippocampus and ignores everything else is an
+architectural claim nobody has argued for.
+
+**Still standing: any learning run on this needs an autoencoder control** (E086 §5), and
+the **`strike_penalty` audit** remains the largest unexamined risk in the tree.
