@@ -27,11 +27,17 @@ from run import simulate
 
 CEN, CFG, HENS, STEPS, R = M.CEN, M.CFG, M.HENS, M.STEPS, M.R
 CENJ = jnp.asarray(CEN, dtype=jnp.float32)
+import os
+# Replication (E088 section 5b) runs on seeds 8-15, disjoint from Parts A/B's 0-7.
+SEED0 = int(os.environ.get("E088_SEED0", "0"))
 SEEDS, EVERY = 8, M.SAMPLE_EVERY
+FREEZE_SET = os.environ.get("E088_FREEZES")
 reg = regions.DEFAULT_REGIONS
 H_LO, H_HI = reg.bounds(regions.HIPPOCAMPUS)
 HIPP = np.arange(H_LO, H_HI)
-FREEZES = (10.0, 20.0, 40.0, 60.0, 120.0, None)
+FREEZES = ((10.0, 20.0, 40.0, 60.0, 120.0, None) if not FREEZE_SET else
+           tuple(None if v == "None" else float(v) for v in FREEZE_SET.split(",")))
+CONV_MIN = 0.80        # section 5b: admissibility, applied before choosing an operating point
 GATE_ACC, GATE_RATIO = 0.85, 2.0
 
 
@@ -69,7 +75,8 @@ def build(k):
                             place_to_hippocampus=True)
 
 
-print(f"E088 -- frozen centring baseline, {SEEDS} seeds, {E.MINUTES:.0f} min/run")
+print(f"E088 -- frozen centring baseline, seeds {SEED0}-{SEED0+SEEDS-1}, "
+      f"{E.MINUTES:.0f} min/run")
 print("references: runtime EMA 73.7%, E087's idealised constant 89.8%, raw 90.0%")
 print("            selectivity -- raw 1.04 (E070's failure), constant 5.00, EMA 23.28\n")
 t0 = time.perf_counter()
@@ -79,7 +86,7 @@ occ_ref, resA = None, {}
 for fz in FREEZES:
     pc = plasticity.PlasticConfig(**E.FROZEN, pred_gain=0.0, pred_bar_freeze_s=fz)
     accs, convs, occs = [], [], []
-    for s in range(SEEDS):
+    for s in range(SEED0, SEED0 + SEEDS):
         k = jax.random.key(s); p = build(k)
         ins_s, dst_s, z_s, _c = go(p, pc, k, jax.random.fold_in(k, 2), fz)
         tgt = int(np.argmax(ins_s.mean(axis=(0, 1))))
@@ -99,7 +106,7 @@ resB = {}
 for fz in FREEZES:
     pc = plasticity.PlasticConfig(**E.FROZEN, pred_gain=1.0, pred_bar_freeze_s=fz)
     aP, aO = [], []
-    for s in range(4):
+    for s in range(SEED0, SEED0 + 4):
         p = build(jax.random.key(s))
         cells = [E.P] + list(E.OTHERS_FOR_DISC)
         S = {c: E._centred(p, c, pc) for c in cells}
@@ -114,7 +121,12 @@ for fz in FREEZES:
     print(f"{str(fz):>11}{mP:>11.4f}{mO:>17.4f}{resB[fz][2]:>9.2f}")
 
 cand = [f for f in FREEZES if f is not None]
-best = max(cand, key=lambda f: resA[f][1])
+admissible = [f for f in cand if resA[f][2] >= CONV_MIN]
+excluded = [f for f in cand if resA[f][2] < CONV_MIN]
+if excluded:
+    print(f"\ninadmissible (convergence < {CONV_MIN}, section 5b rule 1): "
+          + ", ".join(f"{f:.0f}s (conv {resA[f][2]:.3f})" for f in excluded))
+best = max(admissible or cand, key=lambda f: resA[f][1])
 acc, ratio = resA[best][1], resB[best][2]
 accs_only = [resA[f][1] for f in cand]
 spread = 100 * (max(accs_only) - min(accs_only))

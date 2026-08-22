@@ -184,17 +184,91 @@ reaches 28.80 but decodability has fallen to 79.4%.
 
 **So both bars clear simultaneously at 40 s: 90.5% decodability and 7.33 selectivity.**
 
-### 6c. Replication on fresh seeds
+### 6c. Replication on fresh seeds (8–15), under §5b's rule
 
-*To be filled after the replication runs, under §5b's rule.*
+| freeze (s) | balanced acc | selectivity | convergence @ freeze |
+|---|---|---|---|
+| **40** | **89.0%** | **2.13** | 0.867 |
+| 60 | 86.9% | 3.72 | 0.952 |
+| None (control) | 76.3% | 134.66 | 1.002 |
+
+Applying §5b: both 40 s and 60 s are admissible (convergence ≥0.80); the admissible point
+maximising decodability is **40 s**; and at that same point **both bars clear** — 89.0%
+against ≥85%, and 2.13 against ≥2.0.
+
+**The replication passes as pre-registered.** Decodability is the stable half: 90.5% →
+89.0% at 40 s, 88.3% → 86.9% at 60 s, control 73.7% → 76.3%.
+
+**But the selectivity margin is thin, and the metric is demonstrably unstable.** At 40 s
+it fell **7.33 → 2.13** between blocks, clearing the bar by 0.13. And the *control* — an
+unchanged condition measured twice — swung **8.73 → 134.66**, a factor of fifteen. A
+quantity that moves fifteenfold between seed blocks with no treatment applied cannot
+support a 0.13 margin.
+
+By contrast **60 s is the more stable point on the axis that is wobbling**: selectivity
+5.04 → 3.72 (a factor of 0.74) against 40 s's 7.33 → 2.13 (0.29), while its decodability is
+only 2.1 points lower and equally stable.
 
 ## 7. Interpretation
 
-*To be filled after the replication.*
+**Freezing the centring baseline recovers the whole loss, and this is the first thing in
+the T2 arc that both worked and replicated.** A causally computable calibration — track,
+then hold — matches the oracle constant E087 could only compute with the places known in
+advance: 89.0–90.5% against E087's idealised 89.8% and a raw ceiling of 90.0%, versus the
+runtime's 73.7%. The place signal `W_pred` needs is now reachable.
+
+**The mechanism is coherent, not a lucky point.** Selectivity tracks convergence and
+decodability opposes it, monotonically and in both seed blocks. Freeze before the baseline
+represents the trace and it is a bad DC estimate, so E070's failure returns (0.94, 0.67 at
+conv 0.34, 0.60). Freeze once it does and both hold. Freeze long after and it has already
+tracked the signal away. The optimum sits where the baseline has just converged, which is
+the prediction §3 made — 1–3× `baseline_tau_s`, and 40–60 s is 2–3×.
+
+**My §4 falsifier was badly specified and the correction is recorded rather than
+quietly applied.** It selected on decodability and tested selectivity — the exact error
+E087 taught and §3's own prediction 3 restated. §5b fixed it *before* the replication,
+and the replication then ran under the fixed rule on disjoint seeds. That sequencing is
+the only reason this counts as a result rather than a rescue.
+
+**The honest weakness is the selectivity metric itself.** E070's ratio is a single
+planted-association contrast, and an unchanged control moved 8.73 → 134.66 across seed
+blocks. It is serviceable as an order-of-magnitude check — it cleanly separates 1.04
+(broken) from ~5 (working) — and it is not fit for fine margins. **The 2.13 at 40 s should
+not be read as "clears by 0.13"; it should be read as "in the working band, with a wide
+error bar nobody has measured".**
+
+**What this does not show.** No behaviour. No learning. This is a readout measurement, and
+the association it makes reachable has still never been learned by a hen.
 
 ## 8. Consequence
 
-*To be filled after the replication.*
+**Adopted as the recommended T2 configuration: `pred_bar_freeze_s=60.0`, not 40.0.** The
+pre-registered rule selects 40 s and 40 s passes; I am recommending 60 s anyway, and
+flagging clearly that **this is a judgement beyond the pre-registered rule** rather than
+its output. The grounds: 60 s costs 2.1 points of decodability, which is stable and well
+inside the bar, and buys a selectivity that moved by a factor of 0.74 across blocks
+instead of 0.29. Given a metric that swings fifteenfold on an unchanged control, margin on
+that axis is worth more than 2 points on the other. Anyone preferring the rule's own answer
+should use 40 s; both replicate.
+
+**Default stays `None`.** Every result before E088 was measured with a continuously
+tracking baseline and none of them move. Two guards at `n_hens=16` enforce the freeze and
+the inert default; 89/89.
+
+**Owed before this is leaned on further: an error bar on the selectivity metric.** It has
+carried four experiments (E070, E087, E088 Parts A/B, this replication) as a bare
+point estimate, and it is now measurably noisy. Either report it across seeds with a
+spread, or replace it with something better conditioned.
+
+**Next, and it is finally the behavioural question.** The chain is complete for the first
+time: place is representable (E086), readable (E088), and the anchor produces leaving
+rather than lingering (E083), on an instrument that resolves 5.1% at n=8 (E085). The
+outstanding blocker is not in the pathway. **Run the L vs C? contrast** — a flock hearing
+real gakel calls bound to real places, against a yoked flock hearing the same calls bound
+to the wrong ones — under `place_to_hippocampus=True`, `pred_bar_freeze_s=60.0`, n=8, with
+**the autoencoder control E086 §5 requires**, because `shared_place_map` routes testimony
+into the region `W_pred` now reads and predicting testimony-about-P from being-at-P would
+look exactly like success.
 
 ## 7. Interpretation
 
