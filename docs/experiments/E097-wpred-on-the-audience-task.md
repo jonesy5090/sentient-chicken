@@ -120,12 +120,117 @@ intact and muted; the DiD of each; and the fraction surviving muting.
 
 ## 6. Result
 
-*To be filled after the run.*
+8 matched seeds, 30 min rearing, each brain assayed twice without re-rearing. 1280 s.
+
+| arm | audio | alarm_alone | alarm_aud | food_alone | food_aud | **DiD** |
+|---|---|---|---|---|---|---|
+| **S** (no plasticity) | intact | 0.3196 | 0.3853 | 0.5005 | 0.5013 | **+0.0650** |
+| S | MUTED | 0.3195 | 0.3224 | 0.5005 | 0.5014 | **+0.0020** |
+| **H** (`hebbian_readout`) | intact | 0.4475 | 0.7496 | 0.5150 | 0.5277 | **+0.2894** |
+| H | MUTED | 0.4206 | 0.5123 | 0.5143 | 0.5281 | **+0.0779** |
+| **P0** (`W_pred`, gain 0) | intact | 0.2298 | 0.2397 | 0.5463 | 0.5519 | +0.0042 |
+| P0 | MUTED | 0.2258 | 0.2088 | 0.5444 | 0.5511 | −0.0237 |
+| **P** (`W_pred`, gain 1) | intact | 0.1248 | 0.1325 | 0.5441 | 0.5619 | −0.0101 |
+| P | MUTED | 0.1247 | 0.1206 | 0.5423 | 0.5619 | **−0.0236** |
+
+Paired, df=7, t crit 2.365. Muted DiD: S +0.0020 (t=0.74), **H +0.0779 (t=2.14)**,
+P0 −0.0237 (t=0.89), **P −0.0236 (t=1.01)** — none significant.
+
+**Primary falsifier FIRES.** Arm P's muted DiD is **−0.0236** — not merely short of +0.10
+but wrong-signed. **Gain falsifier FIRES**: P and P0 differ by +0.0000. Specificity clear
+(food +0.0196). **Reproduction clear**: H's muted +0.0779 against E096's +0.0577, inside
+the window, so the harness works.
+
+**The instrument is sound.** Arm S reproduces E057's published S row to four decimals
+(0.3196 / 0.3853 / 0.5005 / 0.5013 against 0.3197 / 0.3852 / 0.5005 / 0.5013).
+
+### 6b. Two defects that make the primary null uninformative
+
+**(1) The rule was trained through one signal and tested through another.** During rearing
+`W_pred` sources from centred, frozen-baseline `z_lag` (`tau_lag` 1.5). During the assay
+plasticity is **off**, so `ps.z_lag` is never updated, `_one_step` passes `pred_from=None`,
+and the projection is read out from **instantaneous, uncentred `rate(x)`**. §5 adopted
+E088's centring specifically so the falsifier's rule would not be tested through a degraded
+readout — and the readout at test is the uncentred one regardless.
+
+**This is E071's error for the fourth time in this project** (E071 timescales, E082
+centring, E093 fit-versus-runtime space, now train-versus-test source). A quantity measured
+in one regime and read in another.
+
+**(2) The rearing world may not contain the contingency.** At `hawk_period_s=900`, 30
+minutes contains roughly **two hawk events**. §2's mechanism requires "flockmates in view
+reliably precedes aerial alarm audio" to be *learnable*. Two co-occurrences is thin, and
+nothing here measured the actual pairing rate. **A null from `W_pred` may be a statement
+about the rearing world's event rate rather than about the rule.**
+
+Also noted: `run/audience.py:assay` runs at `NO_PLASTICITY`'s default `pred_gain=1.0` in
+every arm, so §3's prediction 4 ("at `pred_gain=0` the pathway cannot reach perception") is
+not what the harness executes — gain 0 is a *rearing-time* property only. The gain falsifier
+fires on both readings, so that verdict stands, but not for the reason §3 gave.
+
+### 6c. The solid finding, and it is not about `W_pred`
+
+**Arm H's muted effect is not significant on 8 seeds**: +0.0779 ± 0.0363, **t=2.14 against
+2.365**, per-seed values from −0.0552 to +0.2346. E096's +0.0577 came from **3** seeds.
+
+So the 21%-survives remnant that H2f's `SUPPORTED, CONFOUNDED` status rests on is, on a
+proper sample, **not distinguishable from zero.**
+
+**And the confound predates learning entirely.** The unlearned S arm shows an intact-audio
+DiD of **+0.0650** collapsing to **+0.0020** muted. The staging drives an "audience effect"
+in a hen who has learned nothing at all.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**H2f's falsifier has been attempted and the attempt is inconclusive.** The primary fired,
+but §6b gives two reasons the null carries little information: the rule was tested through
+a different signal than it was trained on, and the rearing world may not have contained the
+contingency often enough to learn. `CLAUDE.md`'s standing rule applies — *a null is only
+informative if the instrument could have shown a positive* — and neither condition was
+checked before running. **This does not license reading H2f as `NOT SUPPORTED` on its own
+terms**, which is what §4 said a primary firing would mean. That reading is withdrawn.
+
+**What is established is about H2f itself, from the reproduction arm.** The audience effect
+is real and large *with audio* (+0.2894) and **not significant without it** (t=2.14, n=8).
+Combined with S's unlearned +0.0650 → +0.0020, the honest statement is:
+
+> **The learned change is a response to hearing calls, not to having an audience.**
+
+That is a *positive* statement about what the rule does, and it is not nothing:
+`hen/innate.py:259-263` deliberately declined to wire a call relay, on the stated grounds
+that one "would confound the audience assay". **Learning built the relay the innate arc
+refused to build.** H2f asked whether the rule was the wrong *kind*; the answer visible
+here is that this rule learns the correlation the environment actually supplies — flockmate
+calls predict flockmate calls — rather than the contingency the hypothesis wanted.
+
+**`W_pred` also suppresses alarm calling by 61%** (P's `alarm_alone` 0.1248 against S's
+0.3196), which is the opposite of §2's predicted direction. Since `relu(predicted)` can only
+*add* percepts, the suppression must come from added activity on channels whose reflex
+weights oppose aerial calling. Whatever it learned is broad rather than the cue→outcome
+association the falsifier described — consistent with §6b(1), since the projection was read
+through an uncentred signal it was never trained against.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**H2f moves to `NOT SUPPORTED` on the audience-conditional claim, and gains a new
+supported one.** The audience-conditional reading has no support at n=8. What the rule
+demonstrably learns is a call relay. The node needs rewriting around that rather than
+around a status word.
+
+**E097's own primary is recorded as inconclusive, not as a null.** The falsifier fired and
+the fired verdict is withdrawn on the grounds in §6b. That is written here rather than
+argued later.
+
+**Two fixes before `W_pred` can be fairly tested, and they are the next experiment:**
+
+1. **Make the assay read the signal the rule was trained on.** The projection must be
+   sourced from the same centred, lagged trace at test as during rearing. This is a defect
+   in `run/audience.py` / `run/simulate.py`'s plasticity-off path, not in the experiment.
+2. **Measure the pairing rate before concluding anything from a `W_pred` null.** Count how
+   often "flockmates in view" precedes "aerial alarm audio" during rearing, and if it is
+   ~2 events, rear at a shorter `hawk_period_s` so the contingency exists to be learned.
+
+**And the audience assay needs its confound fixed at the source.** S's +0.0650 → +0.0020
+shows the staging manufactures an audience effect in an unlearned hen. Moving the staged
+hawk out of the audience's `vision_range`, or muting by default, would make every future
+audience number mean what it says.

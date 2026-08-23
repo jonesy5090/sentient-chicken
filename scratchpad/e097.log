@@ -1,0 +1,95 @@
+  reared+assayed S seed 0 (42 s elapsed)
+  reared+assayed S seed 1 (79 s elapsed)
+  reared+assayed S seed 2 (115 s elapsed)
+  reared+assayed S seed 3 (151 s elapsed)
+  reared+assayed S seed 4 (187 s elapsed)
+  reared+assayed S seed 5 (223 s elapsed)
+  reared+assayed S seed 6 (259 s elapsed)
+  reared+assayed S seed 7 (296 s elapsed)
+  reared+assayed H seed 0 (338 s elapsed)
+  reared+assayed H seed 1 (379 s elapsed)
+  reared+assayed H seed 2 (420 s elapsed)
+  reared+assayed H seed 3 (461 s elapsed)
+  reared+assayed H seed 4 (502 s elapsed)
+  reared+assayed H seed 5 (544 s elapsed)
+  reared+assayed H seed 6 (587 s elapsed)
+  reared+assayed H seed 7 (630 s elapsed)
+  reared+assayed P0 seed 0 (675 s elapsed)
+  reared+assayed P0 seed 1 (716 s elapsed)
+  reared+assayed P0 seed 2 (759 s elapsed)
+  reared+assayed P0 seed 3 (801 s elapsed)
+  reared+assayed P0 seed 4 (843 s elapsed)
+  reared+assayed P0 seed 5 (883 s elapsed)
+  reared+assayed P0 seed 6 (923 s elapsed)
+  reared+assayed P0 seed 7 (963 s elapsed)
+  reared+assayed P seed 0 (1003 s elapsed)
+  reared+assayed P seed 1 (1042 s elapsed)
+  reared+assayed P seed 2 (1082 s elapsed)
+  reared+assayed P seed 3 (1121 s elapsed)
+  reared+assayed P seed 4 (1161 s elapsed)
+  reared+assayed P seed 5 (1201 s elapsed)
+  reared+assayed P seed 6 (1241 s elapsed)
+  reared+assayed P seed 7 (1280 s elapsed)
+
+E097 -- `W_pred` on the audience task. 8 matched seeds (0-7), 30 min rearing, 16 hens, food_deplete_rate=0.0
+Every arm reared once; the SAME reared brain assayed twice -- audio intact, and
+audio muted at test (channel_mode="none"). The muted contrast is the primary
+measure. DiD = (alarm_aud - alarm_alone) - (food_aud - food_alone).
+
+arm audio    alarm_alone  alarm_aud  food_alone  food_aud  alarm_eff  food_eff      DiD
+---------------------------------------------------------------------------------------
+S   intact        0.3196     0.3853      0.5005    0.5013    +0.0657   +0.0008  +0.0650
+S   MUTED         0.3195     0.3224      0.5005    0.5014    +0.0029   +0.0009  +0.0020
+
+H   intact        0.4475     0.7496      0.5150    0.5277    +0.3021   +0.0126  +0.2894
+H   MUTED         0.4206     0.5123      0.5143    0.5281    +0.0917   +0.0138  +0.0779
+
+P0  intact        0.2298     0.2397      0.5463    0.5519    +0.0099   +0.0056  +0.0042
+P0  MUTED         0.2258     0.2088      0.5444    0.5511    -0.0170   +0.0067  -0.0237
+
+P   intact        0.1248     0.1325      0.5441    0.5619    +0.0077   +0.0178  -0.0101
+P   MUTED         0.1247     0.1206      0.5423    0.5619    -0.0041   +0.0196  -0.0236
+
+arm   DiD intact   +/- SE   DiD muted   +/- SE  survives
+--------------------------------------------------------
+S        +0.0650   0.0035     +0.0020   0.0028        3%
+H        +0.2894   0.0377     +0.0779   0.0363       27%
+P0       +0.0042   0.0289     -0.0237   0.0267     -559%
+P        -0.0101   0.0293     -0.0236   0.0234      234%
+
+(paired t critical at df=7: 2.365)
+  S    muted DiD  +0.0020 +/- 0.0028 SE   t=   0.74   not significant
+  H    muted DiD  +0.0779 +/- 0.0363 SE   t=   2.14   not significant
+  P0   muted DiD  -0.0237 +/- 0.0267 SE   t=   0.89   not significant
+  P    muted DiD  -0.0236 +/- 0.0234 SE   t=   1.01   not significant
+
+--- DIAGNOSTIC (not pre-registered) -----------------------------------
+`run/audience.py:assay` runs at the PlasticConfig default pred_gain=1.0 in
+every arm, so a learned W_pred writes onto perception during the assay even
+in P0. Re-assayed with the test-time gain forced to 0 for comparison:
+
+arm   DiD intact g=1  DiD intact g=0  DiD muted g=1  DiD muted g=0
+P0           +0.0042         +0.0766        -0.0237        +0.0156
+P            -0.0101         +0.0824        -0.0236        +0.0216
+
+=== PRE-REGISTERED FALSIFIERS (section 4) =============================
+
+1. PRIMARY -- 'Muted audience-specific DiD < +0.10.'
+   arm P muted DiD = -0.0236, threshold +0.10
+   -> FIRES: the Pavlovian route does not produce an audience effect either; H2f should be read as NOT SUPPORTED on its own terms.
+
+2. SPECIFICITY -- 'Food-channel muted DiD >= +0.05.'
+   arm P raw muted food effect (food_aud - food_alone) = +0.0196
+   same, differenced against the S baseline = +0.0187
+   -> CLEAR (on the S-baselined figure), CLEAR (on the raw figure)
+      the food channel does not show an audience effect; the alarm effect, if any, is specific.
+
+3. GAIN -- 'The muted DiD at pred_gain=0 is within 0.03 of the value at pred_gain>0.'
+   muted DiD: P -0.0236, P0 -0.0237, difference +0.0000 (paired +0.0000 +/- 0.0381 SE)
+   -> FIRES: the effect is not W_pred's at all.
+
+4. REPRODUCTION -- 'The hebbian_readout arm does not reproduce E096's muted +0.0577 within 0.03.'
+   arm H muted DiD = +0.0779, E096 = +0.0577, difference +0.0202
+   -> CLEAR: the harness reproduces E096, so the rest of the run is interpretable.
+
+wall clock: 1280 s
