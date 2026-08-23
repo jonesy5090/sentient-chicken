@@ -156,7 +156,7 @@ stays fully blind, so the response remains specific to this call; and E090's sup
 figures are unchanged (96.7% sated, 72.6% starving) because scratch suppression does not
 touch `M_PECK`.
 
-Ethogram 12/13 at adopted weights and **88 passed / 1 xfailed** at defaults — the gakel
+Ethogram **13/13 at adopted weights** and **88 passed / 1 xfailed** at defaults *(corrected by E096: this line originally read 12/13, which was wrong — the tree's 13/13 is right)* — the gakel
 assay remains the registered expected failure at `SCAFFOLD_WEIGHT` 1.5, correctly, since
 E090's weights are not yet the default.
 

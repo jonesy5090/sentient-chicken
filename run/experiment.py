@@ -225,14 +225,25 @@ _T_CRIT = {1: 12.71, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447,
            7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228, 11: 2.201, 12: 2.179,
            13: 2.160, 14: 2.145, 15: 2.131, 16: 2.120, 17: 2.110, 18: 2.101,
            19: 2.093, 20: 2.086, 21: 2.080, 22: 2.074, 23: 2.069, 24: 2.064,
-           25: 2.060, 26: 2.056, 27: 2.052, 28: 2.048, 29: 2.045, 30: 2.042}
+           25: 2.060, 26: 2.056, 27: 2.052, 28: 2.048, 29: 2.045, 30: 2.042,
+           # Beyond 30 (E096). The 36-seed pooled tests H4 and T1 rest on use df=35,
+           # and the table stopped at 30 -- so they fell through to a 1.96 fallback
+           # whose comment claimed it "errs high". It errs *low*: t(35)=2.030 > 1.96,
+           # so the fallback was more permissive than the correct threshold, not less.
+           35: 2.030, 40: 2.021, 50: 2.009, 60: 2.000, 80: 1.990, 120: 1.980}
 
 
 def _t_critical(df: int) -> float:
     if df in _T_CRIT:
         return _T_CRIT[df]
-    # Only df < 1 or df > 30 can reach here now. Erring high is the safe direction.
-    return 1.96 if df > 30 else _T_CRIT[1]
+    if df < 1:
+        return _T_CRIT[1]
+    # Interpolate conservatively between tabulated points: take the threshold for the
+    # largest tabulated df at or below this one, which is always >= the true value
+    # since t(df) decreases monotonically. That is what "erring high" has to mean --
+    # the previous fallback returned the asymptotic 1.96 for every df > 30, which is
+    # BELOW t(35)=2.030 and therefore more permissive than correct (E096).
+    return _T_CRIT[max(k for k in _T_CRIT if k <= df)] if df <= 120 else 1.96
 
 
 def _contrast(table: dict, label: str, pick, seeds, treat: str, ctrl: str,

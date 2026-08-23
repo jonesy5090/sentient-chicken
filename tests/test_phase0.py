@@ -722,3 +722,24 @@ def test_pred_bar_freeze_default_is_inert():
         return ps.z_lag_bar
 
     assert jnp.array_equal(run(), run(pred_bar_freeze_s=None))
+
+
+def test_t_critical_is_never_more_permissive_than_the_true_threshold():
+    """E096. The table stopped at df=30 and fell through to the asymptotic 1.96.
+
+    H4's and T1's headline results are 36-seed pooled tests, i.e. df=35, where the true
+    two-sided 0.05 threshold is 2.030. Returning 1.96 there is *more permissive* than
+    correct, while the code comment asserted it "errs high". Every pooled verdict the
+    harness printed used the wrong number; E030 quoted 2.030 in prose and got it right,
+    so no published conclusion moved -- but the harness that printed the verdict did not.
+    """
+    from run import experiment
+    true_vals = {35: 2.030, 36: 2.030, 40: 2.021, 45: 2.021, 60: 2.000, 100: 1.990}
+    for df, true in true_vals.items():
+        got = experiment._t_critical(df)
+        assert got >= true - 1e-9, (
+            f"_t_critical({df}) = {got} < true threshold {true}; a test at this df "
+            "would be declared significant on a value that is not")
+    # And it must still be monotone non-increasing, or it is not a t table.
+    vals = [experiment._t_critical(d) for d in range(1, 121)]
+    assert all(a >= b for a, b in zip(vals, vals[1:])), "t critical is not monotone in df"

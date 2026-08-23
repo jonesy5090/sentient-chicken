@@ -298,7 +298,7 @@ means nothing at all until those are answered.
 The hen is born knowing a handful of reflexes and nothing else — she pecks at small
 objects, crouches at things overhead, runs from things on the ground, calls when she is
 lonely, and huddles when she is cold. All of it is measured against real published chick
-behaviour. **13 out of 13 behavioural assays pass**, and that part has held up throughout.
+behaviour. **12 of 13 behavioural assays pass** at the shipped defaults, and that part has held up throughout. The thirteenth is a deliberate, registered failure: the innate response to hearing a sick-call is too weak at the default weights to change behaviour, which E089 measured and E090 fixed at weights that are not yet the default. It is marked as a known failure rather than quietly softened, so that if it ever starts passing the test suite goes red and somebody has to come and explain why.
 
 Then she learns. Except she doesn't.
 
