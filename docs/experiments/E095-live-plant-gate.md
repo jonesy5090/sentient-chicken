@@ -114,12 +114,84 @@ per-seed target and control from an independent selection run.
 
 ## 6. Result
 
-*To be filled after the run.*
+| seed | live @T | live elsewhere | **live ratio** | fit acc | fit ratio | verdict |
+|---|---|---|---|---|---|---|
+| 0 | 1.006 | 1.719 | **0.59** | 68.1% | 3.03 | fail |
+| 1 | 1.000 | 0.407 | 2.46 | 85.8% | 2.46 | PASS |
+| 2 | 1.009 | 1.726 | **0.58** | 65.2% | **5 909 203** | fail |
+| 3 | 1.001 | 0.427 | 2.34 | 86.7% | 2.34 | PASS |
+| 4 | 1.022 | 0.123 | 8.32 | 86.2% | 8.32 | PASS |
+| 5 | 1.297 | 0.261 | 4.97 | 94.0% | 4.97 | PASS |
+| 6 | 1.536 | 4.884 | **0.31** | 83.5% | 4.25 | fail |
+| 7 | 1.108 | 0.293 | 3.78 | 88.5% | 3.79 | PASS |
+
+Live ratio: **min 0.31**, median 2.46. **5 of 8 seeds pass.**
+
+**The gate-viability falsifier fires** (5 < 6) and the run **aborted before reporting any
+behavioural number.** That is the design working as intended: E093, with the same
+connectomes and the same plants, reported a full behavioural contrast here.
+
+**The construction falsifier is clear, decisively.** The two gates disagree on three of
+eight seeds, so the fit and runtime spaces are genuinely different and E093's diagnosis
+holds.
+
+### 6b. The disagreement has a shape, and it is one-sided
+
+Not pre-registered; visible once the two columns sit side by side.
+
+**On every passing seed, fit ratio and live ratio agree to two decimals** — 2.46/2.46,
+2.34/2.34, 8.32/8.32, 4.97/4.97, 3.78/3.79. **On failing seeds they diverge wildly** —
+3.03 against 0.59, 5 909 203 against 0.58, 4.25 against 0.31.
+
+So the fit-space measure is **not systematically wrong**. It is a **one-sided error**: it
+agrees exactly when the plant is good, and cannot detect when it is not. That is the worst
+possible property for a gate, and it explains how it survived four experiments — it was
+right every time anyone had reason to look at it.
+
+**The suspected mechanism, stated as a suspicion.** The plant is installed as
+`w_h / (w_h · sP)`, normalising the prediction to ~1.0 at the target. When `w_h · sP` is
+small the installed vector is enormously amplified, and the `relu` in the live readout then
+picks up whatever survives the `pred_src` masking and centring — which need not be the
+target. Seed 2's fit ratio of 5.9 million is the same near-zero denominator showing up in
+the other measure. This is consistent with every number here and is **not** established;
+it needs its own check before anything is built on it.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**The instrument is fixed, and the fix immediately paid for itself.** A gate on the live,
+installed quantity rejected three seeds that four previous experiments' gates would have
+accepted — including one whose fit-space ratio was 5.9 million and whose actual plant fired
+harder away from the target than at it.
+
+**And it stopped the experiment rather than reporting an underpowered contrast.** E084's
+finding was that this arc had been reporting effects the metric could not resolve; E095 is
+the first time a run has refused to produce a number on those grounds. The abort is the
+result.
+
+**The one-sidedness is the part worth carrying forward.** A diagnostic that is exactly
+right whenever the thing works, and silently wrong whenever it does not, will pass every
+casual check. The only way to catch it was to measure the quantity that actually drives
+behaviour — which had been computed and printed since E083 without being consulted.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**Nothing behavioural is claimed, and T2's status is untouched.** Five valid seeds is not
+a result; it is a gate reading.
+
+**Two things are needed before the whole-chain control can run, and they are separate.**
+
+1. **Fix the plant's normalisation.** Dividing by `w_h · sP` is unstable when that inner
+   product is small, and §6b's pattern points at it. A construction that cannot blow up —
+   normalising the installed vector to unit norm and applying a fixed gain, then verifying
+   the live prediction lands near 1.0 — would remove the failure mode rather than filtering
+   for it. **This is the better fix and should be tried first**, because a gate that
+   rejects 3 of 8 seeds is compensating for a defect rather than measuring the hen.
+2. **Then widen the seed pool if still needed.** If the normalisation fix raises the pass
+   rate, n=8 may suffice. If it does not, 16 seeds at the observed 62% pass rate gives ~10
+   — above the threshold — and increasing n is a legitimate response to an underpowered
+   design **provided the gate and its criterion do not move**. They must not.
+
+**Recorded so it is not re-derived: `relu` in the denominator of a gate statistic.** Both
+the mean-aggregation defect (E093) and the 5.9-million reading come from the same source —
+a ratio whose denominator can approach zero by construction. Any future gate of this shape
+wants a floor, a minimum aggregation, or a different statistic entirely.
