@@ -97,12 +97,96 @@ leave open.
 
 ## 6. Result
 
-*To be filled after the run.*
+### 6a. The pre-registered channel null was the wrong null, and its falsifier caught it
+
+| arm | at hatch | reared | channel null | **time null** | **excess** | cort/refl |
+|---|---|---|---|---|---|---|
+| fixed | −0.1175 | −0.1175 | −0.1348 | −0.1132 | **−0.0043** | 0.026 |
+| instrumental | −0.1175 | **−0.6509** | −0.4072 | −0.6482 | **−0.0027** | 0.089 |
+| hebbian | −0.1175 | **+0.5911** | +0.5677 | +0.5941 | **−0.0031** | 0.695 |
+
+The **triviality falsifier fired**: hebbian's 0.5911 only falls to 0.5677 when the reflex
+vector's channels are permuted. Without that control I would have reported "0.59 cosine
+confirms the readout distils the arc", which is clean, quotable and wrong.
+
+But the channel null is *also* wrong — permuting channels destroys the magnitude
+correspondence that makes any two motor vectors superficially alike, so it cannot isolate
+what the claim asserts. The right null pairs cortical drive at step *t* with reflex drive at
+some *other* step: channel structure preserved exactly, only the moment-to-moment
+correspondence destroyed.
+
+**Against the time null the excess is zero in every arm** — −0.0043, −0.0027, −0.0031. The
+large raw cosines survive time-shuffling untouched.
+
+### 6b. Which has only one explanation, and it is the result
+
+If shuffling time changes nothing, the vectors are not tracking each other moment to
+moment; they simply each have a stable characteristic shape. Measured directly, as the mean
+cosine between each step's drive and that arm's own mean direction — **1.0 means the pathway
+emits one fixed direction and only its magnitude varies**:
+
+| arm | cortical direction stability | reflex (reference) |
+|---|---|---|
+| **fixed / untrained** | **0.6193** | 0.8956 |
+| instrumental, reared | **0.9133** | 0.8854 |
+| hebbian, reared | **0.9587** | 0.8832 |
+
+**Training makes the learned pathway less state-dependent, not more.** The cortical output
+starts relatively variable and converges toward a single fixed direction. At hebbian's
+cortical/reflex magnitude ratio of 0.695, that is a large near-constant vector being added
+to the motor drive.
+
+*(The reflex arc's own stability is 0.88 — it is not 0, because most of the time no predator
+is present and its output is dominated by tonic terms. The comparison that matters is
+untrained → trained cortical, 0.62 → 0.96, not cortical against reflex.)*
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**The distillation claim is rejected on measurement.** E096 §7 recorded it as not adopted
+pending a test; the test says no. The readout does not reconstruct the reflex arc — it has
+no moment-to-moment relationship with it in any arm. E058/E059/E069's conclusion stays an
+empirical finding rather than becoming a theorem, and the review's central structural
+argument does not hold.
+
+**What replaces it is worse for the project.** The learned pathway converges on a fixed
+output direction. A fixed direction can only rescale tendencies the arc already has; it
+cannot express "do X in situation A and Y in situation B", because it emits the same X
+regardless of situation and varies only in how hard.
+
+That is a mechanism for essentially every null in the tree, and unlike the distillation
+claim it is measured:
+
+- **H2b** — "the rule cannot acquire behaviours outside the innate repertoire". A fixed
+  direction is exactly a rescaling of the existing repertoire.
+- **H2f** — `hebbian_readout` produces a large behavioural change (cort/refl 0.695) that is
+  78% a call relay. A near-constant boost on the call channels is what that looks like.
+- **T2** — no place-specific avoidance at any reward magnitude. A fixed direction cannot be
+  place-specific.
+- **H2c, H3** — comprehension and audience contingency both require conditioning on state.
+
+**And it vindicates a claim this project rejected for a good reason.** E013–E016 concluded
+the readout "could only slide a constant". The founding red-team review overturned that
+reasoning, correctly: a rank-one `ΔW = u vᵀ` contributes `u (v · x)`, which varies perfectly
+well with `x`. The *reasoning* was wrong and the *conclusion* is right — measured, and for a
+different reason. The readout is not constrained to a constant by rank; it **converges** to
+one under training.
+
+**Why the direction converges is not established here** and should not be guessed at. The
+obvious candidate — that `dz_slow`'s pallial factor loses its state-dependence, so the
+outer product's second factor becomes near-fixed — is untested.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**Adopted: the cortical pathway's learned output is near-directionally-constant, and that
+is a sufficient explanation for the project's persistent null.** This supersedes "which rule
+class" as the framing: both rules tested converge to the same degeneracy, one at 0.91 and
+one at 0.96.
+
+**Not adopted: any redesign.** The measurement identifies the failure mode; it does not say
+which of several architectural changes would fix it, and choosing between them is a design
+decision rather than a measurement.
+
+**The next question is why the direction collapses.** Whether it is `dz_slow` losing
+state-dependence, the readout scaling, or the motor-stub representation is testable and
+cheap, and it determines which fix is the right one. That is the measurement to run before
+anything is redesigned.
