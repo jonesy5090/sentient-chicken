@@ -139,7 +139,7 @@ chorus threshold it reads 36.0 and clears. 60 s selected either way.
 — every hawk event produces an audible flockmate alarm. What varies is only how often hawks
 arrive. And of 18.3 paired events, roughly **0.3** occur while the focal hen is blind.
 
-**So in ~1.6% of hawk events does a call tell her anything she could not already see.**
+**~~So in ~1.6% of hawk events does a call tell her anything she could not already see.~~** **STRUCK by [E099](E099-does-the-environment-supply-the-asymmetry.md).** This measured blindness at the hawk's *onset step*, which is near-zero by construction because nobody has called yet. Re-measured: **90.4%** of hawk events contain a moment when she is blind while a call sounds, and she is blind for **47%** of all call-time. The environment supplies the asymmetry.
 
 ### 6c. Part B — `W_pred` read through the signal it was trained on
 
@@ -190,12 +190,7 @@ environment supplies rather than the contingency a hypothesis wants.
 
 **The finding I did not expect is 6b's last line.** The project's founding premise is an
 information asymmetry: a head-down hen cannot see the hawk, so a call is worth making.
-Measured at the rearing configuration, **~1.6% of hawk events are ones where a call carries
-information she does not already have.** For the other 98%, she is looking at the hawk while
-being told about it. That is not a defect in a rule or an assay — it is the environment
-failing to instantiate the thing the whole project is about, and it is consistent with the
-red-team's independent finding that hawk-visible-without-a-call occupies 0.003% of
-hen-steps.
+~~Measured at the rearing configuration, ~1.6% of hawk events are ones where a call carries information she does not already have.~~ **STRUCK by E099** -- that figure measured blindness at the hawk's onset step. The environment *does* supply the asymmetry: **90.4%** of hawk events contain a blind-and-called moment, and she is blind for **47%** of call-time. This makes the learning results harder, not easier: no environmental excuse remains for them.
 
 **My own error is the most instructive part of the repair.** I diagnosed two real defects,
 fixed both, verified inertness, and shipped a change that did nothing — because I never
