@@ -148,13 +148,28 @@ agrees exactly when the plant is good, and cannot detect when it is not. That is
 possible property for a gate, and it explains how it survived four experiments — it was
 right every time anyone had reason to look at it.
 
-**The suspected mechanism, stated as a suspicion.** The plant is installed as
-`w_h / (w_h · sP)`, normalising the prediction to ~1.0 at the target. When `w_h · sP` is
-small the installed vector is enormously amplified, and the `relu` in the live readout then
-picks up whatever survives the `pred_src` masking and centring — which need not be the
-target. Seed 2's fit ratio of 5.9 million is the same near-zero denominator showing up in
-the other measure. This is consistent with every number here and is **not** established;
-it needs its own check before anything is built on it.
+**A mechanism I proposed and then falsified against this same table, recorded because the
+falsification is the useful part.** The obvious suspect is the normalisation: the plant is
+installed as `w_h / (w_h · sP)`, so a small or negative inner product would amplify or flip
+the vector. **The `live @T` column rules that out.** By construction
+`pred@target = (w_h · sP)/(w_h · sP) = 1.0` whatever the denominator does — and the column
+duly reads 1.006, 1.000, 1.009, 1.001, 1.022, 1.297, 1.536, 1.108. Every seed normalises
+correctly at the target, including all three failures.
+
+**The failures are entirely in the `elsewhere` column** — 1.719, 1.726, 4.884 against
+0.123–0.427 for the passing seeds. So the installed plant fires *correctly* at the target
+and *also* fires everywhere else. That is a discriminability failure in the live regime,
+not a scaling one.
+
+Seed 6 is the sharpest case and rules out "the fit was simply bad": 83.5% fit accuracy,
+fit ratio 4.25, live elsewhere **4.884**. It separates sampled states well and generalises
+to the live trajectory not at all. Seeds 0 and 2 have poor fit accuracy too (68.1%, 65.2%),
+so they are less informative.
+
+**Why is not established.** It is the same family as E083's parked-versus-moving finding —
+a discriminant fitted on one distribution of states and read on another — but E095's fit
+and test runs are both live, so that explanation does not transfer directly. This needs its
+own measurement.
 
 ## 7. Interpretation
 
@@ -180,16 +195,15 @@ a result; it is a gate reading.
 
 **Two things are needed before the whole-chain control can run, and they are separate.**
 
-1. **Fix the plant's normalisation.** Dividing by `w_h · sP` is unstable when that inner
-   product is small, and §6b's pattern points at it. A construction that cannot blow up —
-   normalising the installed vector to unit norm and applying a fixed gain, then verifying
-   the live prediction lands near 1.0 — would remove the failure mode rather than filtering
-   for it. **This is the better fix and should be tried first**, because a gate that
-   rejects 3 of 8 seeds is compensating for a defect rather than measuring the hen.
-2. **Then widen the seed pool if still needed.** If the normalisation fix raises the pass
-   rate, n=8 may suffice. If it does not, 16 seeds at the observed 62% pass rate gives ~10
-   — above the threshold — and increasing n is a legitimate response to an underpowered
-   design **provided the gate and its criterion do not move**. They must not.
+1. **Find out why three seeds' plants generalise to the live trajectory and five do not.**
+   §6b rules out normalisation and rules out "the fit was bad" (seed 6: 83.5% accuracy,
+   live elsewhere 4.884). Until that is understood, a gate rejecting 3 of 8 is *filtering
+   for* a defect rather than measuring the hen, and the arc will keep paying for it.
+2. **Then widen the seed pool if still needed.** 16 seeds at the observed 62% pass rate
+   gives ~10, above the threshold. Increasing n is a legitimate response to an underpowered
+   design **provided the gate and its criterion do not move** — and they must not. But this
+   is second, not first: more seeds buys a runnable experiment while leaving a defect that
+   discards 38% of them unexplained.
 
 **Recorded so it is not re-derived: `relu` in the denominator of a gate statistic.** Both
 the mean-aggregation defect (E093) and the 5.9-million reading come from the same source —
