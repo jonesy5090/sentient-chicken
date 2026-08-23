@@ -1,0 +1,38 @@
+E098 Part A addendum -- decomposing the aerial-alarm channel.
+3 seeds, 30 min, 16 hens, arm P's config (explore_sigma=0.6).
+
+  period   900 s  seed 0:   0 hawk events,   0 paired, audio off/on 0.054/nan  (37 s)
+  period   900 s  seed 1:   1 hawk events,   1 paired, audio off/on 0.054/0.999  (72 s)
+  period   900 s  seed 2:   2 hawk events,   2 paired, audio off/on 0.087/0.997  (107 s)
+  period   300 s  seed 0:   4 hawk events,   4 paired, audio off/on 0.059/0.746  (143 s)
+  period   300 s  seed 1:   3 hawk events,   3 paired, audio off/on 0.047/0.615  (179 s)
+  period   300 s  seed 2:   4 hawk events,   4 paired, audio off/on 0.094/0.994  (214 s)
+  period    60 s  seed 0:  16 hawk events,  16 paired, audio off/on 0.066/0.786  (250 s)
+  period    60 s  seed 1:  21 hawk events,  21 paired, audio off/on 0.068/0.702  (285 s)
+  period    60 s  seed 2:  18 hawk events,  18 paired, audio off/on 0.119/0.965  (321 s)
+
+--- the received aerial channel, focal hen, split by hawk presence -----
+  period  hawks    %on  audio off  audio on    delta    corr  own off  own on
+-----------------------------------------------------------------------------
+     900    1.0    0.7     0.0650       nan     +nan     nan   0.0811     nan
+     300    3.7    2.4     0.0666    0.7848  +0.7183   0.851   0.0830  0.3438
+      60   18.3   12.2     0.0844    0.8177  +0.7333   0.915   0.0886  0.4675
+'own' = the focal hen's OWN emitted aerial call. If that barely moves with the
+hawk either, the call is not hawk-contingent in this world at all.
+
+--- PAIRED EVENTS: hawk events she hears a flockmate's alarm during -----
+threshold = the run's own hawk-off median + 0.05
+  period  hawk events   paired  % paired  paired & blind
+--------------------------------------------------------
+     900          1.0      1.0       100             0.0
+     300          3.7      3.7       100             0.0
+      60         18.3     18.3       100             0.3
+
+per-seed paired counts:
+    900 s: 0/0, 1/1, 2/2
+    300 s: 4/4, 3/3, 4/4
+     60 s: 16/16, 21/21, 18/18
+
+section 3 prediction 3 asked for <5 at 900 s and >20 at 60 s.
+
+wall clock: 321 s

@@ -99,6 +99,26 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
     mags = jnp.stack([jnp.mean(jnp.abs(drives.reflex)),
                       jnp.mean(jnp.abs(drives.cortical))])
 
+    # Traces are STATE, not learning (E098). `z_lag` is what the prediction pathway
+    # reads, and it has to keep tracking whenever anything reads it -- including with
+    # `enabled=False`, which is how every assay runs. Before E098 this update sat below
+    # the early return, so an assay measured a `W_pred` projection against a trace that
+    # was either frozen at its reared value or, since `assay()` did not pass `ps` at
+    # all, identically zero. A rule trained on a centred lagged trace was tested against
+    # instantaneous `rate(x)`. That silently nullified the pathway in E097 and is the
+    # fourth instance in this project of reading a quantity in a different regime from
+    # the one it was measured in.
+    #
+    # Only the *weight* updates below stay gated on `enabled`: learning is the weight
+    # change, and an assay must not do any. Gated on `pred_enabled` so that nothing
+    # without a prediction pathway pays for this or changes behaviour -- see E098's
+    # inertness falsifier, which asserts bit-identity for exactly that case.
+    if pc.pred_enabled:
+        pred_err = sensing.observability(w, cfg) * (obs - drives.predicted)
+        ps = plasticity.update_traces(
+            ps, neurons.rate(x), motor,
+            plasticity.reward(w, w_next, cfg, pc), cfg, pc, pred_err)
+
     if not pc.enabled:
         return (w_next, x, p, ps, key), (motor, obs, jnp.zeros(()), mags)
 
@@ -108,10 +128,11 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
     # Prediction error, masked by what she could actually observe. A head-down hen is
     # not seeing an empty sky; she is not looking, and training on that sample would
     # teach her that alarm calls mean no hawk.
-    pred_err = None
-    if pc.pred_enabled:
-        pred_err = sensing.observability(w, cfg) * (obs - drives.predicted)
-    ps = plasticity.update_traces(ps, r, motor, reward, cfg, pc, pred_err)
+    #
+    # With `pred_enabled` the traces were already advanced above, so advancing them
+    # again here would double-step them. Only the non-pred path needs it now.
+    if not pc.pred_enabled:
+        ps = plasticity.update_traces(ps, r, motor, reward, cfg, pc, None)
 
     # Reward prediction error, averaged over the window since the last consolidation
     # (E067), not the instantaneous value at this step. `ps.m_acc` accumulates every

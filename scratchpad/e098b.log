@@ -1,0 +1,155 @@
+  reared+assayed S @60s seed 0 (44 s elapsed)
+  reared+assayed S @60s seed 1 (81 s elapsed)
+  reared+assayed S @60s seed 2 (118 s elapsed)
+  reared+assayed S @60s seed 3 (155 s elapsed)
+  reared+assayed S @60s seed 4 (192 s elapsed)
+  reared+assayed S @60s seed 5 (229 s elapsed)
+  reared+assayed S @60s seed 6 (266 s elapsed)
+  reared+assayed S @60s seed 7 (303 s elapsed)
+  reared+assayed H @60s seed 0 (345 s elapsed)
+  reared+assayed H @60s seed 1 (387 s elapsed)
+  reared+assayed H @60s seed 2 (428 s elapsed)
+  reared+assayed H @60s seed 3 (470 s elapsed)
+  reared+assayed H @60s seed 4 (511 s elapsed)
+  reared+assayed H @60s seed 5 (553 s elapsed)
+  reared+assayed H @60s seed 6 (594 s elapsed)
+  reared+assayed H @60s seed 7 (636 s elapsed)
+  reared+assayed P0 @60s seed 0 (676 s elapsed)
+  reared+assayed P0 @60s seed 1 (716 s elapsed)
+  reared+assayed P0 @60s seed 2 (755 s elapsed)
+  reared+assayed P0 @60s seed 3 (795 s elapsed)
+  reared+assayed P0 @60s seed 4 (835 s elapsed)
+  reared+assayed P0 @60s seed 5 (875 s elapsed)
+  reared+assayed P0 @60s seed 6 (914 s elapsed)
+  reared+assayed P0 @60s seed 7 (954 s elapsed)
+  reared+assayed P @60s seed 0 (995 s elapsed)
+  reared+assayed P @60s seed 1 (1035 s elapsed)
+  reared+assayed P @60s seed 2 (1074 s elapsed)
+  reared+assayed P @60s seed 3 (1113 s elapsed)
+  reared+assayed P @60s seed 4 (1153 s elapsed)
+  reared+assayed P @60s seed 5 (1192 s elapsed)
+  reared+assayed P @60s seed 6 (1232 s elapsed)
+  reared+assayed P @60s seed 7 (1272 s elapsed)
+  reared+assayed P @900s seed 0 (1316 s elapsed)
+  reared+assayed P @900s seed 1 (1357 s elapsed)
+  reared+assayed P @900s seed 2 (1396 s elapsed)
+  reared+assayed P @900s seed 3 (1436 s elapsed)
+  reared+assayed P @900s seed 4 (1475 s elapsed)
+  reared+assayed P @900s seed 5 (1515 s elapsed)
+  reared+assayed P @900s seed 6 (1554 s elapsed)
+  reared+assayed P @900s seed 7 (1594 s elapsed)
+
+E098 Part B -- `W_pred` on the repaired audience assay. 8 matched seeds (0-7), 30 min rearing, 16 hens, food_deplete_rate=0.0, hawk_period_s=60
+Every arm reared ONCE; the same reared brain assayed twice per variant -- audio
+intact, and audio muted at test (channel_mode="none"). The muted contrast is
+primary. DiD = (alarm_aud - alarm_alone) - (food_aud - food_alone).
+
+=== VARIANT `landed`: assay(ps=reared), default pc ==============================================
+This is repair 2 exactly as specified. It is a no-op -- see the
+bit-identity check below and scratchpad/e098_reach_probe.py.
+
+arm audio    alarm_alone  alarm_aud  food_alone  food_aud  alarm_eff  food_eff      DiD
+---------------------------------------------------------------------------------------
+S   intact        0.3196     0.3853      0.5005    0.5013    +0.0657   +0.0008  +0.0650
+S   MUTED         0.3195     0.3224      0.5005    0.5014    +0.0029   +0.0009  +0.0020
+
+H   intact        0.4392     0.7207      0.5220    0.5399    +0.2815   +0.0179  +0.2637
+H   MUTED         0.4121     0.4898      0.5211    0.5407    +0.0777   +0.0196  +0.0580
+
+P0  intact        0.4918     0.6368      0.5557    0.5624    +0.1450   +0.0067  +0.1383
+P0  MUTED         0.4769     0.6043      0.5543    0.5617    +0.1275   +0.0074  +0.1200
+
+P   intact        0.5104     0.6319      0.5258    0.5266    +0.1215   +0.0008  +0.1207
+P   MUTED         0.4925     0.6065      0.5258    0.5263    +0.1140   +0.0005  +0.1136
+
+arm   DiD intact   +/- SE   DiD muted   +/- SE  survives
+--------------------------------------------------------
+S        +0.0650   0.0035     +0.0020   0.0028        3%
+H        +0.2637   0.0501     +0.0580   0.0486       22%
+P0       +0.1383   0.0660     +0.1200   0.0732       87%
+P        +0.1207   0.0512     +0.1136   0.0496       94%
+
+(paired t critical at df=7: 2.365)
+  S    muted DiD  +0.0020 +/- 0.0028 SE   t=   0.74   not significant
+  H    muted DiD  +0.0580 +/- 0.0486 SE   t=   1.19   not significant
+  P0   muted DiD  +0.1200 +/- 0.0732 SE   t=   1.64   not significant
+  P    muted DiD  +0.1136 +/- 0.0496 SE   t=   2.29   not significant
+
+=== VARIANT `live`: traces advanced, W_pred read through the centred lag ==============================================
+This is the read section 2(a) says the projection was trained for.
+Learning still off; only the source of the prediction changes.
+
+arm audio    alarm_alone  alarm_aud  food_alone  food_aud  alarm_eff  food_eff      DiD
+---------------------------------------------------------------------------------------
+S   intact        0.3196     0.3853      0.5005    0.5013    +0.0657   +0.0008  +0.0650
+S   MUTED         0.3195     0.3224      0.5005    0.5014    +0.0029   +0.0009  +0.0020
+
+H   intact        0.4392     0.7207      0.5220    0.5399    +0.2815   +0.0179  +0.2637
+H   MUTED         0.4121     0.4898      0.5211    0.5407    +0.0777   +0.0196  +0.0580
+
+P0  intact        0.2867     0.4202      0.4968    0.4532    +0.1335   -0.0436  +0.1771
+P0  MUTED         0.2854     0.3322      0.4974    0.4534    +0.0468   -0.0440  +0.0908
+
+P   intact        0.2667     0.4117      0.5081    0.4784    +0.1450   -0.0296  +0.1746
+P   MUTED         0.2666     0.3190      0.5084    0.4793    +0.0524   -0.0291  +0.0815
+
+arm   DiD intact   +/- SE   DiD muted   +/- SE  survives
+--------------------------------------------------------
+S        +0.0650   0.0035     +0.0020   0.0028        3%
+H        +0.2637   0.0501     +0.0580   0.0486       22%
+P0       +0.1771   0.0438     +0.0908   0.0393       51%
+P        +0.1746   0.0406     +0.0815   0.0359       47%
+
+(paired t critical at df=7: 2.365)
+  S    muted DiD  +0.0020 +/- 0.0028 SE   t=   0.74   not significant
+  H    muted DiD  +0.0580 +/- 0.0486 SE   t=   1.19   not significant
+  P0   muted DiD  +0.0908 +/- 0.0393 SE   t=   2.31   not significant
+  P    muted DiD  +0.0815 +/- 0.0359 SE   t=   2.27   not significant
+
+--- is the landed repair a no-op? --------------------------------------
+Per-seed comparison of arm P against E097's own cache (same world, same seeds).
+  P@900s intact       vs E097 intact : 8/8 bit-identical, largest |delta| 0.000000
+  P@900s muted        vs E097 muted  : 8/8 bit-identical, largest |delta| 0.000000
+  P@900s intact_live  vs E097 intact : 0/8 bit-identical, largest |delta| 0.302650
+  P@900s muted_live   vs E097 muted  : 0/8 bit-identical, largest |delta| 0.250503
+
+=== PRE-REGISTERED FALSIFIERS (E098 section 4) ========================
+Verdicts are read off the `live` variant. The `landed` variant reproduces E097
+bit-for-bit, so evaluating a falsifier on it would only re-report E097.
+
+1. INERTNESS (hard gate) -- evaluated separately by scratchpad/e098_gate.py
+   and the test suite, before this run. Reported as already passed.
+
+2. REACHABILITY -- 'Arm P's numbers are unchanged after the fix.'
+   arm P re-reared at E097's own world (hawk_period_s=900), matched seeds 0-7:
+     intact alarm_alone    0.2874   E097   0.1248   delta +0.1625
+     intact alarm_aud      0.3592   E097   0.1325   delta +0.2267
+     intact food_alone     0.5277   E097   0.5441   delta -0.0164
+     intact food_aud       0.4738   E097   0.5619   delta -0.0881
+     MUTED  alarm_alone    0.2873   E097   0.1247   delta +0.1626
+     MUTED  alarm_aud      0.2885   E097   0.1206   delta +0.1679
+     MUTED  food_alone     0.5288   E097   0.5423   delta -0.0135
+     MUTED  food_aud       0.4755   E097   0.5619   delta -0.0864
+     DiD intact +0.1258 (E097 -0.0101), DiD muted +0.0545 (E097 -0.0236)
+   largest |delta| on the four raw numbers = 0.2267
+   -> CLEAR: arm P moved, so the repaired read reaches the pathway -- section 2(a) was a real defect.
+
+3. PRIMARY -- 'Muted audience-specific DiD < +0.10 for `W_pred` on the repaired
+   assay at a rearing world where the pairing occurs >20 times.'
+   arm P muted DiD = +0.0815 +/- 0.0359 SE, threshold +0.10
+   -> FIRES: H2f's falsifier has been fairly attempted and not met -- and section 4 licenses that reading this time, because 2(a) and 2(c) are both removed.
+
+4. SPECIFICITY -- 'Food-channel muted DiD >= +0.05.'
+   arm P raw muted food effect (food_aud - food_alone) = -0.0291
+   same, differenced against the S baseline = -0.0300
+   -> CLEAR (on the S-baselined figure), CLEAR (on the raw figure)
+      the food channel shows no audience effect; the alarm effect, if any, is specific.
+
+--- |W_pred| after rearing (did the rule learn anything at all?) -------
+  S   @  60s   mean |W_pred| = 0.000000
+  H   @  60s   mean |W_pred| = 0.000000
+  P0  @  60s   mean |W_pred| = 0.002472
+  P   @  60s   mean |W_pred| = 0.002717
+  P   @ 900s   mean |W_pred| = 0.002654
+
+wall clock: 1594 s

@@ -98,7 +98,8 @@ def _staged(cfg: CoopConfig, n_hens: int, *, audience: bool,
     )
 
 
-def assay(p, cfg: CoopConfig, n_hens: int, steps: int = 300) -> AudienceResult:
+def assay(p, cfg: CoopConfig, n_hens: int, steps: int = 300,
+          ps=None, pc=None) -> AudienceResult:
     """Calling by the focal hen, with and without an audience.
 
     Run with plasticity off: this measures what she has already learned, and must not
@@ -107,8 +108,25 @@ def assay(p, cfg: CoopConfig, n_hens: int, steps: int = 300) -> AudienceResult:
     def call_rate(audience: bool, hawk: bool, food: bool, channel: int) -> float:
         w = _staged(cfg, n_hens, audience=audience, hawk=hawk, food=food)
         x = brain.initial_state(p, n_hens)
+        # `ps` carries the reared trace state (E098). Without it `rollout` builds a
+        # fresh zero-filled one, and a `W_pred` projection is read against zeros --
+        # which is half of why E097's W_pred arms measured nothing.
+        # `ps` carries the reared trace state and `pc` decides how the prediction is
+        # SOURCED at test (E098). Both are needed and neither is sufficient.
+        #
+        # E098's first repair passed only `ps` and was a no-op, measured 8/8
+        # bit-identical to E097: `rollout` defaults to `NO_PLASTICITY`, whose
+        # `pred_enabled` is False, so `_one_step` leaves `pred_from=None` and
+        # `brain.step` sources the projection from instantaneous `rate(x)` -- while the
+        # trace update that would have advanced `z_lag` is itself gated on
+        # `pred_enabled` and skipped. The reared state rode in the carry unread.
+        #
+        # To read a `W_pred` rule through the signal it was trained on, an assay must
+        # pass `pc` with `pred_enabled` set. Learning still cannot occur: `W_pred` is
+        # written only in `consolidate`, which stays gated on `enabled`.
         *_, trace = simulate.rollout(
-            w, x, p, jax.random.key(11), cfg._replace(n_hens=n_hens), steps)
+            w, x, p, jax.random.key(11), cfg._replace(n_hens=n_hens), steps,
+            pc=pc if pc is not None else simulate.NO_PLASTICITY, ps=ps)
         return float(jnp.mean(trace.motor[:, 0, channel]))
 
     return AudienceResult(
