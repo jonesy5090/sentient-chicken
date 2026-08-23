@@ -1,0 +1,51 @@
+E098 Part A -- how often is a flockmate's aerial alarm call audible to the focal hen?
+3 seeds, 30 min rearing, 16 hens, arm P's plastic config.
+Channel: obs[:, 85] (AUDIO_LO + aerial); flockmates only, self excluded by sensing.py.
+
+  period   900 s  seed 0: hawk bouts   0   focal audible bouts 1644 (hi=0.2)   (38 s)
+  period   900 s  seed 1: hawk bouts   1   focal audible bouts 1848 (hi=0.2)   (73 s)
+  period   900 s  seed 2: hawk bouts   2   focal audible bouts 3351 (hi=0.2)   (109 s)
+  period   300 s  seed 0: hawk bouts   4   focal audible bouts 2136 (hi=0.2)   (145 s)
+  period   300 s  seed 1: hawk bouts   3   focal audible bouts 1705 (hi=0.2)   (181 s)
+  period   300 s  seed 2: hawk bouts   4   focal audible bouts 3988 (hi=0.2)   (236 s)
+  period    60 s  seed 0: hawk bouts  16   focal audible bouts 2327 (hi=0.2)   (282 s)
+  period    60 s  seed 1: hawk bouts  21   focal audible bouts 2511 (hi=0.2)   (318 s)
+  period    60 s  seed 2: hawk bouts  18   focal audible bouts 6006 (hi=0.2)   (354 s)
+
+--- received aerial-alarm channel, focal hen, quantiles ----------------
+  period    median       p90       p95       p99       max
+     900    0.0550    0.1307    0.1603    0.4853    0.8294
+     300    0.0555    0.1418    0.1819    0.8892    1.0000
+      60    0.0795    0.6473    0.9479    1.0000    1.0000
+
+--- audible flockmate aerial-call bouts per 30 min rearing run ---------
+focal hen (hen 0); one bout = channel rises above `hi` having fallen below hi/2
+  period   hawks    hi=0.1    hi=0.2    hi=0.3    hi=0.5
+--------------------------------------------------------
+     900     1.0   10767.3    2281.0     125.3       1.0
+     300     3.7    9248.3    2609.7     151.7      12.0
+      60    18.3    7208.3    3614.7     511.7      36.0
+
+same, averaged over all 16 hens rather than the focal one:
+  period   hawks    hi=0.1    hi=0.2    hi=0.3    hi=0.5
+--------------------------------------------------------
+     900     1.0   10802.4    2372.1     129.0       1.1
+     300     3.7    9346.4    2703.5     155.6      12.2
+      60    18.3    7453.5    3626.8     511.7      41.5
+
+of those focal bouts, the ones where she could NOT see the hawk herself at
+onset (own IDX_AERIAL < 0.05) -- the call is then telling her something new:
+  period   hawks    hi=0.1    hi=0.2    hi=0.3    hi=0.5
+--------------------------------------------------------
+     900     1.0   10767.0    2280.3     124.7       0.3
+     300     3.7    9216.0    2604.7     148.3       2.3
+      60    18.3    7162.3    3583.0     491.0      14.0
+
+per-seed focal counts at the primary threshold (hi=0.2, lo=0.1):
+    900 s: 1644, 1848, 3351   (of which blind: 1644, 1848, 3349)
+    300 s: 2136, 1705, 3988   (of which blind: 2134, 1693, 3987)
+     60 s: 2327, 2511, 6006   (of which blind: 2318, 2432, 5999)
+
+section 3 prediction 3: fewer than 5 per run at 900 s, more than 20 at 60 s.
+
+wall clock: 354 s
