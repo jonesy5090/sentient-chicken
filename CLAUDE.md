@@ -20,10 +20,19 @@ one, but the effect **survives lesioning `W_out` entirely**, so it is a result a
 hand-set reflex weights and not about the neural model. `docs/hypothesis.md` is
 authoritative; `/project-status` will read it for you.
 
-**Before anything else runs: the reward is 87% `n_struck` at the H4 configuration**
+~~**Before anything else runs: the reward is 87% `n_struck` at the H4 configuration**
 (hawk every 20 s), and the guard forbidding exactly that runs at `hawk_period_s=900`
 where no hawk arrives. Switching plasticity on in that world teaches strike avoidance
-and nothing else. See E027 §4.
+and nothing else. See E027 §4.~~
+
+**Struck by [E107](docs/experiments/E107-red-team-review-2026-08-24.md): measured at
+1.9%, not 87%.** E028 replaced the cumulative contact count with `n_strike_events` and
+this instruction was never re-measured in its new home — which is precisely the failure
+this file's own "when a term moves, measure it in its new home" rule names, sitting
+unnoticed at the top of the file for 79 experiments. What the reward actually is, at
+`hawk_period_s=20`: **~83% hunger**, 12% thirst, 4% cold, 2% strikes. So the teaching
+signal is "did you just eat", and any claim about what a hen learns should be read
+against that rather than against predation.
 
 ## Why this is worth doing, and therefore what not to break
 

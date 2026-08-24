@@ -1058,3 +1058,67 @@ def test_the_interneuron_does_not_change_any_neurons_own_rate():
         "the interneuron changed the reported rate; it must only change the projection")
     assert not bool(jnp.allclose(_x1, _x2)), (
         "the interneuron changed nothing downstream -- it is inert, not subtractive")
+
+
+# --- E107: the direction-stability metric --------------------------------
+#
+# These guard the defect that invalidated E100-E106's headline: a statistic that
+# pooled sixteen hens before taking the mean direction, so it reported between-hen
+# spread as if it were within-hen state-dependence. The guard runs on a synthetic
+# case built to separate the two, because on real trajectories the two numbers can
+# happen to agree -- they do for the pallium and the motor stub, and that near-agreement
+# is exactly why nobody noticed the readout's disagreed.
+
+
+def test_pooling_hens_is_not_within_hen_state_dependence():
+    """Hens that each vary but point different ways: per-hen low, pooled high.
+
+    Each hen's output sweeps a wide arc around her own private axis. Within a hen the
+    direction genuinely varies, so `direction_stability` must be well below 1. Pooled,
+    the private axes dominate and the statistic is near the between-hen number instead.
+    """
+    from run import metrics
+    rng = np.random.default_rng(0)
+    n_t, n_h, n_d = 400, 16, 12
+    axes = rng.normal(size=(n_h, n_d))
+    axes /= np.linalg.norm(axes, axis=1, keepdims=True)
+    a = np.empty((n_t, n_h, n_d))
+    for h in range(n_h):
+        wobble = rng.normal(size=(n_t, n_d))
+        wobble -= (wobble @ axes[h])[:, None] * axes[h][None, :]
+        wobble /= np.linalg.norm(wobble, axis=1, keepdims=True)
+        a[:, h] = axes[h][None, :] + 1.2 * wobble
+
+    per_hen = metrics.direction_stability(a)
+    pooled = metrics.pooled_direction_stability(a)
+    between = metrics.between_hen_alignment(a)
+
+    assert per_hen < 0.75, (
+        f"per-hen stability {per_hen:.4f}: each hen's direction genuinely varies here, "
+        "so this must be well below 1.0 or the metric cannot see state-dependence")
+    assert abs(pooled - between) < abs(pooled - per_hen), (
+        f"pooled {pooled:.4f} should track the between-hen number {between:.4f} rather "
+        f"than the per-hen one {per_hen:.4f}; if it does not, this synthetic case no "
+        "longer separates the two and the guard proves nothing")
+
+
+def test_a_fixed_direction_reads_as_one_whatever_its_magnitude():
+    """The metric's own definition: magnitude alone varying must give 1.0."""
+    from run import metrics
+    rng = np.random.default_rng(1)
+    axis = rng.normal(size=8)
+    scale = rng.uniform(0.01, 5.0, size=(300, 4, 1))
+    a = scale * axis[None, None, :]
+    assert abs(metrics.direction_stability(a) - 1.0) < 1e-6
+    assert abs(metrics.pooled_direction_stability(a) - 1.0) < 1e-6
+
+
+def test_dc_share_uses_axis_not_ord():
+    """A vector that never moves is 100% DC; numpy's second positional arg is `ord`."""
+    from run import metrics
+    a = np.tile(np.array([3.0, 4.0, 0.0]), (50, 2, 1))
+    assert abs(metrics.dc_share(a) - 1.0) < 1e-9
+    rng = np.random.default_rng(2)
+    noisy = rng.normal(size=(500, 2, 3))
+    assert metrics.dc_share(noisy) < 0.2, (
+        "zero-mean noise must have a near-zero DC share")

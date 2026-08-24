@@ -871,8 +871,28 @@ new home.
 
 ## 8. Open items from experiments
 
-- **E107 — re-calibrate the readout under the interneuron. The one thing that should
-  happen next.** [E106](experiments/E106-recurrent-inhibition.md) fixed the
+- **The direction-stability line is closed
+  ([E107](experiments/E107-red-team-review-2026-08-24.md)).** The metric E100–E106 chased
+  pooled sixteen hens with sixteen different readouts; per hen the cortical drive runs
+  0.9932 untrained → 1.0000 reared and never collapsed. Six mechanisms were built to
+  explain it. **No seventh.** Any future experiment on this line must state in §5 which
+  statistic it tests and why that statistic answers the question, and use
+  `run/metrics.direction_stability` rather than a local copy.
+- **Three verified defects, each needing a fix before the affected assay is used again.**
+  (a) The audience assay's arms differ in 14 observation channels, not one — its "absent"
+  flockmates are fenced back to 13.3 m inside a 15 m hearing range, and a relayed alarm
+  channel saturates at 1.0000. Needs three ablation arms: flockmates deleted rather than
+  parked, audience gagged, audience invisible. (b) E101/E102's untrained control is inert
+  by construction (`W_gate`/`W_str` start at zero, gate sits at 0.982), so "the
+  interaction is the evidence" carries nothing; needs the permuted-gate control — take a
+  reared `W_gate`, permute its rows, re-run the 2×2, and if predation still falls the
+  benefit is "less crouching". (c) No multiplicity control anywhere: declare the contrast
+  count in §5 and divide α by it, and require both seed blocks to clear independently
+  rather than pooling after seeing the first.
+- ~~**E107 — re-calibrate the readout under the interneuron. The one thing that should
+  happen next.**~~ **Superseded before it ran**, by the review that took E107's number.
+  The premise was E106's magnitude collapse mattering because its representation result
+  was large; per hen that result is a tenth the size and misses its own bar. [E106](experiments/E106-recurrent-inhibition.md) fixed the
   representation and left the learned pathway two orders of magnitude quieter
   (|cortical| 1.606 → 0.020): the common mode *was* the magnitude. `eta_out`,
   `readout_scale` and `readout_scaling_strength` were every one of them calibrated
