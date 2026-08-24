@@ -148,12 +148,144 @@ re-implementing `_one_step` and measuring a rule that is not the one that runs.
 
 ## 6. Result
 
-*To be filled after the run.*
+### 6a. The instrument, checked first
+
+`scratchpad/e108_what_the_rule_reads.py`, 4 seeds, 600 consolidation windows of 50 steps
+(0.50 s) each, `tau_slow = 0.2 s`.
+
+The observation at the same boundaries decodes the label at **AUC 0.986** (untrained) and
+**0.989** (reared), against a pre-registered floor of 0.80. **The instrument falsifier
+does not fire**; the label and the windowing work.
+
+### 6b. The headline — the primary falsifier fires
+
+| source | untrained | reared 30 min |
+|---|---|---|
+| **`dz_slow`, what the rule reads** | **0.731** | **0.722** |
+| `z_slow` uncentred | 0.686 | 0.707 |
+| `rate(x)` at the boundary | 0.707 | 0.704 |
+| observation (instrument) | 0.986 | 0.989 |
+| **`m`, the teaching signal** | **0.955** | **0.958** |
+
+**The primary falsifier fires, decisively.** It was written as: if `dz_slow` decodes at
+AUC ≥ 0.70 *and* `m` does at ≥ 0.70, the rule has both factors it needs at the moment it
+needs them and my hypothesis is wrong. It does — 0.731 and 0.955.
+
+**Prediction 2 was wrong.** I predicted `dz_slow` at 0.50–0.65, near chance. It is 0.731,
+*above* the instantaneous rate's 0.707. The trace is not costing anything; centring gains
+about 0.045 rather than losing. The 0.2 s memory against a 0.5 s sampling interval, which
+§2's arithmetic said should forget 92% of each window, evidently forgets nothing that
+matters.
+
+**Prediction 3 was wrong, and its failure is the interesting part.** Decoding *where in
+the window* she fed, from `dz_slow`:
+
+| | first third | middle | last third |
+|---|---|---|---|
+| untrained | **0.824** | 0.798 | 0.763 |
+| reared | **0.774** | 0.758 | 0.728 |
+
+I predicted late-window events would decode *better*, because a 0.2 s trace read at the
+boundary should be dominated by the last 0.2 s. The opposite holds, in both arms. The
+trace is not reading an *event* at all — it is reading a **persistent state**. Feeding in
+the first third predicts a longer bout, because being at a patch is strongly
+autocorrelated, and that is what survives to the boundary. The rule can see **"I am at a
+food patch"**, which is precisely the state a foraging policy would need to bind to.
+
+### 6c. Two errors of mine in this experiment's own design
+
+**My triviality falsifier fired, for a quantity that was not the label.** §4 required the
+raw "did she feed at all this window" base rate to sit between 5% and 95%; it is 5.5%
+untrained and **4.3%** reared. I wrote that check believing the decode label — a median
+split on hunger drop — was a separate, balanced quantity.
+
+**And my §5 claim that the median split "guarantees the 50/50 base rate" was simply
+false.** Hunger drop has a mass point at zero: in the 94.5% of windows where she never
+ate, it takes the same value. So the median *is* that value, and `hunger_drop > median` is
+true exactly when she fed. `scratchpad/e108b_label_check.py` measures the agreement
+between the two labels at **100.0%**.
+
+The label was therefore never degenerate — it is exactly "did she feed", at a 5.5% base
+rate, and AUC is a rank statistic that handles the imbalance. Confirmed directly:
+
+| label | `dz_slow` | observation |
+|---|---|---|
+| median split on hunger drop (§5's label) | 0.731 | 0.986 |
+| **fed at all in the window** | **0.731** | 0.986 |
+| **at a feeder for more than half the window** | **0.800** | 0.985 |
+
+Identical, as they must be. The result stands; two statements in my own §§4–5 do not.
+
+**One check I could not run.** I intended to test the movement confound — whether the
+decode rides on how much she moved rather than on food — and `World` has no velocity
+field, so it returned nothing. The 100% label agreement makes it moot: the label is
+feeding, so there is no movement quantity for it to be confounded with. Recorded rather
+than quietly dropped.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**H2's null is not explained by what the rule can see.** At the instant `consolidate`
+runs, the reward-prediction error separates feeding windows at AUC 0.955, and the
+presynaptic factor separates them at 0.731 — 0.800 for the more natural "she is at a
+patch" framing. Both factors are present, informative, and available simultaneously. The
+covariance rule has everything it needs to bind "at a patch" to whatever she was doing
+there.
+
+**This closes the third distinct explanation for the same null in eight experiments**,
+and it is worth listing them because the pattern matters more than any one of them:
+
+| | proposed cause | fate |
+|---|---|---|
+| E100–E106 | the readout converges on a fixed direction | withdrawn by E107 — a pooling artefact |
+| E107's reviewer | the reward's event is destroyed at the first synapse | not adopted — AUC 0.670, not 0.528 |
+| **E108** | **the rule is blind to its own teaching event** | **falsified here — 0.731 and 0.955** |
+
+Three mechanisms, each plausible, each aimed at the same null, each wrong. What they
+share is that all three were **upstream** guesses: they proposed that some signal never
+reaches the rule. It reaches the rule. **The failure is in what the rule does with it.**
+
+**The candidates that remain, in the order I would test them.**
+
+1. **The postsynaptic factor.** `dz_motor` traces the *motor output*, which is dominated
+   by the reflex arc. So the rule strengthens synapses pairing "at a patch" with
+   "whatever the arc was already doing at a patch" — which is already the correct
+   behaviour. A rule that reinforces the existing policy cannot change it. This is the
+   one I would test first and it is directly measurable: decode, from `dz_motor` at the
+   boundaries, how much of it is reflex-driven versus cortical.
+2. **Magnitude.** E106 measured `|cortical|` at 1.606 against a reflex drive of similar
+   size, and the whole pathway collapsing to 0.020 when its common mode was removed. What
+   the readout learns may simply be too small to move behaviour, or too large and
+   saturating.
+3. **The outer-product form.** `dw_out = m · dz_motor ⊗ dz_slow` is rank one per
+   consolidation (E105 §5a). Its accumulation depends on the *variety* of `dz_slow`
+   directions, and E107 established the per-hen representation is 0.9998 fixed — so the
+   accumulated update may span very few directions regardless of how informative each one
+   is. Note this is the E105 line, but arrived at from decodability rather than geometry,
+   and it is the only one of the three that the withdrawn work still supports.
+
+**What should not happen** is a fourth upstream mechanism. Three have now been proposed
+and none survived.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**No code changes.** E108 is a read-only probe and adds no flag, no mechanism, and no
+default.
+
+**`docs/hypothesis.md`.** H2's node records that the "rule cannot see the reward event"
+explanation is falsified, alongside E107's withdrawal of the geometry explanation. The
+tree now has **no** standing mechanism for its central null, which is a more honest
+position than it has held since E100 and should be stated as such.
+
+**What this experiment establishes positively**, and it is not nothing: the three-factor
+rule's two factors are both informative at consolidation time, the eligibility trace's
+0.2 s memory against a 0.5 s sampling interval is not a defect, and centring *helps*
+rather than costs. Those were all open assumptions and are now measured.
+
+### Follow-ups
+
+1. **E109 — decode `dz_motor`.** Candidate 1 above. Cheap, direct, and it is the only
+   factor in the rule that has still never been measured.
+2. **The trained-flock mute** (backlog §5, open since E032) is untouched by all of this
+   and is now the oldest open item by a wide margin.
+3. **E101/E102's permuted-gate control** remains outstanding from
+   [E107](E107-red-team-review-2026-08-24.md) and would retire a standing claim.
