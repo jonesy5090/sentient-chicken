@@ -35,6 +35,9 @@ class Drives(NamedTuple):
     reflex: jax.Array      # (H, MOTOR_DIM)
     cortical: jax.Array    # (H, MOTOR_DIM)
     predicted: jax.Array   # (H, OBS_DIM) top-down contribution to perception
+    # The raw afferent current, before any relay processing. Carried out so the caller
+    # can advance the adaptive baseline (E105) without recomputing the projection.
+    current: jax.Array     # (H, N)
 
 
 def initial_state(p: BrainParams, n_hens: int) -> jax.Array:
@@ -46,7 +49,8 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
          key: jax.Array = None, sigma: float = 0.0, pred_gain: float = 0.0,
          pred_from: jax.Array = None, pred_signed: bool = False,
          reflex_gate: bool = False, bg_gate: bool = False,
-         bg_lateral: float = 1.0, sensory_lateral: float = 0.0):
+         bg_lateral: float = 1.0, sensory_lateral: float = 0.0,
+         adapt_bar: jax.Array = None):
     """Returns (x_next, motor, drives); motor in [0, 1], shape (H, MOTOR_DIM).
 
     `sigma` adds Gaussian noise to the motor drive before the output nonlinearity.
@@ -65,6 +69,13 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
     Assays pass sigma=0: they measure the learned policy, not the noise around it.
     """
     current = obs @ p.W_in.T
+    raw_current = current
+    # Temporal adaptation at the relay (E105), applied before the spatial pooling below
+    # so each unit is first referred to its own recent history and the interneuron then
+    # pools what is left. The two halves remove different things: this one removes what
+    # a unit always sees, the pooling removes what every unit sees right now.
+    if adapt_bar is not None:
+        current = current - adapt_bar * p.lateral_pool[None, :]
     # Lateral inhibition at the sensory relay (E104). A pooled inhibitory interneuron
     # subtracts the component common to every afferent-receiving unit, so the projection
     # passes CONTRAST rather than total drive.
@@ -139,4 +150,5 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
     if key is not None:
         drive = drive + sigma * jax.random.normal(key, drive.shape)
     return x, jax.nn.sigmoid(drive), Drives(
-        reflex=reflex, cortical=cortical, predicted=predicted)
+        reflex=reflex, cortical=cortical, predicted=predicted,
+        current=raw_current)

@@ -871,6 +871,26 @@ new home.
 
 ## 8. Open items from experiments
 
+- **THE critical path, restated and now quantified end-to-end
+  ([E105](experiments/E105-decorrelating-readout.md)).** The item below names pallial
+  separability as the blocker for three hypotheses. E105 measured the same defect at the
+  *output* stage and it is terminal: the motor stub, the only thing the learned readout
+  reads, is **99.98% a constant vector at hatch** (deviation 7.18% of its own mean), and
+  a gain sweep shows a reared `W_out` tracking its input's direction stability to within
+  0.01 — so **the readout was never the limitation and six interventions aimed at it
+  could not have worked**. The chain is observation 0.6375 → sensory stub 0.9707 →
+  pallium 0.9934 → motor stub 0.9930. E103 fixed the zeroth stage's cause and
+  [E104](experiments/E104-lateral-inhibition.md) built a relay interneuron that works
+  there and **does not survive the two recurrent stages after it**. **No further
+  readout-side mechanism should be attempted.** The next intervention has to act on the
+  recurrent stages, and the question it raises — whether a strictly-positive rate code
+  with excitatory-dominant recurrence can hold a varying representation at all — is
+  architectural, not experimental. It belongs in a design decision, not an E106.
+- ~~E071 interaction check: is downstream `z_lag` centring redundant once the source is
+  fixed?~~ **Closed unrun (E105 §8).** The source is fixed at one of three stages;
+  asking whether a downstream patch for the same defect is redundant cannot be
+  interpreted until the other two are addressed.
+
 - ~~**BLOCKING T2: the sickness reward is ~4 orders of magnitude too weak, needs
   calibrating, and E014's erosion history makes "just raise it" unsafe.**~~
   **Answered and closed by [E069](experiments/E069-t2-positive-control.md).**
