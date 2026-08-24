@@ -19,6 +19,10 @@ import jax.numpy as jnp
 from hen import neurons
 from hen.connectome import BrainParams
 
+# Bias holding E101-B's reflex gate open at hatch: sigmoid(4.0) = 0.982, so an untrained
+# hen's reflex arc reaches her muscles essentially intact and only learning can close it.
+GATE_OPEN_BIAS = 4.0
+
 
 class Drives(NamedTuple):
     """The two pathways' contributions to the motor output, kept separable.
@@ -40,7 +44,8 @@ def initial_state(p: BrainParams, n_hens: int) -> jax.Array:
 
 def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
          key: jax.Array = None, sigma: float = 0.0, pred_gain: float = 0.0,
-         pred_from: jax.Array = None):
+         pred_from: jax.Array = None, pred_signed: bool = False,
+         reflex_gate: bool = False):
     """Returns (x_next, motor, drives); motor in [0, 1], shape (H, MOTOR_DIM).
 
     `sigma` adds Gaussian noise to the motor drive before the output nonlinearity.
@@ -82,8 +87,23 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
     # observed *now*, which is the cue-to-outcome direction association needs.
     src = neurons.rate(x) if pred_from is None else pred_from
     predicted = jnp.einsum("hon,hn->ho", p.W_pred, src * p.pred_src[None, :])
-    reflex_in = jnp.clip(obs + pred_gain * jax.nn.relu(predicted), 0.0, 1.0)
+    # `pred_signed` (E101-A) removes the relu, so a negative prediction MASKS a real
+    # percept rather than being discarded. The clip still holds both ends: she cannot
+    # perceive more vividly than reality, and now cannot perceive below nothing either.
+    top_down = predicted if pred_signed else jax.nn.relu(predicted)
+    reflex_in = jnp.clip(obs + pred_gain * top_down, 0.0, 1.0)
     reflex = reflex_in @ p.reflex.T
+
+    # `reflex_gate` (E101-B) lets the forebrain decide how much of the arc reaches the
+    # muscles. Without it the two pathways meet by pure addition and the learned one --
+    # measured 98.4% excitatory, peak opposition ~46x too small against the 8.0 crouch
+    # reflex -- can only ever shout louder. `W_gate` is initialised so the gate sits at
+    # ~1.0 at hatch: a newly hatched hen suppresses nothing and her arc arrives intact,
+    # which is the correct developmental starting point.
+    if reflex_gate:
+        reflex = reflex * jax.nn.sigmoid(
+            jnp.einsum("hmn,hn->hm", p.W_gate, motor_stub) + GATE_OPEN_BIAS)
+
     drive = reflex + cortical + p.b_motor[None, :]
     # `sigma` is traced under jit (it decays with the world clock), so this cannot be
     # a Python conditional. A caller that wants no noise at all passes key=None.

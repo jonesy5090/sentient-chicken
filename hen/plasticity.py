@@ -174,6 +174,29 @@ class PlasticConfig(NamedTuple):
     # developmental calibration of what "average activity" means, estimated once and
     # then fixed, rather than re-estimated forever.
     pred_bar_freeze_s: float | None = None
+    # E101-A. Drop the relu on the top-down prediction, so `W_pred` may SUBTRACT from the
+    # observation the reflex arc reads instead of only adding to it.
+    #
+    # `brain.py` has always relu'd it, with the stated reason that "association can only
+    # add percepts, never suppress real ones". That is a design choice and E101 measured
+    # what it costs: with it, the learned pathway is 98.4% excitatory and its strongest
+    # possible opposition is ~46x too small to counter the 8.0 crouch reflex. A hen can
+    # learn to imagine a hawk and cannot learn to ignore one.
+    #
+    # Vertebrate development is substantially the forebrain acquiring the ability to
+    # suppress brainstem reflexes. This is the sensory-gating half of that: she learns to
+    # stop *perceiving* what she should ignore. The clip in `brain.py` still prevents her
+    # perceiving more vividly than reality; this lets her perceive less.
+    pred_signed: bool = False
+    # E101-B. A learned multiplicative gate on the reflex arc's output:
+    # `drive = reflex * sigmoid(W_gate @ motor_stub) + cortical`. Descending gain control
+    # -- the arc still fires, the forebrain decides how much of it reaches the muscles.
+    # This is the mechanism the additive meeting point at `brain.py:87` cannot express.
+    reflex_gate: bool = False
+    # Bound on `W_gate`, so a runaway gate cannot silence the arc outright. At -8.0 the
+    # gate reaches sigmoid(4.0 - 8.0) = 0.018: near-total suppression is reachable but
+    # requires the rule to drive there deliberately.
+    gate_max: float = 8.0
 
     # Restores E067's pre-fix behaviour: `m` read as a single-step snapshot at the
     # consolidation boundary rather than averaged over the window since the last one.
@@ -515,7 +538,17 @@ def consolidate(p: BrainParams, ps: PlasticState, m: jax.Array,
                   * (lag * p.pred_src[None, :])[:, None, :])
         w_pred = jnp.clip(p.W_pred + d_pred, -pc.pred_max, pc.pred_max)
 
-    return p._replace(W=w, W_out=w_out, W_pred=w_pred)
+    # E101-B: the descending gate learns on the same rule and schedule as the readout it
+    # sits beside. Same postsynaptic factor (`dz_motor`), same presynaptic source (the
+    # motor stub's slow trace) -- so if the gate stays open it is because nothing taught
+    # it to close, not because it was denied the signal `W_out` gets.
+    w_gate = p.W_gate
+    if pc.reflex_gate:
+        d_gate = (eta_out * m_out[:, None, None]
+                  * dz_motor[:, :, None] * dz_slow[:, None, -n_motor:])
+        w_gate = jnp.clip(p.W_gate - d_gate, -pc.gate_max, pc.gate_max)
+
+    return p._replace(W=w, W_out=w_out, W_pred=w_pred, W_gate=w_gate)
 
 
 def eta_pred_of(ps: PlasticState, pc: PlasticConfig):

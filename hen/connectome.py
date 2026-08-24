@@ -30,6 +30,10 @@ class BrainParams(NamedTuple):
     W_in: jax.Array       # (N, OBS_DIM) sensory afferents (shared, fixed)
     W_out: jax.Array      # (H, MOTOR_DIM, n_motor) cortical motor readout
     W_pred: jax.Array     # (H, OBS_DIM, N) top-down associative projection
+    # (H, MOTOR_DIM, n_motor) descending gate on the reflex arc (E101-B). Starts at zero
+    # so `sigmoid(0 + GATE_OPEN_BIAS)` ~ 1: a hatchling suppresses no reflex at all, and
+    # only learning can close the gate. Unused unless `PlasticConfig.reflex_gate`.
+    W_gate: jax.Array
     pred_src: jax.Array   # (N,) bool -- which neurons may source a prediction
     b: jax.Array          # (N,) resting bias
     tau: jax.Array        # (N,) membrane time constants, seconds
@@ -407,6 +411,7 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         W_in=jnp.asarray(w_in),
         W_out=w_out,
         W_pred=w_pred,
+        W_gate=jnp.zeros_like(w_out),
         pred_src=pred_src,
         b=jnp.full((n,), -2.0),
         tau=tau,

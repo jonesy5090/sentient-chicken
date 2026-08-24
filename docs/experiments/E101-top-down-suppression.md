@@ -136,12 +136,117 @@ behavioural change.
 
 ## 6. Result
 
-*To be filled after the run.*
+### 6a. Capability — B works, A is inert
+
+Staged hawk directly overhead, reared hens, 4 seeds:
+
+| arm | reflex@crouch | cortical | M_CROUCH out | direction stability |
+|---|---|---|---|---|
+| off | 8.000 | 1.171 | 0.9985 | 0.9567 |
+| **A** (signed perception) | **8.000** | 0.834 | 0.9977 | 0.9530 |
+| **B** (reflex gate) | **4.756** | 1.283 | 0.8861 | 0.9209 |
+| A+B | 4.877 | 1.176 | 0.8979 | **0.8946** |
+
+**Capability gate clears via B**, which cuts the crouch reflex 41%. **A is inert** —
+`reflex@crouch` stays at exactly 8.000, so signed perception is available and learning
+never uses it. The `off` arm reproduces E100's 0.9587 at 0.9567.
+
+**The primary falsifier FIRES.** I predicted direction stability below 0.85 for at least
+one mechanism; the best is 0.8946, and both single mechanisms stay above 0.90.
+**Additivity is not the main cause of E100's fixed-direction collapse** — that was my
+hypothesis and it is largely wrong.
+
+Note the saturation echo of E089: B cuts the *drive* 41% but the crouch *output* only
+0.9985 → 0.8861, because the remaining drive is still deep in the sigmoid's flat region.
+
+### 6b. Behaviour — a significant, replicated reduction in predation
+
+2×2 {untrained, reared} × {no gate, gate}, 8 seeds per block, two disjoint blocks:
+
+| cell | block 0–7 | block 8–15 |
+|---|---|---|
+| untrained, no gate | 0.1630 | 0.1579 |
+| untrained, gate | 0.1582 | 0.1628 |
+| reared, no gate | 0.1940 | 0.1757 |
+| **reared, gate** | **0.1024** | **0.0855** |
+
+| contrast (df=7, crit 2.365) | block 0–7 | block 8–15 |
+|---|---|---|
+| rearing effect (no gate) | +0.0310, t=+0.78 ns | +0.0179, t=+0.61 ns |
+| **gate on an untrained brain** | −0.0048, t=−0.13 **ns** | +0.0049, t=+0.28 **ns** |
+| **gate on a reared brain** | **−0.0917, t=−3.74 ✓** | **−0.0903, t=−3.04 ✓** |
+| reared+gate vs untrained baseline | −0.0607, t=−1.83 ns | −0.0724, t=−3.36 ✓ |
+
+**The effect replicates on disjoint seeds at near-identical size, and the null control
+stays null in both blocks.** The gate does nothing until it has learned something — that
+interaction is the evidence, because presence of the mechanism alone changes nothing.
+
+**Safety falsifier clear**: predation *fell* rather than rising. **Cost is real**: hunger
+0.498 → 0.596. A hen who gates her reflexes forages worse.
+
+### 6c. What the gate actually learned — and it is degenerate
+
+Gate value per motor channel after 30 min (1.00 = arc intact, untrained = 0.982):
+
+| channel | gate | | channel | gate |
+|---|---|---|---|---|
+| TURN_R | **0.0992** | | FORWARD | 0.5314 |
+| PECK | **0.1163** | | SCRATCH | 0.6384 |
+| TURN_L | **0.1351** | | FLEE | 0.6716 |
+| CALL_AERIAL | 0.4672 | | CALL_GAKEL | 0.6868 |
+| CROUCH | 0.4756 | | CALL_FOOD | 0.7726 |
+| CALL_GROUND | 0.6683 | | CALL_CONTACT | 0.9807 |
+
+**It did not learn to suppress the crouch reflex. It learned to shut down almost the whole
+arc** — turning to 0.10, pecking to 0.12 — sparing only the contact call.
+
+The predation benefit therefore has a mundane mechanism: `actuation.py` sets
+`mobility = 1 − crouch`, so a crouching hen **cannot move and stays inside the strike
+radius**. A largely inert hen crouches less, drifts out, and is caught less often. She also
+eats much less, which is the hunger cost.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**The architectural diagnosis was right and the fix works — but the rule uses it
+degenerately.** The model genuinely had no way for the forebrain to overrule a reflex:
+addition with no gate, a learned pathway 98.4% excitatory, peak opposition ~46× too small,
+and the one top-down route relu'd so it could only add percepts. Mechanism B removes that,
+and for the first time in this project **something a hen learned produces a significant,
+twice-replicated behavioural improvement.**
+
+**But it is a blanket shutdown, not selective control**, and that matters for what it means.
+A free gate optimised on a broad signal finds one global setting — the same degeneracy E100
+found in `W_out`'s fixed direction, reappearing in a new pathway. The hen has not learned
+*when* to suppress a reflex; she has learned that suppressing most of them is, on balance,
+survivable.
+
+**And the improvement is partly an artefact of the crouch/mobility coupling.** Crouching
+freezes her inside the strike radius, so it is a *badly calibrated* innate response in this
+world — E026 flagged exactly this coupling as a metric hazard. The forebrain overruling it
+is real learning, but what it discovered is closer to "this reflex is a liability" than to
+anything about communication.
+
+**A's inertness is separately informative.** Signed perception was available and unused —
+`reflex@crouch` never moved off 8.000. So it is not that she cannot learn to mask a percept;
+nothing in her experience pushes her to. That points at the teaching signal rather than the
+wiring, and is a cheaper lead than any further architecture.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**Adopted: `reflex_gate`, off by default.** It is the first mechanism in this project by
+which the pallium can oppose the innate arc, and its behavioural benefit replicates.
+
+**Not adopted: any claim that the hen learned to use information.** She learned that a
+reflex was costing her. That is a real and previously impossible result, and it is not the
+project's thesis.
+
+**This is the argument for the basal ganglia (design-review option C), and it is now
+empirical rather than aesthetic.** The failure mode of a *free* gate is exactly
+indiscriminate suppression. The vertebrate answer to that is not a free gate — it is tonic
+inhibition that is *selectively released*, which makes suppression a per-action decision
+rather than a global one. E101 is the measurement that says a gate helps; it is also the
+measurement that says an unselective gate is not enough.
+
+**Open, and cheaper than C:** why does A go unused? And does the gate become selective if the
+learning signal distinguishes situations — which is E100's unanswered "why does the direction
+collapse" in another guise. Both should be settled before building a striatum.
