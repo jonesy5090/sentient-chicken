@@ -318,6 +318,12 @@ class CoopConfig(NamedTuple):
     # `actuation.py` next to the crouch and sickness gates, because it is a mechanical
     # consequence of posture rather than a decision.
     peck_stops_walking: float = 0.0
+    # Strength of the pooled inhibitory interneuron at the sensory relay (E104). 0.0 is
+    # the pre-E104 model, where a strictly-positive `W_in` passes total drive and buries
+    # situation in a 97.8%-constant signal (E103). 1.0 removes the common component
+    # entirely, so the relay passes contrast. Applied in `brain.py` at the afferent
+    # projection; the reflex arc reads `obs` directly and is structurally unaffected.
+    sensory_lateral: float = 0.0
     food_regrow_s: float = 300.0        # seconds for an empty patch to refill
     huddle_warm_rate: float = 4.0e-4  # per second, per flockmate within huddle_radius
     huddle_max: int = 3               # a hen needs 2-3 close neighbours to stay warm

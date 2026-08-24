@@ -37,12 +37,36 @@ class BrainParams(NamedTuple):
     # (H, MOTOR_DIM, n_motor) striatal drive for E102's competitive gate. Zero at hatch,
     # so `sigmoid(BIAS + 0 - beta*0)` ~ 1 and a hatchling's reflexes arrive intact.
     W_str: jax.Array
+    # (N,) 1.0 for units that receive sensory afferents, 0 elsewhere (E104). The pooled
+    # inhibitory interneuron averages over *these* units -- a real interneuron pools the
+    # relay it sits in, not the whole brain, most of which gets no afferents at all.
+    lateral_pool: jax.Array
     pred_src: jax.Array   # (N,) bool -- which neurons may source a prediction
     b: jax.Array          # (N,) resting bias
     tau: jax.Array        # (N,) membrane time constants, seconds
     reflex: jax.Array     # (MOTOR_DIM, OBS_DIM) innate arc, fixed
     b_motor: jax.Array    # (MOTOR_DIM,)
     dale: jax.Array       # (N,) +1 excitatory / -1 inhibitory
+
+
+def _lateral_pool(reg: Regions, n: int, place_to_hippocampus: bool) -> jax.Array:
+    """Which units the pooled inhibitory interneuron averages over (E104).
+
+    The *exteroceptive* relays only. A first attempt used "every unit with a nonzero
+    `W_in` row", which silently swept in the hypothalamus's 16 interoceptive units --
+    so hunger and thirst would have subtracted from visual contrast. An interneuron
+    pools the relay it sits in; hunger is not part of the visual relay.
+
+    The hippocampus joins the pool only when `place_to_hippocampus` routes place cells
+    there (E086), because that is when it becomes an afferent-receiving sensory stage.
+    """
+    pool = np.zeros(n, dtype=np.float32)
+    s_lo, s_hi = reg.bounds(regions.SENSORY)
+    pool[s_lo:s_hi] = 1.0
+    if place_to_hippocampus:
+        h_lo, h_hi = reg.bounds(regions.HIPPOCAMPUS)
+        pool[h_lo:h_hi] = 1.0
+    return jnp.asarray(pool)
 
 
 def _region_of(reg: Regions) -> np.ndarray:
@@ -416,6 +440,7 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         W_pred=w_pred,
         W_gate=jnp.zeros_like(w_out),
         W_str=jnp.zeros_like(w_out),
+        lateral_pool=_lateral_pool(reg, n, place_to_hippocampus),
         pred_src=pred_src,
         b=jnp.full((n,), -2.0),
         tau=tau,
