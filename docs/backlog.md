@@ -871,6 +871,18 @@ new home.
 
 ## 8. Open items from experiments
 
+- **E109 — decode `dz_motor`, the one factor in the rule never measured.**
+  [E108](experiments/E108-what-the-rule-reads.md) closed the third upstream explanation
+  for H2's null: the rule can see its own teaching event (`m` at AUC 0.955) and the state
+  that caused it (`dz_slow` at 0.731). Both factors are present at consolidation time, so
+  **the failure is in what the rule does with them, not in what reaches it.** The leading
+  candidate is the postsynaptic factor: `dz_motor` traces the *motor output*, which is
+  dominated by the reflex arc, so the rule may only ever reinforce what the arc already
+  does at a food patch — which is already the right behaviour, and reinforcing it changes
+  nothing. Directly measurable: decode, from `dz_motor` at the boundaries, how much of it
+  is reflex-driven versus cortical. Cheap, and it is the only factor in the rule that has
+  never been looked at.
+  **No fourth upstream mechanism.** Three have been proposed and none survived.
 - **The direction-stability line is closed
   ([E107](experiments/E107-red-team-review-2026-08-24.md)).** The metric E100–E106 chased
   pooled sixteen hens with sixteen different readouts; per hen the cortical drive runs
