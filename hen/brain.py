@@ -45,7 +45,8 @@ def initial_state(p: BrainParams, n_hens: int) -> jax.Array:
 def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
          key: jax.Array = None, sigma: float = 0.0, pred_gain: float = 0.0,
          pred_from: jax.Array = None, pred_signed: bool = False,
-         reflex_gate: bool = False):
+         reflex_gate: bool = False, bg_gate: bool = False,
+         bg_lateral: float = 1.0):
     """Returns (x_next, motor, drives); motor in [0, 1], shape (H, MOTOR_DIM).
 
     `sigma` adds Gaussian noise to the motor drive before the output nonlinearity.
@@ -100,7 +101,16 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
     # reflex -- can only ever shout louder. `W_gate` is initialised so the gate sits at
     # ~1.0 at hatch: a newly hatched hen suppresses nothing and her arc arrives intact,
     # which is the correct developmental starting point.
-    if reflex_gate:
+    if bg_gate:
+        # E102: basal-ganglia-style competitive release. `s - mean(s)` means a uniform
+        # shift in striatal drive cancels exactly, so the gate cannot close everything --
+        # it can only decide which channels to close *relative to the others*. That is
+        # the striatal lateral-competition property, and it is the one thing E101-B's
+        # free gate lacked.
+        s = jnp.einsum("hmn,hn->hm", p.W_str, motor_stub)
+        s = s - bg_lateral * jnp.mean(s, axis=-1, keepdims=True)
+        reflex = reflex * jax.nn.sigmoid(GATE_OPEN_BIAS + s)
+    elif reflex_gate:
         reflex = reflex * jax.nn.sigmoid(
             jnp.einsum("hmn,hn->hm", p.W_gate, motor_stub) + GATE_OPEN_BIAS)
 

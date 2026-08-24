@@ -34,6 +34,9 @@ class BrainParams(NamedTuple):
     # so `sigmoid(0 + GATE_OPEN_BIAS)` ~ 1: a hatchling suppresses no reflex at all, and
     # only learning can close the gate. Unused unless `PlasticConfig.reflex_gate`.
     W_gate: jax.Array
+    # (H, MOTOR_DIM, n_motor) striatal drive for E102's competitive gate. Zero at hatch,
+    # so `sigmoid(BIAS + 0 - beta*0)` ~ 1 and a hatchling's reflexes arrive intact.
+    W_str: jax.Array
     pred_src: jax.Array   # (N,) bool -- which neurons may source a prediction
     b: jax.Array          # (N,) resting bias
     tau: jax.Array        # (N,) membrane time constants, seconds
@@ -412,6 +415,7 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         W_out=w_out,
         W_pred=w_pred,
         W_gate=jnp.zeros_like(w_out),
+        W_str=jnp.zeros_like(w_out),
         pred_src=pred_src,
         b=jnp.full((n,), -2.0),
         tau=tau,
