@@ -905,3 +905,98 @@ def test_every_channel_mode_is_reachable():
     with pytest.raises(ValueError):
         cfg = spec.DEFAULT_COOP._replace(n_hens=4, channel_mode="nonsense")
         sensing.observe(world.reset(jax.random.key(0), cfg), cfg)
+
+
+# --- E105: decorrelating readout, temporal adaptation ---------------------
+#
+# Both mechanisms are off at the shipped defaults, and both guards run at the
+# configuration where the defect they address appears: `hebbian_readout`, the rule
+# whose collapse E100 measured, at 16 hens rather than the suite's usual 4.
+
+
+def test_e105_mechanisms_are_off_by_default():
+    assert PlasticConfig().readout_decorrelate == 0.0
+    assert spec.DEFAULT_COOP.sensory_adapt_tau_s is None
+
+
+def test_decorrelation_makes_the_output_channels_learn_different_directions():
+    """The update must stop being rank one.
+
+    Under the current rule the presynaptic factor is one vector shared by every output
+    row, so all twelve channels move along the same pallial direction every
+    consolidation -- cosine 1.0 between any two rows of `dw_out`. That is the collapse
+    E100 measured, at its source. Deflation must break it without silencing the update,
+    which is the degeneracy the experiment's own falsifier watches for.
+    """
+    n_hens = 16
+    p = connectome.build(jax.random.key(3), regions.DEFAULT_REGIONS, n_hens=n_hens)
+    pc = PlasticConfig(enabled=True, hebbian_readout=True)
+    ps = plasticity.initial_state(p, n_hens, pc)
+    # Traces at plausible non-zero values, so the update is not identically zero, and
+    # a grown readout so the deflation term is not negligible against the presynaptic
+    # vector -- at hatch `readout_scale` is 0.05 and it would barely bite.
+    key = jax.random.key(4)
+    ps = ps._replace(
+        z_slow=jax.random.uniform(jax.random.fold_in(key, 1), ps.z_slow.shape),
+        z_motor=jax.random.uniform(jax.random.fold_in(key, 2), ps.z_motor.shape))
+    p = p._replace(W_out=p.W_out * 20.0)
+    m = jnp.ones((n_hens,))
+
+    def measure(decorrelate):
+        p2 = plasticity.consolidate(p, ps, m, pc._replace(
+            readout_decorrelate=decorrelate, w_max=1e9))
+        dw = p2.W_out - p.W_out
+        u = dw / (jnp.linalg.norm(dw, axis=2, keepdims=True) + 1e-12)
+        c = jnp.abs(jnp.einsum("hmk,hnk->hmn", u, u))
+        off = jnp.broadcast_to(1.0 - jnp.eye(c.shape[-1])[None, :, :], c.shape)
+        return (float(jnp.sum(c * off) / jnp.sum(off)),
+                float(jnp.mean(jnp.linalg.norm(dw, axis=2))))
+
+    align_off, mag_off = measure(0.0)
+    align_on, mag_on = measure(1.0)
+    assert align_off > 0.99, (
+        f"the current rule should give a rank-one update -- rows aligned at "
+        f"{align_off:.4f}. If this is already low the test proves nothing.")
+    # 0.9997 -> ~0.91 measured: the residual left to each channel differs by two
+    # orders of magnitude more than the rule's own numerical noise. A single
+    # consolidation cannot make twelve rows orthogonal; what matters is that they stop
+    # being the same vector, so the accumulation over a rearing can span more than one
+    # direction.
+    assert align_on < 0.96, (
+        f"deflation left the output rows aligned at {align_on:.4f}; the update is "
+        "still effectively rank one and the mechanism is inert")
+    assert mag_on > 0.2 * mag_off, (
+        f"deflation cut the update magnitude to {mag_on:.3e} from {mag_off:.3e}; "
+        "forcing the channels apart by silencing them is not the mechanism")
+
+
+def test_temporal_adaptation_passes_change_not_level():
+    """A relay unit held at a constant input must fall silent; a step must show.
+
+    This is the property the mechanism exists for. Run directly on `brain.step` with
+    a held-constant observation, so nothing about the world's own dynamics can supply
+    the decay.
+    """
+    n_hens, tau, dt = 4, 2.0, spec.DEFAULT_COOP.dt
+    p = connectome.build(jax.random.key(5), regions.DEFAULT_REGIONS, n_hens=n_hens)
+    obs = jnp.full((n_hens, spec.OBS_DIM), 0.6)
+    pool = p.lateral_pool > 0
+    adapt = jnp.zeros((n_hens, p.b.shape[0]))
+    x = brain.initial_state(p, n_hens)
+    first = None
+    for i in range(int(20 * tau / dt)):
+        x, _motor, d = brain.step(x, obs, p, dt, adapt_bar=adapt)
+        adapt = adapt + (dt / tau) * (d.current - adapt)
+        driven = float(jnp.mean(jnp.abs((d.current - adapt)[:, pool])))
+        if i == 0:
+            first = driven
+    assert first > 1e-3, "the constant input must actually drive the relay at first"
+    assert driven < 0.05 * first, (
+        f"after 20 time constants of an unchanging input the relay still passes "
+        f"{driven:.5f} against an initial {first:.5f}; it is passing level, not change")
+    # And a change must still get through.
+    x, _motor, d = brain.step(x, obs * 0.0, p, dt, adapt_bar=adapt)
+    stepped = float(jnp.mean(jnp.abs((d.current - adapt)[:, pool])))
+    assert stepped > 0.5 * first, (
+        f"a step change passed only {stepped:.5f} against {first:.5f} at rest; "
+        "adaptation has suppressed the signal along with the baseline")

@@ -252,6 +252,25 @@ class PlasticConfig(NamedTuple):
     # opt in alongside `hebbian_readout` to actually test H2f's falsifier cleanly.
     readout_scaling_strength: float = 0.0
 
+    # Anti-Hebbian decorrelation among the readout's output channels (E105). 0.0 is the
+    # pre-E105 rule. The defect it addresses: a Hebbian outer-product rule accumulates
+    # toward `E[dz_motor (x) dz_slow]`, a cross-covariance, and a covariance dominated
+    # by its leading direction gives `cortical = sum_i sigma_i u_i (v_i . x)`. Every
+    # output channel then reads the same pallial direction and the cortical drive has a
+    # fixed *shape* whose *magnitude* alone varies with state -- E100's direction
+    # stability 0.9587, and measured directly as `W_out`'s effective rank falling from
+    # 3.45 untrained to 2.07 reared under `hebbian_readout`.
+    #
+    # The fix is the standard one for a Hebbian population collapsing onto its leading
+    # component, and the same mechanism family as E102's striatal competition and
+    # E104's sensory pooling: each output channel learns on what its predecessors have
+    # left unexplained, so they cannot all converge on one direction. See `consolidate`
+    # for why the more obvious version -- projecting each row off the others -- cannot
+    # work here, and for the one place this departs from the textbook rule. 1.0 is full
+    # deflation. Applied to the update rather than to `W_out`, so it constrains what is
+    # learned and never rewrites what was inherited.
+    readout_decorrelate: float = 0.0
+
     # Structural growth
     growth_enabled: bool = True
     growth_interval: int = 10_000   # steps (100 s of chicken time)
@@ -299,6 +318,14 @@ class PlasticState(NamedTuple):
     innate_row_sum: jax.Array   # (H, N) reference total input weight per neuron
     innate_row_sum_out: jax.Array  # (H, MOTOR_DIM) same, for W_out (E055 follow-up)
     budget: jax.Array      # scalar, maximum live synapses per hen
+    # Per-unit adaptive baseline at the sensory relay (E105), an EMA of each unit's own
+    # afferent current at `cfg.sensory_adapt_tau_s`. Lives here rather than in the scan
+    # carry because the carry shape is shared by every rollout, assay and recording in
+    # the project. It is STATE, not learning, in exactly the sense E098 established for
+    # `z_lag`: it must keep tracking whenever anything reads it, including under
+    # `enabled=False`, which is how every assay runs. Allocated unconditionally and left
+    # at zero when adaptation is off, so the pytree structure never depends on a flag.
+    adapt_bar: jax.Array   # (H, N)
 
 
 def initial_state(p: BrainParams, n_hens: int, pc: PlasticConfig) -> PlasticState:
@@ -321,6 +348,7 @@ def initial_state(p: BrainParams, n_hens: int, pc: PlasticConfig) -> PlasticStat
         innate_row_sum=row_sum,
         innate_row_sum_out=row_sum_out,
         budget=jnp.sum(p.mask) * pc.synapse_budget,
+        adapt_bar=jnp.zeros((n_hens, n)),
     )
 
 
@@ -519,8 +547,34 @@ def consolidate(p: BrainParams, ps: PlasticState, m: jax.Array,
     # pairs; what changes is that helpfulness no longer gates it either way.
     n_motor = p.W_out.shape[-1]
     m_out = jnp.ones_like(m) if pc.hebbian_readout else m
-    dw_out = (eta_out * m_out[:, None, None]
-              * dz_motor[:, :, None] * dz_slow[:, None, -n_motor:])
+    # E105: decorrelate the output channels by deflation.
+    #
+    # The presynaptic factor is the SAME vector for every output row, so `dw_out` is
+    # rank one by construction -- each consolidation moves all twelve channels along
+    # one pallial direction, and if that direction recurs (it does; E103 measured the
+    # relay passing a 97.8% constant) they accumulate on top of each other. That is
+    # the collapse, and it is why the obvious fix does not work: projecting each row's
+    # update off the other rows' directions cannot separate rows that are all parallel
+    # to begin with. Measured, it over-subtracts and makes the shared component 4.7x
+    # WORSE -- caught by this file's guard test before the experiment ran.
+    #
+    # What does work is Sanger's generalized Hebbian algorithm: channel m learns on
+    # what is left of the presynaptic vector after channels 0..m have accounted for it.
+    # The first channel is unconstrained, the second sees only the residual, and so on,
+    # so the population is forced to span several directions instead of piling onto
+    # one. Its fixed point has orthogonal rows.
+    #
+    # One honest departure from the textbook rule: `dz_motor` traces the motor OUTPUT,
+    # which includes the reflex arc, rather than the readout's own projection `W_out .
+    # x`. So the deflation subtracts a reconstruction the readout is only partly
+    # responsible for. It is the quantity this rule already uses as its postsynaptic
+    # factor, and inventing a second one would change two things at once.
+    presyn = dz_slow[:, None, -n_motor:]
+    if pc.readout_decorrelate > 0.0:
+        recon = jnp.cumsum(dz_motor[:, :, None] * p.W_out, axis=1)
+        presyn = presyn - pc.readout_decorrelate * recon
+    dw_out = eta_out * m_out[:, None, None] * dz_motor[:, :, None] * presyn
+
     # Readout scaling (E055 follow-up), the same correction `W` gets above, applied
     # to `W_out`. Off by default: only relevant once something removes the reward
     # gate's incidental stabilising effect, and changing this pathway's dynamics for

@@ -108,6 +108,51 @@ and temporal halves are tested together as the complete mechanism.
 Measured: effective rank and top-1 share of `W_out`; cortical direction stability; mean
 |cortical|; stub stability and DC share; the full ethogram at the best arm.
 
+### 5a. Implementation note — written after §5, before any measurement
+
+The rule described above is **not what shipped**, and the reason is worth recording
+because a guard test caught it rather than a result.
+
+§5 says "subtract from each output row the component it shares with the others". I built
+exactly that, and the guard test measured the shared component getting **4.7× worse**.
+The cause is structural and I had missed it: the presynaptic factor is *one vector shared
+by every output row*, so `dw_out = dz_motor ⊗ dz_slow` is **rank one by construction**.
+Every channel already moves along the same pallial direction on every consolidation.
+Projecting each row off the others cannot separate rows that are all parallel — it
+over-subtracts, because the directions being projected out are themselves nearly
+collinear.
+
+This is a sharper statement of the diagnosis than §2 had. The collapse is not something
+the rule *drifts into*; each individual update is rank one, and the only thing that ever
+made `W_out` full-rank was the *variety* of `dz_slow` directions across consolidations.
+E103 measured that variety being destroyed at the relay, one synapse in, at hatch.
+
+What shipped is **Sanger's generalized Hebbian algorithm**: channel *m* learns on what
+is left of the presynaptic vector after channels 0…*m* have accounted for it.
+
+```python
+presyn = dz_slow[:, None, -n_motor:]
+if pc.readout_decorrelate > 0.0:
+    recon = jnp.cumsum(dz_motor[:, :, None] * p.W_out, axis=1)
+    presyn = presyn - pc.readout_decorrelate * recon
+dw_out = eta_out * m_out[:, None, None] * dz_motor[:, :, None] * presyn
+```
+
+The first channel is unconstrained, the second sees only the residual, and so on; its
+fixed point has orthogonal rows. Measured on one consolidation with a grown readout, row
+alignment goes **0.9997 → 0.911**, and the update magnitude *rises* rather than falls, so
+the degeneracy falsifier is not being satisfied by silencing anything.
+
+**One honest departure from the textbook rule.** GHA assumes the output is the readout's
+own projection `W_out · x`. Here `dz_motor` traces the motor output, which includes the
+reflex arc, so the deflation subtracts a reconstruction the readout is only partly
+responsible for. It is the quantity this rule already uses as its postsynaptic factor,
+and inventing a second one would change two things at once. If the arm produces
+something, this is the first thing to vary.
+
+**Nothing in §§1–4 changes.** The predictions and all four falsifiers were written
+against "a decorrelating rule" and stand as written.
+
 ### Cost
 
 ~30 minutes.

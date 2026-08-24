@@ -324,6 +324,16 @@ class CoopConfig(NamedTuple):
     # entirely, so the relay passes contrast. Applied in `brain.py` at the afferent
     # projection; the reflex arc reads `obs` directly and is structurally unaffected.
     sensory_lateral: float = 0.0
+    # Time constant of each relay unit's adaptive baseline (E105), in seconds. `None`
+    # disables it. This is the temporal half of the fix E104 built the spatial half of:
+    # `sensory_lateral` subtracts the component common to units *at one instant*, this
+    # subtracts each unit's own running mean *over time*, so the relay passes change
+    # rather than level. E104 6b measured why one is not enough -- the sensory stub's
+    # resting bias is -2.000 on every unit and the rate nonlinearity sits on top, so
+    # the rate re-introduces a DC term the current had already lost (current DC 75.3%
+    # against rate DC 87.6% at full lateral). Applied to the same `lateral_pool` units,
+    # for the same reason: adaptation is a property of the relay, not of the whole brain.
+    sensory_adapt_tau_s: float | None = None
     food_regrow_s: float = 300.0        # seconds for an empty patch to refill
     huddle_warm_rate: float = 4.0e-4  # per second, per flockmate within huddle_radius
     huddle_max: int = 3               # a hen needs 2-3 close neighbours to stay warm

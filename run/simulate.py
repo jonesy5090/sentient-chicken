@@ -90,10 +90,12 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
     pred_from = None
     if pc.pred_enabled:
         pred_from = ps.z_lag - ps.z_lag_bar if pc.pred_centred else ps.z_lag
+    adapt_bar = ps.adapt_bar if cfg.sensory_adapt_tau_s is not None else None
     x, motor, drives = brain.step(x, obs, p, cfg.dt, k_explore, sigma,
                                   pc.pred_gain, pred_from,
                                   pc.pred_signed, pc.reflex_gate,
-                                  pc.bg_gate, pc.bg_lateral, cfg.sensory_lateral)
+                                  pc.bg_gate, pc.bg_lateral, cfg.sensory_lateral,
+                                  adapt_bar)
     w_next = world.step(w, motor, k_world, cfg)
 
     # Pathway magnitudes, carried out of the loop so a run can report whether the
@@ -115,6 +117,16 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
     # change, and an assay must not do any. Gated on `pred_enabled` so that nothing
     # without a prediction pathway pays for this or changes behaviour -- see E098's
     # inertness falsifier, which asserts bit-identity for exactly that case.
+    # The relay's adaptive baseline (E105) is state on the same footing as `z_lag`: it
+    # is read by the forward pass, so it has to keep tracking in every condition,
+    # including the `enabled=False` one every assay uses. Tracks the RAW current, so
+    # `current - adapt_bar` is a high-pass filter on each unit rather than a feedback
+    # loop chasing its own output.
+    if cfg.sensory_adapt_tau_s is not None:
+        a_a = cfg.dt / cfg.sensory_adapt_tau_s
+        ps = ps._replace(
+            adapt_bar=ps.adapt_bar + a_a * (drives.current - ps.adapt_bar))
+
     if pc.pred_enabled:
         pred_err = sensing.observability(w, cfg) * (obs - drives.predicted)
         ps = plasticity.update_traces(
