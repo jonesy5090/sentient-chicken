@@ -871,7 +871,17 @@ new home.
 
 ## 8. Open items from experiments
 
-- **E109 — decode `dz_motor`, the one factor in the rule never measured.**
+- **E110 — a postsynaptic factor with a direction of its own.**
+  [E109](experiments/E109-what-the-rule-writes.md) measured `dz_motor` at cosine 0.98 to
+  the reflex arc's own deviation (0.99 where the update lands), so the readout can only
+  ever add more of what the arc already does. The direct consequence is a rule whose
+  postsynaptic factor is *not* the motor output — credit the cortical contribution alone,
+  or the exploration noise alone, so the update has a direction the arc does not dictate.
+  **But this is the fifth mechanism proposed against this null and the previous four were
+  each proposed with the same confidence.** Pre-register it with a falsifier that can end
+  the line rather than extend it, and note that E109 established a sufficient obstacle,
+  not a proven cause.
+- ~~**E109 — decode `dz_motor`, the one factor in the rule never measured.**~~ **Done.**
   [E108](experiments/E108-what-the-rule-reads.md) closed the third upstream explanation
   for H2's null: the rule can see its own teaching event (`m` at AUC 0.955) and the state
   that caused it (`dz_slow` at 0.731). Both factors are present at consolidation time, so

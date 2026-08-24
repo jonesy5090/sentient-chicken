@@ -125,12 +125,133 @@ rule; reared 30 min under **`hebbian_readout`**.
 
 ## 6. Result
 
-*To be filled after the run.*
+### 6a. The instrument, checked first
+
+**The reconstruction falsifier fired on the first run** — `max |offline − live| = 9.1e-01`
+against a bar of 1e-4 — and no cosine was read until it was fixed. Two causes, both mine:
+
+- A reared arm's live traces have been running for 30 minutes, and I started the offline
+  reconstruction at zero. Counterfactuals now start from the live `PlasticState`.
+- `update_traces` builds its whole return value from the **old** state, so `z_motor_bar`
+  advances toward the *previous* `z_motor`, not the one computed in the same call. I had
+  used the new one.
+
+After both: **`max |offline − live| = 1.79e-07`** in every arm and both seed blocks. The
+reconstruction is the rule's, so the counterfactuals built on it mean something.
+
+`|cortical| / |reflex|` is 0.11 (instrumental) and 0.85 (hebbian), both far above the 0.01
+below which the probe would be void.
+
+### 6b. The headline — the primary falsifier does not fire
+
+Cosine between `dz_motor` — the entire direction of the readout's update — and the
+deviation of a reflex-only counterfactual. 4 seeds per block, 600 consolidation windows.
+
+| arm | seeds 0–3 | **seeds 4–7** | feeding windows only (0–3 / 4–7) |
+|---|---|---|---|
+| untrained | 0.9814 | 0.9799 | 0.9916 / 0.9910 |
+| **instrumental (default)** | **0.9822** | **0.9826** | **0.9916 / 0.9896** |
+| `hebbian_readout` | 0.8507 | 0.8809 | 0.9388 / 0.9388 |
+
+Cosine to the *cortical*-only counterfactual, by contrast: **0.0021, −0.0772, −0.0025,
+−0.0971** — zero, in every instrumental and untrained arm.
+
+| arm | reflex share of drive variance | cortical | noise share of motor |
+|---|---|---|---|
+| untrained | 100.8% | 0.4% | 4.9% |
+| instrumental | 100.3% / 100.5% | 0.7% / 0.6% | 2.0% |
+| hebbian | 83.6% / 90.2% | 14.8% / 7.6% | 3.1% / 3.6% |
+
+**Prediction 1 holds, strongly.** 0.98 against a threshold of 0.8, replicating to within
+0.0004 across disjoint seed blocks.
+
+**Prediction 2 holds.** Reflex share above 80%, cortical below 20%. The share exceeding
+100% is not an error: reflex and cortical are *negatively* correlated, so `var(reflex)`
+slightly exceeds `var(reflex + cortical)` — the learned pathway is partially cancelling
+the arc's variation rather than adding to it.
+
+**Prediction 3 is half wrong, and the half that fails matters.** I predicted `hebbian`
+would show *low* alignment, and said that if so the two rules "fail for different reasons
+and the tree should stop treating them as variants of one thing". Alignment under hebbian
+is **0.85**, and **0.94 in the windows where the update actually lands**. The two rules
+differ in degree, not in kind. They fail the same way.
+
+**Prediction 4 holds.** Noise is 2–5% of the motor output's variance — real, and a small
+minority. The triviality falsifier does not fire.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**The only direction the readout can be pushed is, to within 2%, the reflex arc's own.**
+
+`Δcortical = m · (dz_slow · stub) · dz_motor`. Every term but `dz_motor` is a scalar, so
+`dz_motor` *is* the update's direction in motor space — and it points at what the arc is
+already doing, at cosine 0.98, rising to **0.99 in exactly the windows where the reward
+fires and the update lands**.
+
+So the rule writes "more of what she was already doing at a food patch". At a patch the
+arc already pecks. Reinforcing "peck harder here" changes the *magnitude* of a tendency
+that is already correct, and can never substitute a different action for it. The learned
+pathway can rescale the innate policy. It cannot redirect it.
+
+**This is the first measured mechanism for a claim the tree has held since E007.** H2b
+says the learned pathway "cannot *initiate*, only modulate", and it has rested on
+behavioural nulls and an arithmetic argument about reflex weights. It now has a direct
+measurement of *why*, in the rule's own terms, that replicates across seed blocks.
+
+**It also explains why the two things that ever changed behaviour were both
+multiplicative.** E101's descending gate and E102's basal-ganglia gate both altered
+behaviour — degenerately, but really — and both act by *multiplying* the arc rather than
+adding to it. A multiplicative gate is the one intervention in this project that is not
+constrained to `dz_motor`'s direction, which is exactly why it could do something the
+additive readout could not. That was noticed at the time as a design intuition; it is now
+a consequence of a measurement.
+
+**And it explains `hebbian_readout`'s characteristic failure.** E055 recorded "every
+calling channel elevated regardless of condition — a broken readout, not a targeted
+policy". At cortical share 15% and cosine 0.85, that rule is still mostly amplifying the
+arc, just with enough of its own contribution to blow the magnitude out.
+
+**What this does not establish.** That amplifying the arc can never change behaviour.
+Rescaling a tendency does change what a hen does — E101 proved that much. The claim is
+narrower and specific: the *direction* of change is fixed to the arc, so no amount of
+learning on this rule can make her do something the arc was not already doing more of.
+For a hypothesis tree whose upper branches need "crouch **when you hear an alarm**" and
+"call **when an audience is present**" — new pairings, not louder old ones — that is a
+sufficient obstacle.
+
+**Where this leaves the count.** Four explanations have now been offered for H2's null.
+Three were upstream and all three are dead. This one is downstream, it survived its
+falsifier, and it replicates. It is the first candidate in this arc that is still
+standing at the end of the experiment that tested it.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**No code changes.** Read-only probe, no flag, no mechanism, no default.
+
+**`docs/hypothesis.md`.** H2b gains its first measured mechanism, cited to this
+experiment, replacing an inference from reflex-weight arithmetic. H2's node records that
+the standing explanation for its null is now downstream and specific: the update's
+direction is the arc's.
+
+**What follows from it, and what does not.** The obvious next move is a rule whose
+postsynaptic factor is *not* the motor output — credit the cortical contribution alone,
+or the exploration noise alone, so the update has a direction of its own. That is a real
+experiment with a clear prediction. But it is also the fifth mechanism proposed against
+this null, and the previous four were each proposed with the same confidence, so it should
+be pre-registered with a falsifier that can end the line rather than extend it.
+
+**Not adopted.** Any claim that this *is* the cause of H2's null. It is a sufficient
+obstacle and a measured one; whether removing it produces learning is untested, and this
+project has four consecutive demonstrations of what happens when that step is skipped.
+
+### Follow-ups
+
+1. **E110 — a postsynaptic factor with its own direction.** Trace the cortical drive, or
+   the exploration noise, instead of the motor output. The direct consequence.
+2. **The trained-flock mute** (backlog §5, open since E032) remains untouched and is now
+   by a wide margin the oldest open item.
+3. **E101/E102's permuted-gate control**, outstanding from
+   [E107](E107-red-team-review-2026-08-24.md). E109 sharpens why it matters: if a
+   multiplicative gate is the only thing in this project that can redirect behaviour, the
+   claim that E101's gate learned a *selective policy* rather than a blunt one is load
+   bearing.
