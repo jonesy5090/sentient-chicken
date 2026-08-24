@@ -50,7 +50,7 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
          pred_from: jax.Array = None, pred_signed: bool = False,
          reflex_gate: bool = False, bg_gate: bool = False,
          bg_lateral: float = 1.0, sensory_lateral: float = 0.0,
-         adapt_bar: jax.Array = None):
+         adapt_bar: jax.Array = None, recurrent_lateral: float = 0.0):
     """Returns (x_next, motor, drives); motor in [0, 1], shape (H, MOTOR_DIM).
 
     `sigma` adds Gaussian noise to the motor drive before the output nonlinearity.
@@ -95,11 +95,28 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
         pooled = (jnp.sum(current * pool, axis=-1, keepdims=True)
                   / (jnp.sum(pool) + 1e-9))
         current = current - sensory_lateral * pooled * pool
-    x, _ = neurons.ctrnn_step(x, p.W, current, p.b, p.tau, dt)
+    # E106: pooled inhibitory interneurons in the recurrent regions -- pallium and motor
+    # stub, the two stages E105 found unaddressed. `sensory_lateral` above acts on the
+    # afferent *current*, one stage earlier; this acts on the *rate*, which is where the
+    # common mode survives. E104 6b measured why that distinction matters: subtracting
+    # the mean current left the rate's DC share HIGHER than the current's (87.6% against
+    # 75.3%), because every unit rests at the same bias and so sits at the same point on
+    # the same sigmoid.
+    #
+    # Applied once, here, so that everything the population projects to sees the same
+    # thing -- the recurrent weights, `W_out`, `W_pred` and `W_str`. An interneuron sits
+    # between a population and everything downstream, not between it and a chosen one.
+    r_proj = None
+    if recurrent_lateral:
+        r_proj = neurons.pooled(neurons.rate(x), p.region_pools, recurrent_lateral)
+    x, _ = neurons.ctrnn_step(x, p.W, current, p.b, p.tau, dt, r_proj)
 
     # The motor stub is the last region, so its width is fixed by the readout shape.
     n_motor = p.W_out.shape[-1]
-    motor_stub = neurons.rate(x)[:, -n_motor:]
+    rates = neurons.rate(x)
+    if recurrent_lateral:
+        rates = neurons.pooled(rates, p.region_pools, recurrent_lateral)
+    motor_stub = rates[:, -n_motor:]
     cortical = jnp.einsum("hmn,hn->hm", p.W_out, motor_stub)
 
     # Top-down association. The pallium writes onto the observation the *reflex arc*
@@ -116,7 +133,7 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
     # current observation, so during a hawk event it learned to predict the hawk from
     # the hawk. A lag makes it map what the brain was doing *before* to what is
     # observed *now*, which is the cue-to-outcome direction association needs.
-    src = neurons.rate(x) if pred_from is None else pred_from
+    src = rates if pred_from is None else pred_from
     predicted = jnp.einsum("hon,hn->ho", p.W_pred, src * p.pred_src[None, :])
     # `pred_signed` (E101-A) removes the relu, so a negative prediction MASKS a real
     # percept rather than being discarded. The clip still holds both ends: she cannot

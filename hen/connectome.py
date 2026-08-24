@@ -41,12 +41,39 @@ class BrainParams(NamedTuple):
     # inhibitory interneuron averages over *these* units -- a real interneuron pools the
     # relay it sits in, not the whole brain, most of which gets no afferents at all.
     lateral_pool: jax.Array
+    # (2, N) float masks, one row per pooled inhibitory interneuron in the recurrent
+    # regions -- pallium and motor stub (E106). Separate from `lateral_pool` above,
+    # which is the E104 interneuron at the *afferent* relay and pools a different set
+    # of units at a different stage.
+    region_pools: jax.Array
     pred_src: jax.Array   # (N,) bool -- which neurons may source a prediction
     b: jax.Array          # (N,) resting bias
     tau: jax.Array        # (N,) membrane time constants, seconds
     reflex: jax.Array     # (MOTOR_DIM, OBS_DIM) innate arc, fixed
     b_motor: jax.Array    # (MOTOR_DIM,)
     dale: jax.Array       # (N,) +1 excitatory / -1 inhibitory
+
+
+def _region_pools(reg: Regions, n: int) -> jax.Array:
+    """The recurrent regions each get their own pooled inhibitory interneuron (E106).
+
+    Pallium and motor stub. These are the two stages E105 found unaddressed: direction
+    stability 0.9934 and 0.9930 at hatch, with the situation-specific signal intact
+    underneath (0.7164 and 0.7443 once the population mean is removed) and no mechanism
+    anywhere in the model to remove it.
+
+    One pool per region rather than one across both, because an interneuron pools the
+    population it sits in -- the same reasoning `_lateral_pool` gives for excluding the
+    hypothalamus. The hypothalamus is excluded here for a second reason as well: its
+    units carry interoceptive drives, where the absolute level *is* the message. A hen
+    who could only perceive that she is hungrier than usual, and never that she is
+    hungry, would be worse off, not better.
+    """
+    pools = np.zeros((2, n), dtype=np.float32)
+    for row, r_id in enumerate((regions.PALLIUM, regions.MOTOR)):
+        lo, hi = reg.bounds(r_id)
+        pools[row, lo:hi] = 1.0
+    return jnp.asarray(pools)
 
 
 def _lateral_pool(reg: Regions, n: int, place_to_hippocampus: bool) -> jax.Array:
@@ -441,6 +468,7 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         W_gate=jnp.zeros_like(w_out),
         W_str=jnp.zeros_like(w_out),
         lateral_pool=_lateral_pool(reg, n, place_to_hippocampus),
+        region_pools=_region_pools(reg, n),
         pred_src=pred_src,
         b=jnp.full((n,), -2.0),
         tau=tau,

@@ -871,8 +871,19 @@ new home.
 
 ## 8. Open items from experiments
 
+- **E107 — re-calibrate the readout under the interneuron. The one thing that should
+  happen next.** [E106](experiments/E106-recurrent-inhibition.md) fixed the
+  representation and left the learned pathway two orders of magnitude quieter
+  (|cortical| 1.606 → 0.020): the common mode *was* the magnitude. `eta_out`,
+  `readout_scale` and `readout_scaling_strength` were every one of them calibrated
+  against the old regime, where the presynaptic signal was ~100× larger. This is a
+  single-variable experiment with a clear falsifier, and it is the first time in this
+  project that the learned pathway has had anything worth amplifying. Arm E of E106
+  (`recurrent_lateral` + `sensory_lateral`, cortical stability 0.5735) is where to re-run
+  it if it works.
 - **THE critical path, restated and now quantified end-to-end
-  ([E105](experiments/E105-decorrelating-readout.md)).** The item below names pallial
+  ([E105](experiments/E105-decorrelating-readout.md)), and now partly resolved by
+  [E106](experiments/E106-recurrent-inhibition.md).** The item below names pallial
   separability as the blocker for three hypotheses. E105 measured the same defect at the
   *output* stage and it is terminal: the motor stub, the only thing the learned readout
   reads, is **99.98% a constant vector at hatch** (deviation 7.18% of its own mean), and
@@ -886,6 +897,9 @@ new home.
   recurrent stages, and the question it raises — whether a strictly-positive rate code
   with excitatory-dominant recurrence can hold a varying representation at all — is
   architectural, not experimental. It belongs in a design decision, not an E106.
+  **Answered by E106**: it can. A pooled interneuron in the two unaddressed stages takes
+  the pallium to 0.7105 and the motor stub to 0.7400, replicating to within 0.005 on
+  fresh seeds. The remaining half of the problem is magnitude, not representation.
 - ~~E071 interaction check: is downstream `z_lag` centring redundant once the source is
   fixed?~~ **Closed unrun (E105 §8).** The source is fixed at one of three stages;
   asking whether a downstream patch for the same defect is redundant cannot be
