@@ -197,6 +197,25 @@ class PlasticConfig(NamedTuple):
     # gate reaches sigmoid(4.0 - 8.0) = 0.018: near-total suppression is reachable but
     # requires the rule to drive there deliberately.
     gate_max: float = 8.0
+    # E102. Replace E101-B's independent per-channel gates with a basal-ganglia-style
+    # competitive one: `gate = sigmoid(BIAS + s - bg_lateral * mean(s))`, where `s` is a
+    # striatal drive read from the motor stub.
+    #
+    # The point is the subtraction. Uniform changes cancel -- if learning drives every
+    # channel's `s` down together, `s - mean(s)` stays zero and the gate does not move.
+    # **Global suppression is architecturally unavailable; only redistribution is.**
+    #
+    # E101-B, a free gate, learned to close 11 of 12 channels (turning to 0.099, pecking
+    # to 0.116) and got its predation benefit from a mundane route: `mobility = 1 - crouch`,
+    # so a crouching hen cannot move and stays in the strike radius. A largely inert hen
+    # drifts out. That is what a gate with no competition converges on, and it is the
+    # third appearance of the degeneracy E100 found in `W_out`.
+    #
+    # Real basal ganglia hold motor programs under tonic inhibition and *selectively
+    # release* them, with lateral competition in striatum making release focused. Birds
+    # have a well-developed medial striatum and pallidum; this model had neither.
+    bg_gate: bool = False
+    bg_lateral: float = 1.0
 
     # Restores E067's pre-fix behaviour: `m` read as a single-step snapshot at the
     # consolidation boundary rather than averaged over the window since the last one.
@@ -543,12 +562,20 @@ def consolidate(p: BrainParams, ps: PlasticState, m: jax.Array,
     # motor stub's slow trace) -- so if the gate stays open it is because nothing taught
     # it to close, not because it was denied the signal `W_out` gets.
     w_gate = p.W_gate
-    if pc.reflex_gate:
+    if pc.reflex_gate and not pc.bg_gate:
         d_gate = (eta_out * m_out[:, None, None]
                   * dz_motor[:, :, None] * dz_slow[:, None, -n_motor:])
         w_gate = jnp.clip(p.W_gate - d_gate, -pc.gate_max, pc.gate_max)
 
-    return p._replace(W=w, W_out=w_out, W_pred=w_pred, W_gate=w_gate)
+    # E102's striatum learns on exactly the same rule and schedule the free gate used, so
+    # a null cannot be blamed on a withheld signal -- only on the competition.
+    w_str = p.W_str
+    if pc.bg_gate:
+        d_str = (eta_out * m_out[:, None, None]
+                 * dz_motor[:, :, None] * dz_slow[:, None, -n_motor:])
+        w_str = jnp.clip(p.W_str - d_str, -pc.gate_max, pc.gate_max)
+
+    return p._replace(W=w, W_out=w_out, W_pred=w_pred, W_gate=w_gate, W_str=w_str)
 
 
 def eta_pred_of(ps: PlasticState, pc: PlasticConfig):

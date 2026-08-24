@@ -115,12 +115,105 @@ a separate question; E102 changes one thing.
 
 ## 6. Result
 
-*To be filled after the run.*
+### 6a. The learned solution is selective, interpretable, and replicates almost exactly
+
+Gate value per motor channel after 30 min, two disjoint seed blocks:
+
+| channel | block 0–7 | block 8–15 | E101's free gate |
+|---|---|---|---|
+| **TURN_R** | **0.2482** | **0.2441** | 0.0992 |
+| **TURN_L** | **0.2833** | **0.3070** | 0.1351 |
+| **PECK** | **0.3390** | **0.3094** | 0.1163 |
+| FORWARD | 0.9213 | 0.9288 | 0.5314 |
+| SCRATCH | 0.9238 | 0.9217 | 0.6384 |
+| CROUCH | **0.9830** | **0.9882** | 0.4756 |
+| CALL_AERIAL | 0.9855 | 0.9904 | 0.4672 |
+| FLEE | 0.9934 | 0.9887 | 0.6716 |
+| channels closed | **3 of 12** | **3 of 12** | 11 of 12 |
+| spread | 0.7506 | 0.7543 | — |
+
+**Three channels closed against E101's eleven, and the same three both times.** What it
+closed is coherent: **pecking and turning are the behaviours that put her head down**, and
+`sensing.py` zeroes the aerial channel while `head_down` is high. It spared **crouch, flee,
+and every call** — the entire anti-predator repertoire.
+
+**The hen learned to suppress the behaviours that blind her, and to keep the ones that save
+her.** That is the vigilance/foraging trade-off — the asymmetry this whole project is built
+on — arrived at by learning rather than by wiring.
+
+Hunger cost shrank as predicted: E101's 0.596 → **0.529 / 0.536**.
+
+### 6b. The behavioural benefit is directionally consistent and fails its pre-registered bar
+
+| contrast (df=7, crit 2.365) | block 0–7 | block 8–15 |
+|---|---|---|
+| **BG gate, reared brain** | **−0.0758, t=−2.68 ✓** | **−0.0567, t=−1.96 ✗** |
+| BG gate, untrained brain | −0.0048, t=−0.13 ns | +0.0049, t=+0.28 ns |
+| reared+BG vs untrained baseline | −0.0448, t=−1.42 ns | −0.0388, t=−3.54 ✓ |
+
+**The primary falsifier FIRES.** §4 required significance on *both* blocks and the second
+gives t=−1.96. The effect sizes are close (−0.076, −0.057) and both negative, and the
+untrained control is null in both — but consistency of sign is not what I pre-registered,
+and E021 is this project's standing warning about exactly this.
+
+*A pooled estimate across 16 seeds would be roughly −0.066, t≈3.3. **Pooling was not
+pre-registered here** — E030's was, deliberately and in advance — so that figure is recorded
+as a post-hoc estimate and is not the basis of any claim.*
+
+### 6c. Selective, but still not conditional
+
+Gate state-dependence: **0.9927 / 0.9929** — essentially a fixed vector, unchanged from
+E100's collapse. She learned *"always suppress these three"*, not *"suppress them when a
+hawk is near"*.
+
+### 6d. A falsifier of mine fired for a bad reason
+
+§4 required mean gate to stay within 0.05 of its hatch value of 0.982; it is 0.805. **The
+mechanism is not at fault.** The competition constrains mean *striatal drive* — a uniform
+shift cancels in `s − mean(s)`, verified directly. It does not constrain mean *sigmoid of*
+striatal drive, and sigmoid is nonlinear, so closing three channels hard while nine sit near
+1.0 moves the mean with no uniform shift at all. The test asserted a property the mechanism
+never had. Recorded rather than quietly dropped: this is the fifth mis-specified falsifier
+in this arc.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**Selective release does what a free gate could not, and the difference is exactly the one
+the basal ganglia exist to make.** E101's free gate closed nearly everything and won by
+making the hen too inert to linger in the strike radius — a degenerate solution. Forcing the
+gate to *choose* produced a different answer entirely, and a legible one: close the
+head-down behaviours, keep the anti-predator ones.
+
+**That the same three channels emerge on disjoint seeds is the strongest part of this
+result.** It is not an effect size that might be noise; it is a specific, repeatable,
+mechanistically sensible policy, and this project has not previously produced one.
+
+**But the behavioural gain is not established at the bar I set**, and the honest reading is
+that the mechanism replicates while the effect does not — which is an unusual and
+uncomfortable combination. It suggests the policy is real and its survival benefit is
+smaller or noisier than 8 seeds can resolve, which is a statement about statistical power
+rather than about the hen.
+
+**And it is still not conditional.** A selective-but-fixed gate is a better failure than a
+uniform-and-fixed one, but E100's question stands untouched: the learned pathway does not
+vary with situation. The basal ganglia gave selectivity across *actions*; nothing here gave
+selectivity across *contexts*.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**Adopted: `bg_gate`, off by default.** It is the first mechanism in this project to produce
+a learned policy that can be read and makes sense.
+
+**Not adopted: the predation claim.** It fails its own falsifier and is recorded as
+directionally consistent, not established. Anyone wanting it must pre-register pooling or
+run more seeds.
+
+**The tree moves on the mechanism, not the effect.** H2b — "the rule cannot acquire
+behaviours outside the innate repertoire" — needs qualifying: the rule can now acquire a
+*selective suppression policy* over innate behaviours, which is not a new behaviour but is
+more than a rescaling.
+
+**Next, and it is E100's question in its third guise:** the gate is selective across actions
+and fixed across contexts. Making it conditional is the remaining gap, and nothing in the
+last three experiments has touched why the learned pathway stops varying with situation.
+That is where the next work belongs — not in another architectural addition.
