@@ -1000,3 +1000,61 @@ def test_temporal_adaptation_passes_change_not_level():
     assert stepped > 0.5 * first, (
         f"a step change passed only {stepped:.5f} against {first:.5f} at rest; "
         "adaptation has suppressed the signal along with the baseline")
+
+
+# --- E106: pooled interneurons in the recurrent regions -------------------
+
+
+def test_recurrent_lateral_is_off_by_default():
+    assert spec.DEFAULT_COOP.recurrent_lateral == 0.0
+
+
+def test_the_interneuron_pools_its_own_region_and_no_other():
+    """Pallium and motor stub each lose their own mean; nothing else is touched.
+
+    The guard exists because `_lateral_pool` got exactly this wrong in E104 and was
+    caught before running: it swept in the hypothalamus's interoceptive units, so
+    hunger would have been subtracted from visual contrast. Here the hypothalamus is
+    excluded for a second reason -- an absolute drive level *is* the message, and a hen
+    who could only perceive being hungrier than usual would be worse off.
+    """
+    from hen import neurons
+    n_hens = 4
+    p = connectome.build(jax.random.key(7), regions.DEFAULT_REGIONS, n_hens=n_hens)
+    n = p.b.shape[0]
+    r = jax.random.uniform(jax.random.key(8), (n_hens, n)) + 0.5
+    q = neurons.pooled(r, p.region_pools, 1.0)
+
+    for r_id in (regions.PALLIUM, regions.MOTOR):
+        lo, hi = regions.DEFAULT_REGIONS.bounds(r_id)
+        assert abs(float(jnp.mean(q[:, lo:hi]))) < 1e-5, (
+            f"region {r_id} still carries a common component after pooling")
+        assert float(jnp.std(q[:, lo:hi])) > 0.1, (
+            f"region {r_id} lost its variation along with its mean")
+    for r_id in (regions.SENSORY, regions.HIPPOCAMPUS,
+                 regions.ARCOPALLIUM, regions.HYPOTHALAMUS):
+        lo, hi = regions.DEFAULT_REGIONS.bounds(r_id)
+        assert bool(jnp.allclose(q[:, lo:hi], r[:, lo:hi])), (
+            f"region {r_id} was modified; only the pallium and motor stub have an "
+            "interneuron, and the hypothalamus must keep its absolute drive levels")
+
+
+def test_the_interneuron_does_not_change_any_neurons_own_rate():
+    """It changes what targets receive, not what the neuron does.
+
+    `ctrnn_step` must still return the true rate. If this ever stops holding, every
+    diagnostic in the project that reads `neurons.rate(x)` is silently measuring
+    something else.
+    """
+    from hen import neurons
+    n_hens = 4
+    p = connectome.build(jax.random.key(9), regions.DEFAULT_REGIONS, n_hens=n_hens)
+    x = brain.initial_state(p, n_hens)
+    current = jax.random.uniform(jax.random.key(10), x.shape)
+    r_proj = neurons.pooled(neurons.rate(x), p.region_pools, 1.0)
+    _x1, r1 = neurons.ctrnn_step(x, p.W, current, p.b, p.tau, CFG.dt)
+    _x2, r2 = neurons.ctrnn_step(x, p.W, current, p.b, p.tau, CFG.dt, r_proj)
+    assert bool(jnp.array_equal(r1, r2)), (
+        "the interneuron changed the reported rate; it must only change the projection")
+    assert not bool(jnp.allclose(_x1, _x2)), (
+        "the interneuron changed nothing downstream -- it is inert, not subtractive")

@@ -209,9 +209,19 @@ def main() -> None:
                     help="seconds between hawk dives (default: DEFAULT_COOP's 900s -- "
                          "a several-minute recording will often show none at all; "
                          "try 20-60 for a demo that reliably has predation in it)")
+    ap.add_argument("--recurrent-lateral", type=float, default=0.0,
+                    help="strength of the pooled inhibitory interneurons in the "
+                         "pallium and motor stub (E106). 0.0 is the shipped default; "
+                         "1.0 removes each population's common mode, which is the "
+                         "condition E106's representation result was measured at")
+    ap.add_argument("--sensory-lateral", type=float, default=0.0,
+                    help="strength of the pooled interneuron at the sensory relay "
+                         "(E104). 0.0 is the shipped default")
     args = ap.parse_args()
 
-    cfg = spec.DEFAULT_COOP._replace(n_hens=args.hens)
+    cfg = spec.DEFAULT_COOP._replace(
+        n_hens=args.hens, recurrent_lateral=args.recurrent_lateral,
+        sensory_lateral=args.sensory_lateral)
     if args.t2:
         cfg = cfg._replace(contamination_enabled=True, place_cells_enabled=True)
     if args.hawk_period is not None:

@@ -152,12 +152,152 @@ best arm.
 
 ## 6. Result
 
-*To be filled after the run.*
+### 6a. The arms — the primary falsifier does not fire
+
+4 seeds, 30 min rearing, `hebbian_readout`, `readout_scaling_strength=0.3`.
+`scratchpad/e106_recurrent_inhibition.py`.
+
+| arm | pallium | motor stub | **cortical** | \|cort\| | pallial rate |
+|---|---|---|---|---|---|
+| A baseline | 0.9927 | 0.9925 | **0.9587** | 1.606 | 0.627 |
+| B `balanced_ei` | 0.9889 | 0.9951 | **0.9912** | 0.099 | 0.132 |
+| C interneuron 0.5 | 0.9661 | 0.9744 | **0.9748** | 0.201 | 0.334 |
+| D interneuron 1.0 | 0.7105 | 0.7400 | **0.8428** | 0.020 | 0.242 |
+| E + `sensory_lateral` | 0.6797 | 0.6733 | **0.5735** | 0.007 | 0.169 |
+
+**The mechanism works.** Motor-stub direction stability falls 0.9925 → 0.7400 at full
+strength and 0.6733 with the sensory relay included. And for the first time in this
+project, **cortical direction stability moves**: 0.9587 → 0.8428 → **0.5735**. Six
+previous mechanisms could not shift it off 0.95.
+
+Prediction 1 holds. **Prediction 2 holds**: `balanced_ei` does not move direction
+stability at all (0.9889 / 0.9951) — it removes the common component from the *current*
+and the nonlinearity restores it, exactly as E104 §6b measured at the sensory relay. It
+also quietens the network to a pallial rate of 0.132.
+
+**Prediction 3 is wrong, and interestingly so.** I predicted the running model would land
+*above* the post-hoc ceiling of 0.7443, because the diagnostic de-meaned a trajectory the
+unmodified brain generated. It landed at 0.7400 and, with the sensory relay, well below at
+0.6733. Putting the interneuron in the loop does not merely unmask the variation the old
+dynamics produced — it changes the dynamics, and they produce more.
+
+**The degeneracy falsifier fires, on magnitude.** Mean |cortical| collapses from 1.606 to
+**0.020** at D and 0.007 at E — a 99% drop against a 50% bar. The pallial rate clears its
+own bound (0.242, inside [0.15, 0.95]); `balanced_ei` does not (0.132).
+
+### 6b. Replication on a fresh seed block
+
+E021's rule. Seeds 4–7, against the 0–3 above. `scratchpad/e106c_replicate_and_control.py`.
+
+| arm | pallium | motor stub | cortical | \|cort\| |
+|---|---|---|---|---|
+| baseline | 0.9926 | 0.9929 | 0.9745 | 1.718 |
+| interneuron 1.0 | **0.6981** | **0.7450** | **0.7519** | 0.017 |
+
+Both blocks clear the primary falsifier and both fire the degeneracy one. The motor stub
+lands at 0.7400 and 0.7450 on disjoint seeds; the pallium at 0.7105 and 0.6981. This is
+the most precisely replicating result in the project.
+
+### 6c. Behaviour — the falsifier's other clauses do not fire
+
+`scratchpad/e106b_behaviour.py`, then `e106c` on fresh seeds.
+
+**Ethogram: no assay changes state.** 12 of 13 pass with the same registered xfail, at
+baseline and at `recurrent_lateral=1.0` alike.
+
+| | hunger | caught/dive |
+|---|---|---|
+| seeds 0–7, interneuron vs baseline | −0.1009, **t=−3.45** | −0.0092, t=−0.32 |
+| seeds 8–15, interneuron vs baseline | −0.0613, t=−1.35 | −0.0599, t=−2.11 |
+
+**The hunger result does not replicate**, and it is worth saying plainly that the first
+block looked like the project's second behavioural win. It is noise at 8 seeds — the E021
+pattern exactly, and the reason for the rule.
+
+**And the control disposes of it regardless.** Under the interneuron the learned pathway
+is 99% quieter, so a hen who simply *does less* would be the mundane explanation — the
+same mechanism that made E101's gate a degenerate win. A hen reared with **no cortical
+pathway at all** (`readout_scale=0`, `eta_out=0`) is the limit of that:
+
+| contrast (hunger, lower is better) | | |
+|---|---|---|
+| interneuron vs baseline | −0.0613 | t=−1.35 |
+| **silence control** vs baseline | −0.0656 | t=−1.56 |
+| **interneuron vs silence control** | **+0.0044** | **t=+0.64** |
+
+Indistinguishable. Whatever welfare difference exists is "the cortical pathway went
+quiet", not "the representation got better". **No behavioural claim is made.**
+
+One unplanned observation, reported because it is large. `vigour` — vocal energy, 1.0
+rested, 0.0 calling flat out — reads **0.0000 at baseline and 0.9255 under the
+interneuron**. The baseline flock calls itself to exhaustion. That is E055's "every
+calling channel elevated regardless of condition" seen from the world side, and it is a
+gain in face validity: real hens do not call continuously.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**The representation defect is fixed, and it took acting at the stage the diagnosis
+named.** E103 found the cause at the sensory relay, E104 built the fix there, and E105
+showed it did not survive the two recurrent stages downstream. Putting the same mechanism
+in those two stages moves every number: pallium 0.993 → 0.70, motor stub 0.993 → 0.74,
+and the readout's own output 0.96 → 0.75–0.84, replicating to within 0.005 on disjoint
+seeds.
+
+**`balanced_ei` failing here is a positive result about location.** It has been in the
+tree since E072 and was closed as null for separability. Now there is a reason: it acts on
+the current, and the common mode this model suffers from is in the *rate*, put there by
+the nonlinearity on top of a uniform resting bias. **Balancing weights cannot fix a defect
+that the sigmoid re-creates every step.** That is a general statement about this
+architecture, not about one flag.
+
+**What replaces the old problem.** The learned pathway can now say something and has
+almost no voice: |cortical| 1.606 → 0.020. This is not a surprise in hindsight and the
+arithmetic is simple — the common mode *was* the magnitude. A near-constant vector of
+length 1.6 became a varying vector of length 0.02, and the readout's growth machinery was
+calibrated against the former. `readout_scale` starts at 0.05 by design so the pallium has
+to earn influence; with a hundred-fold smaller presynaptic signal, the rate at which it
+can earn it falls with it.
+
+**So E106 does not deliver behaviour and does not claim to.** It converts a pathway that
+was loud and could not vary into one that varies and is inaudible. Whether the second is
+better than the first is exactly the question the next experiment has to ask, and the
+honest position today is that the model is *not* better off — no assay moved, no welfare
+contrast survived replication, and the one that looked promising is fully explained by a
+silence control.
+
+**What would be self-deception here.** Calling this a success because the metric the last
+six experiments chased finally moved. The metric moved; the behaviour did not. E100's
+direction stability was always a proxy, adopted because it explained the nulls, and a
+proxy that improves while the thing it proxies for does not is precisely the situation
+this project has talked itself into before.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**Adopted, off by default.** `recurrent_lateral=0.0`. Turning it on by default would
+change the basis of every existing result while delivering no measured behavioural
+benefit, which is the silent-comparison-basis change this project's conventions exist to
+prevent.
+
+**`docs/hypothesis.md`.** H2d's blocker is re-stated: the defect is in the rate, not the
+current, and it is now demonstrably removable. E105's "architectural, possibly
+unfixable" reading is narrowed — the representation was recoverable; what is unresolved
+is the pathway's magnitude.
+
+**The immediate follow-up, and the one thing that should happen next.** The readout now
+reads a signal two orders of magnitude smaller than the one its learning rate was
+calibrated against. `eta_out`, `readout_scale` and `readout_scaling_strength` were all
+set against the old regime. Re-calibrating them under `recurrent_lateral` is a
+single-variable experiment with a clear prediction and a clear falsifier, and it is the
+first time in this project that the learned pathway has had anything worth amplifying.
+
+**Not adopted.** `balanced_ei` remains closed, now with a mechanism for why rather than
+just a null.
+
+### Follow-ups
+
+1. **E107: re-calibrate the readout under the interneuron.** The direct consequence
+   above.
+2. **The trained-flock mute** (backlog §5) is still untouched and still unaffected.
+3. **`sensory_lateral` and `recurrent_lateral` together (arm E) are the strongest
+   representation result** (cortical 0.5735) and the weakest signal (0.007). If E107
+   works, arm E is where to re-run it.

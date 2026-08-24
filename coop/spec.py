@@ -334,6 +334,15 @@ class CoopConfig(NamedTuple):
     # against rate DC 87.6% at full lateral). Applied to the same `lateral_pool` units,
     # for the same reason: adaptation is a property of the relay, not of the whole brain.
     sensory_adapt_tau_s: float | None = None
+    # Strength of the pooled inhibitory interneurons in the recurrent regions -- pallium
+    # and motor stub (E106). 0.0 is the pre-E106 model. `sensory_lateral` above is the
+    # same idea one stage earlier and on the afferent *current*; this acts on the *rate*,
+    # after the nonlinearity, which is where E105 measured the common mode surviving:
+    # the motor stub, the only population the learned readout reads, is 99.98% a constant
+    # vector at hatch. Removing each pool's mean rate exposes the situation-specific
+    # signal that is still underneath it -- measured at direction stability 0.7443 for
+    # the motor stub and 0.7164 for the pallium, against 0.99 as built.
+    recurrent_lateral: float = 0.0
     food_regrow_s: float = 300.0        # seconds for an empty patch to refill
     huddle_warm_rate: float = 4.0e-4  # per second, per flockmate within huddle_radius
     huddle_max: int = 3               # a hen needs 2-3 close neighbours to stay warm

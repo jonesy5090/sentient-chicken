@@ -95,7 +95,7 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
                                   pc.pred_gain, pred_from,
                                   pc.pred_signed, pc.reflex_gate,
                                   pc.bg_gate, pc.bg_lateral, cfg.sensory_lateral,
-                                  adapt_bar)
+                                  adapt_bar, cfg.recurrent_lateral)
     w_next = world.step(w, motor, k_world, cfg)
 
     # Pathway magnitudes, carried out of the loop so a run can report whether the
