@@ -46,7 +46,7 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
          key: jax.Array = None, sigma: float = 0.0, pred_gain: float = 0.0,
          pred_from: jax.Array = None, pred_signed: bool = False,
          reflex_gate: bool = False, bg_gate: bool = False,
-         bg_lateral: float = 1.0):
+         bg_lateral: float = 1.0, sensory_lateral: float = 0.0):
     """Returns (x_next, motor, drives); motor in [0, 1], shape (H, MOTOR_DIM).
 
     `sigma` adds Gaussian noise to the motor drive before the output nonlinearity.
@@ -65,6 +65,25 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
     Assays pass sigma=0: they measure the learned policy, not the noise around it.
     """
     current = obs @ p.W_in.T
+    # Lateral inhibition at the sensory relay (E104). A pooled inhibitory interneuron
+    # subtracts the component common to every afferent-receiving unit, so the projection
+    # passes CONTRAST rather than total drive.
+    #
+    # E103 measured why this is needed. `W_in` is strictly positive -- 2630 nonzero
+    # entries, none negative -- so a positive observation through positive weights gives
+    # every unit a large shared term, "how much is in view". The mean direction's share
+    # rises from 69.0% of the observation to 97.8% of the stub: situation-specific signal
+    # drops from 31% to 2.2% in ONE synapse, at hatch, before any learning. Every learned
+    # pathway in this model has been a linear readout of that near-constant since.
+    #
+    # Real relays almost universally do this -- retina, thalamus, avian tectum -- and its
+    # function is exactly to discard the common component. Pooling is over `lateral_pool`
+    # rather than all N units, because an interneuron pools the relay it sits in.
+    if sensory_lateral:
+        pool = p.lateral_pool[None, :]
+        pooled = (jnp.sum(current * pool, axis=-1, keepdims=True)
+                  / (jnp.sum(pool) + 1e-9))
+        current = current - sensory_lateral * pooled * pool
     x, _ = neurons.ctrnn_step(x, p.W, current, p.b, p.tau, dt)
 
     # The motor stub is the last region, so its width is fixed by the readout shape.
