@@ -38,6 +38,12 @@ class Drives(NamedTuple):
     # The raw afferent current, before any relay processing. Carried out so the caller
     # can advance the adaptive baseline (E105) without recomputing the projection.
     current: jax.Array     # (H, N)
+    # (H, MOTOR_DIM) the exploration perturbation actually added to the drive this step.
+    # Carried out so a learning rule can credit it (E110). Until now it was added and
+    # discarded, which is why node-perturbation credit assignment -- the thing this
+    # module's own docstring describes when it explains where the noise is placed -- had
+    # never been implementable. Zero when `key is None`, as every assay runs.
+    noise: jax.Array
 
 
 def initial_state(p: BrainParams, n_hens: int) -> jax.Array:
@@ -164,8 +170,10 @@ def step(x: jax.Array, obs: jax.Array, p: BrainParams, dt: float,
     drive = reflex + cortical + p.b_motor[None, :]
     # `sigma` is traced under jit (it decays with the world clock), so this cannot be
     # a Python conditional. A caller that wants no noise at all passes key=None.
+    noise = jnp.zeros_like(drive)
     if key is not None:
-        drive = drive + sigma * jax.random.normal(key, drive.shape)
+        noise = sigma * jax.random.normal(key, drive.shape)
+        drive = drive + noise
     return x, jax.nn.sigmoid(drive), Drives(
         reflex=reflex, cortical=cortical, predicted=predicted,
-        current=raw_current)
+        current=raw_current, noise=noise)

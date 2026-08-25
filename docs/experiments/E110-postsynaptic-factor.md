@@ -131,12 +131,153 @@ the full ethogram at any arm that moves.
 
 ## 6. Result
 
-*To be filled after the run.*
+8 seeds, 16 hens, 30 min rearing, `hawk_period_s=60`.
+`scratchpad/e110_postsynaptic.py`.
+
+### 6a. The instrument — it clears
+
+| arm | **cos(postsynaptic factor, arc)** | bar |
+|---|---|---|
+| baseline (motor) | **0.9665** | — (E109 measured 0.9822) |
+| **noise** | **−0.0034** | must fall below 0.30 ✓ |
+| **cortical** | **−0.0461** | must fall below 0.60 ✓ |
+| frozen | 0.9865 | — |
+
+**The intervention does exactly what it was built to do.** E109's obstacle is not
+reduced, it is *removed*: the update's direction goes from 97% aligned with the reflex
+arc to statistically independent of it, in both arms.
+
+### 6b. The headline — no arm beats a frozen readout
+
+| arm | hunger | caught/dive | \|ΔW_out\| | \|cortical\| |
+|---|---|---|---|---|
+| baseline (motor) | 0.6268 | 0.1767 | 5.74e-03 | 0.1947 |
+| noise | 0.6408 | 0.1592 | 2.36e-03 | 0.0918 |
+| cortical | 0.6113 | 0.1696 | 7.33e-03 | 0.2379 |
+| **FROZEN** (`eta_out=0`) | 0.6332 | 0.1978 | 1.16e-04 | 0.0599 |
+
+Paired against the frozen readout, df=7:
+
+| contrast | hunger | caught/dive |
+|---|---|---|
+| baseline vs frozen | −0.0063, t=−0.32 | −0.0211, t=−1.17 |
+| noise vs frozen | +0.0077, t=+0.70 | −0.0386, t=−2.10 |
+| cortical vs frozen | −0.0218, t=−0.97 | −0.0282, t=−2.09 |
+
+**The primary falsifier fires.** The cosine fell as predicted and hunger is
+indistinguishable from frozen in every arm. Predictions 2 and 4 hold: no improvement, and
+the experiment closes the line rather than opening one.
+
+**And the baseline arm does not beat frozen either.** This is the cleanest statement of
+H2's null the project has: with a proper no-learning control, thirty minutes of learning
+produces no measurable benefit over not learning at all — on either metric. The readout
+does grow (|cortical| 0.0599 frozen → 0.1947 learned, 3.2×). It just does not help.
+
+**On the two caught/dive near-misses.** t=−2.10 and −2.09 against an uncorrected 2.365.
+Applying [E107](E107-red-team-review-2026-08-24.md)'s own recommendation — declare the
+contrast count and divide α by it — this experiment runs **6** contrasts, so the
+Bonferroni threshold at df=7 is **t=3.636**. Both are far short. They are recorded as a
+directional trend that a dedicated experiment could test on a fresh block, and claimed as
+nothing. This is the first experiment here to apply that discipline, and it is applied to
+a result that would have flattered the hypothesis.
+
+### 6c. My magnitude-confound falsifier fires, for the noise arm
+
+|ΔW_out| ratios against baseline: **noise 0.41×** (outside the pre-registered 0.5–2.0
+band), cortical 1.28× (inside).
+
+The per-step rescale did match `||dz_post||` to `||dz_motor||` — the guard test asserts
+that on a single consolidation. What it cannot control is *accumulation*: the noise
+direction is independent from one consolidation to the next, so successive rank-one
+updates partly cancel instead of compounding. That is an intrinsic property of the
+estimator rather than a failure of the control, but the falsifier was written against the
+accumulated quantity and it fires, so **the noise arm's behavioural null is confounded
+with a 2.4× smaller total weight change** and is reported as such. The cortical arm is
+clean and gives the same answer.
+
+### 6d. Regression
+
+Inertness bit-identical at the default, 15/15 array digests. The ethogram runs at
+`NO_PLASTICITY`, where `postsynaptic_factor` is never read, and the inertness gate covers
+`Drives.noise` — so no assay can move, and none was re-run on that reasoning rather than
+on a measurement.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**Removing E109's obstacle does not produce learning.**
+
+E109's finding stands as measured: the default rule's update points 98% along the reflex
+arc, and it replicated. E110 removes that completely — cosine −0.003 — and behaviour does
+not change. **So the obstacle is real and is not the operative cause.** A constraint can
+be genuine, measured, replicated, and still not be what is stopping the thing you care
+about.
+
+That distinction is the whole content of this experiment, and it is one this project has
+got wrong repeatedly in the other direction: E100–E106 built six mechanisms on a measured
+constraint without ever testing whether removing it changed anything. E110 is the first
+time the removal was actually done.
+
+**The count is now five, and all five are dead.**
+
+| | proposed cause | fate |
+|---|---|---|
+| E100–E106 | readout converges on a fixed direction | withdrawn — pooling artefact (E107) |
+| E107's reviewer | reward's event destroyed at the first synapse | not adopted — AUC 0.670, not 0.528 |
+| E108 | the rule cannot see its teaching event | falsified — 0.731 and 0.955 |
+| E109 | the update can only point where the arc points | **real, replicated — and not the cause (E110)** |
+| E110 | giving the update its own direction fixes it | falsified here |
+
+**H2's null now has no surviving mechanistic candidate anywhere in the rule.** Both
+factors are informative at consolidation time (E108), the update's direction can be made
+independent of the arc (E110), the weights move (3.2× growth in cortical magnitude), and
+behaviour does not follow. Whatever is wrong is not in the rule's inputs, not in its
+direction, and not in whether it writes at all.
+
+**What that leaves, honestly.** Three possibilities, and I do not have evidence to rank
+them:
+
+1. **The timescale.** Thirty minutes of chicken time, with `critical_period_s = 3 days`,
+   may simply be far too short for a reward-modulated rule to accumulate a policy. This
+   is testable and expensive, and it is the possibility the project has never spent
+   compute on.
+2. **The task.** Hunger equilibrates at ~0.63 in every arm including frozen. If the
+   coop's foraging problem has no headroom — if a reflex hen is already near the
+   achievable optimum — then no learning rule can demonstrate a benefit, and H2 is
+   unanswerable in this environment rather than false. E019's history contains exactly
+   this failure once already ("hens start at hunger 0.30, which *is* the equilibrium; the
+   metric was a coin flip").
+3. **The rule.** A three-factor covariance rule with a 0.2 s credit window may not be
+   able to solve a task whose payoff structure spans tens of seconds, which
+   `CLAUDE.md` already states as a known limit and which nothing has tested.
+
+**Possibility 2 should be checked first, because it is cheap and because it would make
+the other two moot.** It is also the one this project's own history flags: "a null is
+only informative if the instrument could have shown a positive."
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**Adopted, off by default.** `postsynaptic_factor="motor"`. Neither alternative is
+recommended — both are behaviourally null, and the noise arm additionally accumulates 2.4×
+less weight change.
+
+**`docs/hypothesis.md`.** H2's node records that no mechanistic explanation for its null
+survives, and that the *learning-versus-frozen* contrast is itself null at 8 seeds on both
+metrics — which is a stronger and more direct statement of the null than any single
+mechanism claim. H2b keeps E109's mechanism, annotated as a real constraint that is not
+the operative cause.
+
+**Not adopted.** A sixth mechanism. Five have now been proposed and tested, and the
+pattern — each plausible, each measured, each not the cause — is itself the finding. The
+next experiment should test whether a positive result is *reachable in this environment*
+before proposing anything further about the brain.
+
+### Follow-ups
+
+1. **E111 — is there headroom?** Measure the achievable ceiling on foraging: a
+   hand-written optimal-ish policy, or a hen with the food channel wired directly to
+   approach, against the reflex baseline. If the gap is small, H2 is unanswerable here and
+   the environment needs changing before any rule is tested again. Cheap, and it gates
+   everything else.
+2. **The trained-flock mute** (backlog §5, open since E032) — still untouched, and it
+   tests H0 rather than H2, so it is not blocked by any of this.
+3. **E101/E102's permuted-gate control**, outstanding from E107.

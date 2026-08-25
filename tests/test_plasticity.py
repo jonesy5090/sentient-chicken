@@ -1122,3 +1122,68 @@ def test_dc_share_uses_axis_not_ord():
     noisy = rng.normal(size=(500, 2, 3))
     assert metrics.dc_share(noisy) < 0.2, (
         "zero-mean noise must have a near-zero DC share")
+
+
+# --- E110: the postsynaptic factor ---------------------------------------
+
+
+def test_postsynaptic_factor_defaults_to_the_motor_output():
+    assert PlasticConfig().postsynaptic_factor == "motor"
+
+
+def test_the_perturbation_is_carried_out_and_is_zero_without_a_key():
+    """`Drives.noise` must be the perturbation actually added, not a re-draw.
+
+    The whole point of E110 is crediting the exploration noise, so if this field ever
+    stops being the same sample that reached the drive, node perturbation silently
+    becomes noise-correlated-with-nothing.
+    """
+    n_hens = 4
+    p = connectome.build(jax.random.key(11), regions.DEFAULT_REGIONS, n_hens=n_hens)
+    x = brain.initial_state(p, n_hens)
+    obs = jnp.full((n_hens, spec.OBS_DIM), 0.3)
+
+    _x, _m, quiet = brain.step(x, obs, p, CFG.dt, key=None)
+    assert float(jnp.max(jnp.abs(quiet.noise))) == 0.0, (
+        "an assay runs with key=None and must have no perturbation at all")
+
+    key = jax.random.key(12)
+    _x, motor, d = brain.step(x, obs, p, CFG.dt, key=key, sigma=0.5)
+    # Reconstruct: the drive without noise is reflex + cortical + b_motor.
+    drive = d.reflex + d.cortical + p.b_motor[None, :]
+    assert bool(jnp.allclose(motor, jax.nn.sigmoid(drive + d.noise), atol=1e-6)), (
+        "Drives.noise is not the perturbation that produced this motor output")
+    assert float(jnp.std(d.noise)) > 0.1, "sigma=0.5 should give a visible perturbation"
+
+
+def test_swapping_the_postsynaptic_factor_changes_direction_not_magnitude():
+    """E110's magnitude control: arms must differ in direction alone.
+
+    E089's lesson. If an arm also changes the update's size, a behavioural difference is
+    confounded with learning rate and the experiment cannot attribute it to direction.
+    """
+    n_hens = 16
+    p = connectome.build(jax.random.key(13), regions.DEFAULT_REGIONS, n_hens=n_hens)
+    key = jax.random.key(14)
+    m = jnp.ones((n_hens,))
+    sizes, directions = {}, {}
+    for factor in ("motor", "noise", "cortical"):
+        pc = PlasticConfig(enabled=True, postsynaptic_factor=factor)
+        ps = plasticity.initial_state(p, n_hens, pc)
+        ps = ps._replace(
+            z_slow=jax.random.uniform(jax.random.fold_in(key, 1), ps.z_slow.shape),
+            z_motor=jax.random.uniform(jax.random.fold_in(key, 2), ps.z_motor.shape),
+            z_post=jax.random.uniform(jax.random.fold_in(key, 3), ps.z_post.shape))
+        dw = plasticity.consolidate(p, ps, m, pc._replace(w_max=1e9)).W_out - p.W_out
+        sizes[factor] = float(jnp.mean(jnp.linalg.norm(dw, axis=(1, 2))))
+        directions[factor] = dw / (jnp.linalg.norm(dw) + 1e-12)
+
+    for factor in ("noise", "cortical"):
+        ratio = sizes[factor] / sizes["motor"]
+        assert 0.5 < ratio < 2.0, (
+            f"{factor} changed the update's magnitude by {ratio:.2f}x; the rescale to "
+            "||dz_motor|| is meant to leave direction as the only difference")
+        cos = float(jnp.sum(directions[factor] * directions["motor"]))
+        assert abs(cos) < 0.9, (
+            f"{factor} produced an update {cos:.3f} aligned with the default -- it is "
+            "not a different direction, so the intervention is inert")
