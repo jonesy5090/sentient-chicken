@@ -51,7 +51,8 @@ def reflex_matrix(auditory_scaffold: bool = False,
                   gakel_scaffold: bool = False,
                   gakel_scaffold_gain: float = 1.0,
                   gakel_peck_weight: float | None = None,
-                  hunger_peck_weight: float = 0.0) -> np.ndarray:
+                  hunger_peck_weight: float = 0.0,
+                  arrival_peck_weight: float = 0.0) -> np.ndarray:
     """The innate arc as a fixed (MOTOR_DIM, OBS_DIM) matrix.
 
     `auditory_scaffold` adds an innate response to *hearing* an alarm call. It is off
@@ -99,6 +100,31 @@ def reflex_matrix(auditory_scaffold: bool = False,
     # does. Default 0.0, so nothing moves until E090 says what the value should be.
     if hunger_peck_weight:
         w(spec.M_PECK, spec.IDX_HUNGER, hunger_peck_weight)
+
+    # `arrival_peck_weight` (E112) fixes an aim problem in the two lines above. The food
+    # drive reads the two FRONT bins only, which is right for a hen approaching a patch
+    # and wrong for one standing on it: at `peck_radius` 0.30 m the bearing swings with
+    # every step, so the patch spends much of the dwell in a bin this reflex does not
+    # read, or behind her. E111 measured the consequence -- `M_PECK > 0.5` fires 39.65%
+    # of the time she is ON food against 59.59% when she is not. She pecks LESS when
+    # standing on it, and a hand-written oracle that simply pecks while at a patch beats
+    # her by 0.21 hunger units.
+    #
+    # `IDX_FOOD_ARRIVAL` is bearing-independent and already exists: set to 1.0 on the
+    # rising edge of arriving and decaying over `food_call_decay_s`. It carried "am I at
+    # a feeder" at AUC 0.87-0.99 (E107) while being wired to the food CALL and nothing
+    # else -- a hen who announces a find and does not act on it.
+    #
+    # 4.0 is chosen a priori against REST_BIAS, as SCAFFOLD_WEIGHT is, so it cannot be
+    # tuned into the shape of a result. sigmoid(4.0 - 2.5) = 0.82, so arrival crosses the
+    # action threshold on its own without needing the visual channels to cooperate. It
+    # falls below threshold once the pulse decays under 2.5/4.0 = 0.625, which is 1.5 s
+    # after arrival -- a peck BOUT, not permanent pecking, matching what
+    # `food_call_decay_s`'s own comment argues for. And it is half the visual crouch
+    # weight of 8.0, so seeing a hawk still beats being on food: first-hand danger over
+    # appetite, the same ordering SCAFFOLD_WEIGHT is justified by.
+    if arrival_peck_weight:
+        w(spec.M_PECK, spec.IDX_FOOD_ARRIVAL, arrival_peck_weight)
 
     # --- Orienting toward food and water ---
     for b in _LEFT:
