@@ -659,7 +659,7 @@ python -m run.probes                              # the newly-hatched behaviour 
 python -m run.lifetime --minutes 60 --plastic     # rear a flock
 python -m run.experiment --minutes 20 --seeds 12  # matched-seed A/B
 python -m run.h4 --minutes 10 --seeds 12          # the channel ladder
-python -m pytest tests/ -q                        # 101 tests, 1 registered xfail
+python -m pytest tests/ -q                        # 104 tests, 1 registered xfail
 
 # watch a run in 3D: record a trajectory, then serve the viewer
 python -m run.record --minutes 10 --hawk-period 30  # writes to runs/

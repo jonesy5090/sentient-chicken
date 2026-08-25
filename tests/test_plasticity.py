@@ -1187,3 +1187,57 @@ def test_swapping_the_postsynaptic_factor_changes_direction_not_magnitude():
         assert abs(cos) < 0.9, (
             f"{factor} produced an update {cos:.3f} aligned with the default -- it is "
             "not a different direction, so the intervention is inert")
+
+
+# --- E112: the repaired peck reflex ---------------------------------------
+
+
+def test_arrival_peck_is_off_by_default_and_wires_only_that_one_edge():
+    """One edge, and nothing else. E104's `lateral_pool` bug was exactly this shape."""
+    from hen import innate
+    off = innate.reflex_matrix()
+    on = innate.reflex_matrix(arrival_peck_weight=4.0)
+    assert off[spec.M_PECK, spec.IDX_FOOD_ARRIVAL] == 0.0, "must be off by default"
+    assert on[spec.M_PECK, spec.IDX_FOOD_ARRIVAL] == 4.0
+    diff = np.argwhere(np.asarray(on) != np.asarray(off))
+    assert len(diff) == 1 and tuple(diff[0]) == (spec.M_PECK, spec.IDX_FOOD_ARRIVAL), (
+        f"the flag changed {len(diff)} entries; it must change exactly one")
+
+
+def test_arrival_alone_crosses_the_peck_threshold_and_decays_below_it():
+    """The a-priori justification for 4.0, asserted rather than left in a comment.
+
+    A full discovery pulse must cross the 0.5 action threshold on its own, without the
+    visual channels cooperating -- that is the whole point, since E111 measured those
+    channels reading *lower* on food than off it. And it must fall back below threshold
+    as the pulse decays, so the flag buys a peck bout rather than permanent pecking.
+    """
+    from hen import innate
+    r = innate.reflex_matrix(arrival_peck_weight=4.0)
+    bias = innate.reflex_bias()[spec.M_PECK]
+
+    def peck(pulse):
+        obs = np.zeros(spec.OBS_DIM, dtype=np.float32)
+        obs[spec.IDX_FOOD_ARRIVAL] = pulse
+        return float(jax.nn.sigmoid(np.asarray(r)[spec.M_PECK] @ obs + bias))
+
+    assert peck(1.0) > 0.5, (
+        f"a full arrival pulse gives peck {peck(1.0):.3f}; it must cross the threshold "
+        "on its own, because the visual food channels read LOWER on food than off it")
+    assert peck(0.5) < 0.5, (
+        f"a half-decayed pulse gives {peck(0.5):.3f}; the flag must buy a bout, not "
+        "permanent pecking")
+    # First-hand danger must still beat appetite: the visual crouch weight is 8.0.
+    assert r[spec.M_PECK, spec.IDX_FOOD_ARRIVAL] < 8.0
+
+
+def test_the_repair_does_not_touch_the_learned_pathway():
+    """It is a change to the innate arc. `CLAUDE.md`: the reflex arc is never plastic."""
+    n_hens = 4
+    a = connectome.build(jax.random.key(21), regions.DEFAULT_REGIONS, n_hens=n_hens)
+    b = connectome.build(jax.random.key(21), regions.DEFAULT_REGIONS, n_hens=n_hens,
+                         arrival_peck_weight=4.0)
+    assert bool(jnp.array_equal(a.W_out, b.W_out))
+    assert bool(jnp.array_equal(a.W, b.W))
+    assert bool(jnp.array_equal(a.W_in, b.W_in))
+    assert not bool(jnp.array_equal(a.reflex, b.reflex))

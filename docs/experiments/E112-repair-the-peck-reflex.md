@@ -123,12 +123,147 @@ and feeding; `caught/dive`; the full ethogram at the repaired arc.
 
 ## 6. Result
 
-*To be filled after the run.*
+### 6a. The instrument falsifier fires — and it was my own inconsistency
+
+8 seeds, 30 min. `scratchpad/e112_repair_peck.py`.
+
+| arm | hunger | P(peck \| on food) | P(peck \| off) | at patch | feeding |
+|---|---|---|---|---|---|
+| baseline / frozen | 0.6332 | **41.8%** | 62.6% | 6.4% | 2.6% |
+| **repaired / frozen** | 0.5761 | **75.3%** | 63.8% | 4.1% | 3.1% |
+| baseline / learning | 0.6268 | 41.5% | 62.9% | 6.5% | 2.7% |
+| repaired / learning | 0.5584 | 71.9% | 63.2% | 4.4% | 3.1% |
+
+§4 required `P(peck | on food)` above **80%**. It reached **75.3%**, so **the instrument
+falsifier fires** and by my own rule nothing downstream of it counts until the cause is
+found.
+
+The sign did reverse — 75.3% on food against 63.8% off, where the baseline had it
+backwards — so the wiring does what it says. What caps it is not the wiring.
+
+**Measured cause** (`scratchpad/e112b_stop_to_eat.py` and a dwell probe): **median dwell
+at a patch is one step.** Mean 0.69 s, median 0.01 s. Half of all on-food episodes are a
+single 10 ms step, and `world.step` sets the arrival pulse *after* that step's motor
+output has already been computed — so on a one-step visit she cannot peck at all, however
+the reflex is wired.
+
+**She walks through the feeder.** `innate.py:305` says exactly this and
+`peck_stops_walking` (E092) exists for exactly this, and has been off by default since it
+was built. E111's camped oracle *stayed* on its patch; that was half of what it did, and
+this experiment only built the other half.
+
+### 6b. Post-hoc — the second half of the fix
+
+**Labelled post-hoc: this arm was chosen after seeing §6a**, and it runs on a disjoint
+seed block (8–15), which also replicates §6a's borderline headline.
+
+| arm | hunger | P(peck \| on food) | at patch | feeding |
+|---|---|---|---|---|
+| baseline | 0.6557 | 39.7% | 6.4% | 2.5% |
+| repaired peck | 0.6196 | 77.2% | 3.7% | 2.8% |
+| **repaired + stops walking** | **0.5939** | **97.9%** | 3.3% | 3.3% |
+| repaired + stops + learning | 0.5953 | 97.7% | 3.4% | 3.3% |
+
+**With both halves the instrument clears completely: 39.7% → 97.9%.** The diagnosis was
+right.
+
+| contrast (hunger, lower is better) | | |
+|---|---|---|
+| repair alone vs baseline | −0.0360 ± 0.0223 | t=−1.62 |
+| repair + stopping vs baseline | −0.0618 ± 0.0245 | t=−2.53 |
+| what stopping adds on top | −0.0258 ± 0.0143 | t=−1.80 |
+| **what learning adds on top of both** | **+0.0014 ± 0.0124** | **t=+0.12** |
+
+**Nothing here is significant under this experiment's own multiplicity rule.** Four
+contrasts, so the Bonferroni threshold at df=7 is **t≈3.5**; the largest is 2.53. And the
+repair-alone effect does not replicate across blocks — −0.0571 (t=−2.28) then −0.0360
+(t=−1.62), both short of even the uncorrected 2.365.
+
+### 6c. How much of the gap is reachable by fixing the arc
+
+Against E111's camped oracle at **0.4223**:
+
+| | hunger | gap closed |
+|---|---|---|
+| baseline | 0.6332 / 0.6557 | — |
+| repaired peck | 0.5761 / 0.6196 | 27% / 15% |
+| **repaired + stops walking** | **0.5939** | **26%** |
+
+**Roughly three quarters of the gap survives both innate repairs.**
+
+### 6d. Regression
+
+Inertness bit-identical at `arrival_peck_weight = 0.0`, 15/15 digests. Three guard tests,
+including one asserting the flag changes **exactly one** entry of the reflex matrix — the
+shape of bug E104's `lateral_pool` had — and one asserting a full arrival pulse crosses
+the threshold alone while a half-decayed one does not.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**Take §4's interpretation guard in order.**
+
+> If the repair closes **most** of the gap and learning still adds nothing, then what ten
+> experiments were asking the learning rule to discover was a defect in the hand-written
+> wiring. That is the uncomfortable outcome and it is the one I would report first.
+
+**That did not happen.** Both innate repairs together close about a quarter of the gap,
+and neither is significant under this experiment's own multiplicity correction.
+
+> If the repair closes **little** of the gap, the arc was not the limitation, E111's
+> headroom stands undiminished, and the nulls remain squarely about the rule.
+
+**That is the outcome.** E111's headroom is real and largely intact.
+
+**But the arc really is wrong, and that is worth keeping separately from the headline.**
+A hen who pecks 39.7% of the time she is standing on food and 62.6% of the time she is
+not is not a model of a chicken, whatever it does to the hunger metric. The fix is small,
+justified a priori, and now measured: 39.7% → 97.9%. It is worth roughly 0.06 hunger
+units, which is real and modest.
+
+**What the remaining three quarters consists of, stated concretely.** The camped oracle
+does one thing the repaired hen still cannot: it **stays**. Its hen picks a patch and
+remains there for thirty minutes, taking food as it regrows. The repaired hen pecks
+correctly when she happens to be on a patch and then wanders off — she is at a patch 3.3%
+of the time against the oracle's 4.8%, despite pecking almost perfectly while there.
+
+**Staying is a policy, not a reflex.** It requires holding "I am foraging here" across
+seconds, against a hunger drive that keeps her walking, and no fixed stimulus→response
+mapping produces it. **It is exactly what a learned pathway is for**, and exactly what
+[E109](E109-what-the-rule-writes.md) showed this rule cannot express: persisting in a
+place is a redirection of behaviour, and `dz_motor` confines the update to amplifying what
+the arc already does.
+
+So E112 does not rescue the learning rule and does not indict it further. It removes a
+confound — "maybe the baseline was just broken" — and leaves the target sharper than
+before: **the thing learning has never done, and the thing that would close most of the
+remaining gap, is staying put.**
+
+**Learning adds nothing on the repaired arc: +0.0014, t=+0.12.** That is the cleanest
+version of H2's null in the project, because it is measured against a baseline that has
+been repaired to the limit of what its own wiring can express.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**Adopted, off by default.** `arrival_peck_weight = 0.0`. It is off despite being a
+genuine correction, because turning it on would move every baseline in the tree and its
+measured benefit does not survive multiplicity correction. The recommendation is that any
+*future* baseline uses `arrival_peck_weight=4.0` **and** `peck_stops_walking=1.0`
+together — separately, each is half a fix.
+
+**`docs/hypothesis.md`.** H1 records that the innate peck reflex is mis-aimed and by how
+much. H2's node records that repairing it does not change the null, and that the residual
+gap is a *persistence* problem rather than a stimulus–response one.
+
+**Not adopted.** Turning either flag on by default, and any claim that the repair improves
+foraging — the effect fails to replicate and fails its own multiplicity threshold.
+
+### Follow-ups
+
+1. **The remaining gap has a name now: staying put.** If anything is tried next on H2, the
+   target should be that, and any mechanism proposed for it should be pre-registered
+   against E109's constraint — a rule that cannot redirect behaviour cannot produce
+   persistence either.
+2. **The trained-flock mute** (backlog §5, open since E032) is untouched by all of this
+   and tests H0 rather than H2.
+3. **E101/E102's permuted-gate control**, still outstanding from
+   [E107](E107-red-team-review-2026-08-24.md).

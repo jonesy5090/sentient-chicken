@@ -871,8 +871,20 @@ new home.
 
 ## 8. Open items from experiments
 
-- **E112 — wire `IDX_FOOD_ARRIVAL` to `M_PECK`, and re-ask H2 against the repaired
-  baseline.** [E111](experiments/E111-is-there-headroom.md) measured the reflex hen
+- **The residual gap has a name: staying put.**
+  [E112](experiments/E112-repair-the-peck-reflex.md) repaired the innate peck reflex —
+  P(peck | on food) 39.7% → 97.9% with `arrival_peck_weight=4.0` and
+  `peck_stops_walking=1.0` together — and closed only **26%** of E111's gap, with learning
+  adding **+0.0014, t=+0.12** on top. So the arc was not the limitation. What the camped
+  oracle does that the repaired hen still cannot is **stay on its patch**: at a patch 4.8%
+  against 3.3%, despite the repaired hen pecking almost perfectly while she is there.
+  Persistence needs "I am foraging here" held across seconds against a hunger drive that
+  keeps her walking — a policy, not a stimulus→response mapping. Any mechanism proposed
+  for it must be pre-registered against
+  [E109](experiments/E109-what-the-rule-writes.md)'s constraint: a rule that cannot
+  redirect behaviour cannot produce persistence either.
+- ~~**E112 — wire `IDX_FOOD_ARRIVAL` to `M_PECK`, and re-ask H2 against the repaired
+  baseline.**~~ **Done.** The arc really is mis-aimed and the fix is real and small. [E111](experiments/E111-is-there-headroom.md) measured the reflex hen
   pecking **39.65% of the time she is on food against 59.59% when she is not** — the peck
   reflex is keyed to a vision channel reading 0.9100 on food and 0.9430 away. The channel
   that would tell her, `IDX_FOOD_ARRIVAL`, exists and carries the fact at AUC 0.87–0.99;
