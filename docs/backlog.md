@@ -871,6 +871,17 @@ new home.
 
 ## 8. Open items from experiments
 
+- **The head-down test** — the one part of E102's story
+  [E113](experiments/E113-permuted-gate-control.md) could not establish. E113 showed the
+  learned gate's channel assignment beats a scrambled one (pooled z=−4.40) and a flat one
+  (z=−7.00), so selectivity is real. It did **not** show the benefit runs through
+  `head_down` specifically, which is what E102 claims. Break the `peck/scratch → head_down`
+  link with the learned gate held fixed: if the benefit survives, the story is wrong even
+  though the selectivity is not.
+- **A fourth block for E113 if it matters enough.** One of three blocks met the
+  pre-registered per-block bar; all three shared the sign and the pooled estimate is
+  decisive, but pooling was post-hoc and 8 seeds is where this project has been burned
+  repeatedly.
 - **The residual gap has a name: staying put.**
   [E112](experiments/E112-repair-the-peck-reflex.md) repaired the innate peck reflex —
   P(peck | on food) 39.7% → 97.9% with `arrival_peck_weight=4.0` and
