@@ -271,6 +271,33 @@ class PlasticConfig(NamedTuple):
     # learned and never rewrites what was inherited.
     readout_decorrelate: float = 0.0
 
+    # What the POSTsynaptic factor traces (E110). "motor" is the rule as it has always
+    # been and is bit-identical.
+    #
+    # E109 measured why this matters. `Delta_cortical = m * (dz_slow . stub) * dz_motor`,
+    # so `dz_motor` is the update's entire direction in motor space -- and tracing the
+    # motor *output* puts that direction at cosine 0.9822 to the reflex arc's own
+    # deviation (0.9916 in the windows where the reward fires). The rule can only write
+    # "more of what she was already doing".
+    #
+    # "noise" credits the injected exploration perturbation instead: `dW ~ m * xi (x) x`,
+    # the standard unbiased reward-gradient estimator, and the thing this module's
+    # docstring already describes -- "an exploratory action that happens to pay off gets
+    # credited to the synapses that produced it". The rule as written credits the output,
+    # which is the arc plus a 2-5% noise component, not the perturbation. Birdsong is the
+    # vertebrate system where this form of credit assignment is established, which is a
+    # reasonable anchor for a model of a bird.
+    #
+    # "cortical" credits the learned pathway's own contribution, `sigmoid(cortical +
+    # b_motor)`.
+    #
+    # Off the default, the alternative factor is rescaled per hen per step to the norm of
+    # `dz_motor`, so direction is the only thing that differs between arms -- E089's
+    # lesson about changing two things at once. The cost is real: for a true
+    # node-perturbation estimator the perturbation's magnitude carries information too,
+    # so this is a direction-only test.
+    postsynaptic_factor: str = "motor"
+
     # Structural growth
     growth_enabled: bool = True
     growth_interval: int = 10_000   # steps (100 s of chicken time)
@@ -326,6 +353,11 @@ class PlasticState(NamedTuple):
     # `enabled=False`, which is how every assay runs. Allocated unconditionally and left
     # at zero when adaptation is off, so the pytree structure never depends on a flag.
     adapt_bar: jax.Array   # (H, N)
+    # (H, MOTOR_DIM) the alternative postsynaptic trace and its slow mean (E110).
+    # Allocated unconditionally so the pytree structure never depends on a flag, and
+    # left at zero unless `postsynaptic_factor` is off its default.
+    z_post: jax.Array
+    z_post_bar: jax.Array
 
 
 def initial_state(p: BrainParams, n_hens: int, pc: PlasticConfig) -> PlasticState:
@@ -349,6 +381,8 @@ def initial_state(p: BrainParams, n_hens: int, pc: PlasticConfig) -> PlasticStat
         innate_row_sum_out=row_sum_out,
         budget=jnp.sum(p.mask) * pc.synapse_budget,
         adapt_bar=jnp.zeros((n_hens, n)),
+        z_post=jnp.zeros((n_hens, p.W_out.shape[1])),
+        z_post_bar=jnp.zeros((n_hens, p.W_out.shape[1])),
     )
 
 
@@ -439,9 +473,24 @@ def reward(w_prev, w_next, cfg: CoopConfig, pc: PlasticConfig) -> jax.Array:
     return own + pc.kin_weight * heard
 
 
+def postsynaptic_signal(motor, drives, p, pc: PlasticConfig):
+    """What the postsynaptic factor should trace this step (E110).
+
+    `motor` is the rule's own choice and the default. The alternatives exist because
+    E109 measured the motor output to be 98% the reflex arc's own deviation, which is
+    the update's whole direction.
+    """
+    if pc.postsynaptic_factor == "noise":
+        return drives.noise
+    if pc.postsynaptic_factor == "cortical":
+        return jax.nn.sigmoid(drives.cortical + p.b_motor[None, :])
+    return None
+
+
 def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,
                   reward_now: jax.Array, cfg: CoopConfig, pc: PlasticConfig,
-                  pred_err: jax.Array = None) -> PlasticState:
+                  pred_err: jax.Array = None,
+                  post: jax.Array = None) -> PlasticState:
     """Decay the eligibility traces toward current activity. Called every step."""
     a_f = cfg.dt / pc.tau_fast
     a_s = cfg.dt / pc.tau_slow
@@ -476,6 +525,13 @@ def update_traces(ps: PlasticState, r: jax.Array, motor: jax.Array,
         z_fast_bar=ps.z_fast_bar + a_b * (ps.z_fast - ps.z_fast_bar),
         z_slow_bar=ps.z_slow_bar + a_b * (ps.z_slow - ps.z_slow_bar),
         z_motor_bar=ps.z_motor_bar + a_b * (ps.z_motor - ps.z_motor_bar),
+        # E110's alternative postsynaptic trace, on the same constants as `z_motor` so
+        # the arms differ in what is traced and in nothing else. Left at zero when the
+        # flag is at its default.
+        z_post=(ps.z_post if post is None
+                else ps.z_post + a_m * (post - ps.z_post)),
+        z_post_bar=(ps.z_post_bar if post is None
+                    else ps.z_post_bar + a_b * (ps.z_post - ps.z_post_bar)),
         baseline=baseline,
         m_acc=m_acc,
         age_s=ps.age_s + cfg.dt,
@@ -520,6 +576,17 @@ def consolidate(p: BrainParams, ps: PlasticState, m: jax.Array,
     dz_fast = ps.z_fast - ps.z_fast_bar
     dz_slow = ps.z_slow - ps.z_slow_bar
     dz_motor = ps.z_motor - ps.z_motor_bar
+
+    # E110: substitute the postsynaptic factor's DIRECTION, matched in magnitude.
+    # `dz_motor` is the update's whole direction in motor space (E109), so swapping it
+    # is the intervention; rescaling to `||dz_motor||` per hen keeps the update's size
+    # out of the comparison, which is what makes a behavioural difference attributable
+    # to direction rather than to an accidental change in learning rate.
+    if pc.postsynaptic_factor != "motor":
+        dz_post = ps.z_post - ps.z_post_bar
+        scale = (jnp.linalg.norm(dz_motor, axis=-1, keepdims=True)
+                 / (jnp.linalg.norm(dz_post, axis=-1, keepdims=True) + 1e-9))
+        dz_motor = dz_post * scale
 
     # Recurrent weights. Only synapses that already exist are updated; growing new
     # ones is a separate, much rarer operation.

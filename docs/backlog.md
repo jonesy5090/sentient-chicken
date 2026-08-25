@@ -871,7 +871,19 @@ new home.
 
 ## 8. Open items from experiments
 
-- **E110 — a postsynaptic factor with a direction of its own.**
+- **E111 — is a positive result reachable in this environment at all? This gates
+  everything else.** [E110](experiments/E110-postsynaptic-factor.md) closed the fifth and
+  last mechanistic explanation for H2's null, and left a number worth staring at: hunger
+  equilibrates at **~0.63 in every arm, including a frozen readout that cannot learn**.
+  If a reflex-only hen is already near the achievable optimum, then no learning rule can
+  demonstrate a benefit and H2 is *unanswerable in this coop* rather than false. E019
+  contains this failure already — "hens start at hunger 0.30, which **is** the
+  equilibrium; the metric was a coin flip". Measure the ceiling: a hand-written
+  near-optimal forager, or a hen with the food channel wired straight to approach, against
+  the reflex baseline. If the gap is small, the environment needs changing before any rule
+  is tested again. Cheap, and this project's own rule says a null is only informative if
+  the instrument could have shown a positive.
+- ~~**E110 — a postsynaptic factor with a direction of its own.**~~ **Done, and null.**
   [E109](experiments/E109-what-the-rule-writes.md) measured `dz_motor` at cosine 0.98 to
   the reflex arc's own deviation (0.99 where the update lands), so the readout can only
   ever add more of what the arc already does. The direct consequence is a rule whose

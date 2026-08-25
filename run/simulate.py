@@ -131,7 +131,8 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
         pred_err = sensing.observability(w, cfg) * (obs - drives.predicted)
         ps = plasticity.update_traces(
             ps, neurons.rate(x), motor,
-            plasticity.reward(w, w_next, cfg, pc), cfg, pc, pred_err)
+            plasticity.reward(w, w_next, cfg, pc), cfg, pc, pred_err,
+            plasticity.postsynaptic_signal(motor, drives, p, pc))
 
     if not pc.enabled:
         return (w_next, x, p, ps, key), (motor, obs, jnp.zeros(()), mags)
@@ -146,7 +147,9 @@ def _one_step(carry, _, cfg: CoopConfig, pc: PlasticConfig):
     # With `pred_enabled` the traces were already advanced above, so advancing them
     # again here would double-step them. Only the non-pred path needs it now.
     if not pc.pred_enabled:
-        ps = plasticity.update_traces(ps, r, motor, reward, cfg, pc, None)
+        ps = plasticity.update_traces(
+            ps, r, motor, reward, cfg, pc, None,
+            plasticity.postsynaptic_signal(motor, drives, p, pc))
 
     # Reward prediction error, averaged over the window since the last consolidation
     # (E067), not the instantaneous value at this step. `ps.m_acc` accumulates every
