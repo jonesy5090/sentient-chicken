@@ -217,6 +217,16 @@ def main() -> None:
     ap.add_argument("--sensory-lateral", type=float, default=0.0,
                     help="strength of the pooled interneuron at the sensory relay "
                          "(E104). 0.0 is the shipped default")
+    ap.add_argument("--hebbian-readout", action="store_true",
+                    help="use the unsupervised readout rule (E055) instead of the "
+                         "reward-modulated one. EVERY arm of E100-E106 ran with this "
+                         "on, together with --readout-scaling 0.3, so a recording "
+                         "meant to show one of those results needs both -- without "
+                         "them the recording is of a different rule from the one the "
+                         "numbers came from. E113 caught exactly that on E106's.")
+    ap.add_argument("--readout-scaling", type=float, default=0.0,
+                    help="synaptic scaling on W_out (E055 follow-up). 0.3 is what the "
+                         "E100-E106 arms used; 0.0 is the shipped default")
     args = ap.parse_args()
 
     cfg = spec.DEFAULT_COOP._replace(
@@ -226,7 +236,9 @@ def main() -> None:
         cfg = cfg._replace(contamination_enabled=True, place_cells_enabled=True)
     if args.hawk_period is not None:
         cfg = cfg._replace(hawk_period_s=args.hawk_period)
-    pc = plasticity.PlasticConfig(enabled=args.plastic)
+    pc = plasticity.PlasticConfig(
+        enabled=args.plastic, hebbian_readout=args.hebbian_readout,
+        readout_scaling_strength=args.readout_scaling)
     key = jax.random.key(args.seed)
 
     record_and_save(key, cfg, pc, args.minutes, args.fps, args.seed,

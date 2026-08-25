@@ -108,12 +108,131 @@ this reproduces E102's TURN_R/TURN_L/PECK signature before anything is concluded
 
 ## 6. Result
 
-*To be filled after the run.*
+**Three seed blocks, not one.** Blocks 1 and 2 gave opposite verdicts on the
+pre-registered primary, which is the E021 pattern exactly, so a third was run before
+anything was concluded.
+
+### 6a. The instrument — matched in all three blocks
+
+| block | mean gate: true / permuted / uniform |
+|---|---|
+| 0–7 | 0.8009 / 0.7979 / 0.8009 |
+| 8–15 | 0.7993 / 0.7958 / 0.7993 |
+| 16–23 | 0.8187 / 0.8183 / 0.8187 |
+
+All within 0.02. The comparison is a comparison of *structure*, not of level.
+
+**One imprecision found and fixed between blocks.** In block 1 the `none` arm ran with the
+gate switched off entirely (multiplier 1.0) while the probe reported the 0.982 the gate
+*would* have had. A 1.8% mismatch that flattered the true arm. Blocks 2 and 3 run `none`
+with `bg_gate` on and `W_str` zeroed, so it really is 0.982. It does not touch the
+selectivity contrast, which never involves that arm.
+
+### 6b. E102's signature reproduces exactly, three times
+
+| block | TURN_R | TURN_L | PECK | SCRATCH | FORWARD |
+|---|---|---|---|---|---|
+| 0–7 | 0.231 | 0.266 | 0.326 | 0.922 | 0.920 |
+| 8–15 | 0.222 | 0.286 | 0.291 | 0.919 | 0.925 |
+| 16–23 | 0.254 | 0.315 | 0.448 | 0.926 | 0.951 |
+
+The same three channels closed, the rest spared, on three disjoint seed blocks. E102's
+description of *what* is learned is not in doubt.
+
+### 6c. The headline — and my predictions were wrong
+
+| contrast (caught/dive) | block 0–7 | 8–15 | 16–23 | **pooled** (post-hoc) |
+|---|---|---|---|---|
+| true vs none (E102's main effect) | t=−1.72 | t=−2.68 | t=−2.10 | **−0.0679 ± 0.0179, z=−3.80** |
+| **permuted vs none** | t=−1.25 | t=−0.23 | t=−0.61 | **−0.0168 ± 0.0152, z=−1.10** |
+| **uniform vs none** | t=+0.96 | t=+1.22 | t=−0.22 | **+0.0186 ± 0.0165, z=+1.13** |
+| **true vs permuted** *(selectivity)* | t=−0.89 | **t=−4.12** | t=−1.72 | **−0.0554 ± 0.0126, z=−4.40** |
+| true vs uniform | t=−5.74 | t=−3.00 | t=−3.45 | **−0.0774 ± 0.0111, z=−7.00** |
+
+**Prediction 1 was wrong.** I predicted a permuted gate would reproduce most of the
+benefit. It reproduces **almost none** of it: permuted-vs-none is −0.017 pooled (z=−1.10),
+against the true gate's −0.068. Scrambling *which* channel gets which learned value
+destroys roughly three quarters of the effect.
+
+**Prediction 2 was wrong.** I predicted a uniform gate matched in level would do about as
+well. It does **nothing at all** — pooled +0.019, if anything slightly worse than no gate.
+
+**Prediction 3 was wrong, and it was the mundane explanation.** "Suppressing anything that
+competes with locomotion helps, because `mobility = 1 − crouch`" predicts the uniform arm
+should work. It does not. A blanket 20% suppression that raises average mobility gives no
+benefit; a *spiky* one does.
+
+**Prediction 4 is the branch we are in** — with an important qualification.
+
+### 6d. What the pre-registered rule actually says
+
+§4 required the true gate to beat both controls by more than 2 SE. Against uniform it does
+so in **all three blocks**. Against permuted it does so in **one of three**.
+
+So by the rule as written, on a per-block basis, **selectivity is not established** — that
+was the verdict the script printed for blocks 1 and 3. The inverse-variance pooled estimate
+across all 24 seeds is −0.0554 ± 0.0126 (z=−4.40), which is decisive, but **pooling was
+not pre-registered** and is recorded as post-hoc, following E030's precedent for exactly
+this situation. All three block estimates share the same sign and the spread is what
+8-seed blocks do.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**E102's selectivity claim survives its first real control, better than I expected, and
+not cleanly.**
+
+Two things are now separable and both are established:
+
+1. **Structure is necessary.** A gate matched in mean level but flat across channels gives
+   no benefit whatsoever — pooled +0.019, z=+1.13, in the wrong direction. The benefit is
+   not "suppress the arc a bit". Robust across all three blocks.
+2. **The assignment carries most of the benefit.** A gate with the *same learned values*
+   attached to the *wrong channels* recovers only about a quarter of the effect (−0.017
+   against −0.068). Pooled, the true gate beats it at z=−4.40; per block, at the
+   pre-registered bar, in one of three.
+
+**So E107's concern was right about the evidence and wrong about the conclusion.** The
+untrained-brain control genuinely was inert by construction and genuinely carried no
+information — that stands. But the claim it was offered in support of turns out to be
+approximately true anyway, for reasons nobody had tested. This is the second time in this
+session an unverified reinterpretation has been partly overturned by measuring it, and it
+is why the red-team skill's central rule is verification rather than adoption.
+
+**What is still not established**, and E102 asserts it: that she learned to suppress *the
+behaviours that blind her*. E113 shows the learned assignment beats a random one. It does
+not show the benefit runs through `head_down` specifically, and a test that did would need
+to break the head-down link while holding the gate fixed. The narrower claim — **a learned,
+structured, channel-specific gate outperforms both a scrambled and a flat one** — is what
+the data support.
+
+**Against E109, this is consistent and worth stating.** E109 found the additive readout
+confined to the reflex arc's own direction, and noted that the two interventions that ever
+changed behaviour were both multiplicative. E113 sharpens that: the multiplicative gate is
+not merely *able* to redirect behaviour, it demonstrably *does* — its learned channel
+assignment is worth about three quarters of its own effect. **The one place in this project
+where learning produces a structured, behaviourally effective policy is the one place the
+update is not confined to `dz_motor`'s direction.**
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**No code changes.** Controls built from a reared `W_str` in a probe script.
+
+**`docs/hypothesis.md`.** H2b records that E101/E102's selectivity claim has now been
+controlled: the untrained-brain interaction was empty (E107) and is withdrawn as evidence,
+and it is replaced by the permuted and uniform controls, with the per-block/pooled split
+stated. E102's "she learned to suppress what blinds her" is narrowed to "the learned
+assignment beats a scrambled one"; the head-down mechanism is marked untested.
+
+**Not adopted.** The stronger reading of E102, and any use of the untrained-brain
+interaction as evidence for anything.
+
+### Follow-ups
+
+1. **The head-down test.** Break the `peck/scratch → head_down` link while holding the
+   learned gate fixed. If the benefit survives, the story is wrong even though the
+   selectivity is real.
+2. **A fourth block, if this matters enough.** One of three blocks meeting the
+   pre-registered bar is not comfortable, and 8 seeds is where this project has been
+   burned repeatedly.
+3. **The trained-flock mute** (backlog §5, open since E032) remains the oldest untouched
+   item.
