@@ -871,8 +871,21 @@ new home.
 
 ## 8. Open items from experiments
 
-- **E111 — is a positive result reachable in this environment at all? This gates
-  everything else.** [E110](experiments/E110-postsynaptic-factor.md) closed the fifth and
+- **E112 — wire `IDX_FOOD_ARRIVAL` to `M_PECK`, and re-ask H2 against the repaired
+  baseline.** [E111](experiments/E111-is-there-headroom.md) measured the reflex hen
+  pecking **39.65% of the time she is on food against 59.59% when she is not** — the peck
+  reflex is keyed to a vision channel reading 0.9100 on food and 0.9430 away. The channel
+  that would tell her, `IDX_FOOD_ARRIVAL`, exists and carries the fact at AUC 0.87–0.99;
+  it is wired to the food *call* and not to the peck. This is a **fix to the innate arc,
+  not to learning**, and it must be pre-registered as one: it moves every baseline in the
+  project. The interesting question is what happens afterwards — if repairing her closes
+  most of the 0.21 gap, then what ten experiments were asking learning to discover was a
+  defect in the hand-written wiring, which is a different and more uncomfortable finding
+  than any of the five mechanisms.
+- ~~**E111 — is a positive result reachable in this environment at all?**~~ **Done.
+  There is: 0.21–0.23 hunger units, replicated at t≈7.** The environment is not the
+  excuse, and the nulls are about the rule. Target recorded: camped-oracle hunger
+  **0.4223**, reflex **0.6332**. [E110](experiments/E110-postsynaptic-factor.md) closed the fifth and
   last mechanistic explanation for H2's null, and left a number worth staring at: hunger
   equilibrates at **~0.63 in every arm, including a frozen readout that cannot learn**.
   If a reflex-only hen is already near the achievable optimum, then no learning rule can
