@@ -871,7 +871,17 @@ new home.
 
 ## 8. Open items from experiments
 
-- **The head-down test** — the one part of E102's story
+- **Why turning specifically?** [E114](experiments/E114-does-the-gate-work-through-vigilance.md)
+  showed the gate's benefit is carried by turn suppression, not vigilance, and the obvious
+  reading — straighter travel out of the strike radius — is untested. Path straightness and
+  time-from-hawk-onset-to-leaving-the-radius would settle it, and both are cheap.
+- **The rule cannot stop at the useful channels.** E114 measured the learned gate
+  underperforming a hand-lesioned version of itself by −0.064/−0.072, because the
+  incidental 1–8% suppression it adds to the other nine channels costs back about half the
+  gain. Whether a sparser update or a threshold on the striatal drive recovers that is the
+  first mechanism this project would be proposing against a **measured** deficit rather
+  than a suspected one.
+- ~~**The head-down test**~~ **Done (E114): refuted.** — the one part of E102's story
   [E113](experiments/E113-permuted-gate-control.md) could not establish. E113 showed the
   learned gate's channel assignment beats a scrambled one (pooled z=−4.40) and a flat one
   (z=−7.00), so selectivity is real. It did **not** show the benefit runs through

@@ -174,7 +174,8 @@ def observe(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     # --- Overhead channel, gated by posture ---
     d_hawk = jnp.linalg.norm(w.pos - w.hawk_pos[None, :], axis=-1)
     aerial = jnp.clip(1.0 - d_hawk / cfg.vision_range, 0.0, 1.0) * w.hawk_on
-    aerial = aerial * (1.0 - w.head_down)        # <-- the vigilance/foraging trade-off
+    # `head_down_blinds` (E114) scales the whole gate; 1.0 is the shipped model.
+    aerial = aerial * (1.0 - cfg.head_down_blinds * w.head_down)
 
     # --- Interoception ---
     d_hens = jnp.linalg.norm(w.pos[:, None, :] - w.pos[None, :, :], axis=-1)
@@ -270,4 +271,8 @@ def observability(w, cfg: CoopConfig = spec.DEFAULT_COOP) -> jax.Array:
     """
     h = cfg.n_hens
     mask = jnp.ones((h, spec.OBS_DIM))
-    return mask.at[:, spec.IDX_AERIAL].set(1.0 - w.head_down)
+    # Kept consistent with the aerial gate above (E114): if a head-down hen can
+    # still see the sky, the mask must not tell the prediction pathway she could
+    # not, or `W_pred` trains on a censoring that did not happen.
+    return mask.at[:, spec.IDX_AERIAL].set(
+        1.0 - cfg.head_down_blinds * w.head_down)
