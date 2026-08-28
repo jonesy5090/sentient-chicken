@@ -343,6 +343,17 @@ class CoopConfig(NamedTuple):
     # signal that is still underneath it -- measured at direction stability 0.7443 for
     # the motor stub and 0.7164 for the pallium, against 0.99 as built.
     recurrent_lateral: float = 0.0
+    # How much a head-down posture blinds her to the sky (E114). **Defaults to 1.0, not
+    # 0.0**, because unlike every other flag here it DISABLES an existing mechanism
+    # rather than adding one: 1.0 is the shipped model and the inertness condition.
+    #
+    # It exists to test E102's asserted mechanism. That experiment claimed the learned
+    # gate "suppresses the behaviours that blind her", but `HEAD_DOWN_ACTIONS` is
+    # (M_PECK, M_SCRATCH) -- turning does not blind her at all -- and the gate closes
+    # both turn channels while sparing scratch. Setting this to 0.0 severs
+    # `head_down`'s effect on perception so the gate's benefit can be measured with
+    # vigilance taken out of the picture.
+    head_down_blinds: float = 1.0
     food_regrow_s: float = 300.0        # seconds for an empty patch to refill
     huddle_warm_rate: float = 4.0e-4  # per second, per flockmate within huddle_radius
     huddle_max: int = 3               # a hen needs 2-3 close neighbours to stay warm
