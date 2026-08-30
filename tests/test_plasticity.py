@@ -1338,3 +1338,65 @@ def test_the_loop_runs_pallium_to_striatum_to_pallidum_to_motor():
                      (regions.PALLIDUM, regions.MOTOR)):
         assert (block(src, dst) <= 0).all(), (
             f"{src} -> {dst} must be inhibitory, or selection is not disinhibition")
+
+
+# --- E116: generational selection -----------------------------------------
+
+
+def test_evolution_fitness_terms_are_commensurate():
+    """Neither half of fitness may swamp the other.
+
+    The first version of `evolve.fitness` used `strike_penalty * n_strike_events`, whose
+    spread is ~1000x the drives' — fitness was predation and nothing else. That is
+    E019's "the reward is 87% n_struck" in a new place. This asserts the calibrated
+    version keeps both terms in play, on synthetic values at the measured scales.
+    """
+    from run import evolve
+    evo = evolve.EvoConfig()
+    rng = np.random.default_rng(0)
+    drives = rng.normal(1.0035, 0.0745, 4096)      # measured, 10-min lifetime
+    caught = rng.normal(1.2292, 0.7427, 4096)
+    f = -drives - evo.caught_weight * caught
+    share = abs(np.cov(evo.caught_weight * caught, f)[0, 1] / f.var())
+    assert 0.2 < share < 0.8, (
+        f"predation is {100*share:.0f}% of fitness variance; neither term may dominate")
+
+
+def test_mutation_cannot_flip_a_neurons_sign():
+    """Dale's law binds evolution exactly as it binds learning.
+
+    There is no reason mutation should be allowed to turn an inhibitory neuron
+    excitatory when `consolidate` is forbidden from it.
+    """
+    from run import evolve
+    p = connectome.build(jax.random.key(41), regions.DEFAULT_REGIONS, n_hens=4)
+    mutated = evolve._mutate(p, jax.random.key(42), sigma=5.0)   # violently
+    dale = np.asarray(p.dale)
+    w = np.asarray(mutated.W)
+    for sign, name in ((1, "excitatory"), (-1, "inhibitory")):
+        cols = np.where(dale == sign)[0]
+        vals = w[:, :, cols]
+        assert (vals * sign >= -1e-6).all(), (
+            f"mutation flipped the sign of an {name} neuron's outgoing weights")
+    assert not bool(jnp.array_equal(mutated.W, p.W)), "mutation did nothing"
+
+
+def test_the_unselected_control_is_matched_except_for_selection():
+    """The control must differ in one thing: whether fitness is consulted.
+
+    Same population size, same number of parents, same mutation. If the control drew a
+    different number of parents or skipped mutation, any difference between arms would
+    be confounded with mutation load rather than attributable to selection.
+    """
+    from run import evolve
+    p = connectome.build(jax.random.key(43), regions.DEFAULT_REGIONS, n_hens=16)
+    scores = jnp.asarray(np.random.default_rng(1).normal(size=16))
+    sel, sel_parents = evolve._breed(p, scores, jax.random.key(44),
+                                     evolve.EvoConfig(select=True))
+    ctl, ctl_parents = evolve._breed(p, scores, jax.random.key(44),
+                                     evolve.EvoConfig(select=False))
+    assert sel.W.shape == ctl.W.shape == p.W.shape
+    assert len(np.unique(np.asarray(sel_parents))) == len(np.unique(np.asarray(ctl_parents)))
+    # Selection must actually pick the best; the control must not.
+    best = int(jnp.argmax(scores))
+    assert best in np.asarray(sel_parents), "selection did not choose the fittest hen"

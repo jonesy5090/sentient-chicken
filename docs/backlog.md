@@ -871,7 +871,23 @@ new home.
 
 ## 8. Open items from experiments
 
-- **THE STRATEGIC QUESTION, now live rather than rhetorical.**
+- **Where does standing variation come from? This is now the binding constraint.**
+  [E116](experiments/E116-generational-selection.md) found that a flock built by
+  `connectome.build` has fitness repeatability of **~0** — a hen's score carries no
+  information about her brain — and that amplifying between-hen variation 2.7× takes it to
+  **+0.473**. With variation supplied, selection produces the project's first replicated
+  behavioural improvement. Without it, no adaptive process can act, learning included.
+  **This is a question about how the founding population is built, not about search**, and
+  nobody has made it deliberately.
+- **Diversity collapse in the generational loop.** Truncation selection consumes standing
+  variation faster than σ=0.05 mutation replaces it: 12–13% of founding diversity by
+  generation 15, and all improvement happens by generation 3. Higher mutation, more
+  parents, or recombination — untested and cheap.
+- **Then the H0 ladder, on the substrate E116 built**: evolve flocks with an intact
+  channel against a yoked one. This is the experiment `run/evolve.py` exists for, and it
+  is the first route to H5.
+- ~~**THE STRATEGIC QUESTION, now live rather than rhetorical.**~~ **Answered by E116:
+  generational selection, and it works.**
   [E115](experiments/E115-a-real-basal-ganglia.md) tested the best-motivated structural
   hypothesis this project has had — that the missing subpallium was why the model cannot
   select actions — and it failed like the five before it. **Six explanations for H2's
