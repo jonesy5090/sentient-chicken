@@ -133,12 +133,155 @@ checks); mean pairwise weight distance (the diversity check).
 
 ## 6. Result
 
-*To be filled after the run.*
+### 6a. The instrument falsifier fired before the experiment ran — and diagnosing it is the finding
+
+§4 required fitness to be **heritable**: parent–offspring correlation above 0.1. Measured
+first, as §4 demanded, and it is **zero**.
+
+The cleanest form of the measurement takes the *same* connectomes through the *same*
+world twice, with only exploration noise differing, and correlates the two scores. That is
+the ceiling on heritability — if a hen's own score does not predict itself, it cannot
+predict her offspring's:
+
+| lifetime | repeatability, same world | across worlds |
+|---|---|---|
+| 300 s | **−0.063** | +0.127 |
+| 600 s | **−0.216** | −0.010 |
+| 1200 s | **+0.078** | −0.021 |
+
+**A hen's fitness carries no information about her brain.** It is where she happened to be
+when a hawk came, and which patch she reached first. Selecting the top 4 selects the lucky
+4 — and a first smoke test showed exactly that pathology, with selected lineages doing
+*worse* than random-parent controls, because selection concentrates luck while mutation
+degrades a tuned connectome.
+
+### 6b. Why — and it is not what I expected
+
+Two explanations fit: the varying part of the brain has no behavioural consequence, or the
+variation is too small. Amplifying the between-hen difference distinguishes them.
+
+| founder σ | `W_out` spread | **fitness repeatability** | hunger repeatability |
+|---|---|---|---|
+| 0.00 (as built) | 0.0485 | **−0.216** | 0.249 |
+| 0.05 | 0.0486 | 0.052 | 0.197 |
+| 0.50 | 0.0630 | −0.284 | −0.131 |
+| **2.00** | **0.1319** | **+0.473** | **+0.608** |
+
+**The variation is too small, not inconsequential.** At 2.7× the natural spread, fitness
+becomes strongly repeatable. The brain *can* determine the outcome; a flock straight out
+of `connectome.build` is simply too genetically uniform for selection to see anything.
+
+That is an ordinary population-genetics fact — **you cannot select without standing
+variation** — and it has never been checked here because nothing before E116 needed it.
+
+Also visible in that table and worth keeping: at natural variation, *hunger* is somewhat
+repeatable (0.249) while *fitness* is not (−0.216). **Adding the predation term destroys
+the signal the hunger term carries**, because predation is the luck-dominated half.
+
+### 6c. With standing variation, selection works — and it replicates
+
+`founder_sigma=2.0` at generation 0 only. 16 generations, 10-minute lifetimes, 4
+independent lineages per arm, two disjoint blocks.
+
+| | gen 0 | gen 3 | gen 9 | gen 15 |
+|---|---|---|---|---|
+| **block 1, selected** | 0.4959 | 0.4509 | 0.4511 | **0.4716** |
+| block 1, control | 0.4959 | 0.5039 | 0.5100 | 0.5075 |
+| **block 2, selected** | 0.4465 | 0.4236 | 0.4132 | **0.4206** |
+| block 2, control | 0.4465 | 0.4470 | 0.4546 | 0.4521 |
+
+| | selected improves | control changes | **selected − control** | vs the 2×SE bar |
+|---|---|---|---|---|
+| block 1 (lineages 0–3) | **+0.0243** | −0.0116 | **−0.0359 ± 0.0119** (t=−3.00) | 0.0238 — **clears** |
+| block 2 (lineages 4–7) | **+0.0259** | −0.0056 | **−0.0315 ± 0.0145** (t=−2.18) | 0.0290 — **clears** |
+
+**Both blocks clear the pre-registered bar**, and the two are strikingly consistent:
+improvements of +0.0243 and +0.0259, differences of −0.0359 and −0.0315. Selected lineages
+improve; unselected ones **degrade** under identical mutation load, which is the control
+doing its job.
+
+Neither block clears a conventional t-test — df=3 per block sets the threshold at 3.182,
+and 4 lineages is a thin design. Pooled across all 8 lineages (**post-hoc**, per E030's
+precedent, since pooling was not pre-registered): **−0.0341 ± 0.0092, t=−3.71, df=6**
+against 2.447.
+
+Prediction 1 holds — the first positive prediction I have made in this project, and it
+held. Prediction 2 holds: the control does not improve. Prediction 3 holds: it is a
+fraction of the available headroom, not the whole thing.
+
+### 6d. The search stalls, and the degeneracy falsifier nearly fires
+
+Population diversity — mean pairwise `|W_out|` distance — collapses from 0.132 to
+**0.0155–0.0176**, about **12–13% of its founding value**. §4's degeneracy bar was 10%, so
+it does not fire, but it is close, and it explains the shape of the result: essentially all
+of the improvement happens by generation 3 and the curve is flat after that. **Selection
+consumes the standing variation it needs, and mutation at σ=0.05 does not replace it fast
+enough.**
+
+### 6e. A comparison I should not make
+
+E111's references — reflex hen 0.6332, camped oracle 0.4223 — are measured over **30-minute**
+lifetimes. E116 runs **10-minute** ones, and hunger equilibrates upward over time, so
+E116's 0.4959 at generation 0 is not "better than E111's reflex hen". The two are not
+comparable and the script prints the E111 line in a way that invites exactly that error.
+**The only valid comparisons here are within E116**: selected against control, and
+generation 0 against generation 15.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**Selection across generations does something that within-lifetime learning has never
+done in this project: it produces a replicated behavioural improvement over a matched
+control.** It is small — about 0.025 hunger units over 16 generations — and it required
+a change nobody had thought to make.
+
+**The change is the real finding.** For 116 experiments this project has assumed that a
+flock built by `connectome.build` is a population. It is not, in the sense selection
+needs: the between-hen variation it produces is so small that a hen's fitness is
+uncorrelated with her own brain. **Repeatability ~0 means no adaptive process — learning
+or selection — can act on individual differences**, because there are no individual
+differences that reach behaviour.
+
+That connects to the rest of the tree rather than sitting apart from it. E107 measured
+every hen's cortical output as a fixed direction; E109 measured the readout's update as
+confined to the reflex arc's own direction; E110 found learning does not beat a frozen
+readout. **All 16 hens share the reflex arc, the reflex arc determines behaviour, and the
+part that differs between them barely reaches the muscles.** E116 is the same fact from
+the population's side.
+
+**What it does not show.** That evolution solves H2. The improvement captures a small
+fraction of what a hand-written policy achieves, it plateaus after three generations as
+diversity collapses, and it needed founder variation supplied artificially rather than
+arising from the model. The honest claim is narrow: **given standing variation, selection
+finds improvements that learning does not — and the binding constraint is now the
+variation, not the search.**
+
+**Why this matters for H0 rather than just H2.** `docs/backlog.md` §4 wants generational
+turnover for a different reason: a transmission bottleneck is what H5's compositional
+structure requires. E116 says the machinery works and names its prerequisite. Any future
+ladder that evolves flocks with an intact channel against a yoked one now has a working
+substrate — and a known first question, which is where the standing variation comes from.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**New module `run/evolve.py`.** No existing default changes and nothing that runs today is
+touched; plasticity is off throughout, which is the point. Three guard tests: fitness
+terms commensurate, Dale's law binding on mutation exactly as it binds on learning, and
+the unselected control matched in everything but selection.
+
+**`docs/hypothesis.md`.** H2 records that the missing ingredient for any adaptive process
+is standing variation that reaches behaviour, measured at repeatability ~0 for a
+naturally-built flock. H0 records that generational machinery exists and works.
+
+**Not adopted.** Any claim that evolution solves foraging here, or that E116's numbers are
+comparable to E111's.
+
+### Follow-ups
+
+1. **Where does standing variation come from?** This is now the binding constraint, and it
+   is a question about `connectome.build` rather than about search. A flock whose hens
+   differ enough to be selectable is a modelling decision nobody has made deliberately.
+2. **Diversity collapse.** σ=0.05 mutation does not replace what truncation selection
+   consumes; improvement stops at generation 3. Higher mutation, more parents, or
+   recombination — untested, and cheap.
+3. **Then the H0 ladder**: evolve flocks with an intact channel against a yoked one. That
+   is the experiment this module was built for, and E116 says the substrate works.
