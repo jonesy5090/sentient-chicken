@@ -411,7 +411,7 @@ why the recurrent gain had to be tuned to two decimal places.
 
 | missing | what it does in a chicken | has it cost us? |
 |---|---|---|
-| **basal ganglia** (striatum, pallidum) | selects among competing actions; the classic substrate for exactly the "which behaviour now" problem this project keeps failing at | **Yes, and this is the sharpest gap.** E102 added a "basal-ganglia gate" that is a weight matrix hung off the motor stub — a striatal *function* with no striatal *population*, no pallidum, no tonic inhibition, no loop back through the thalamus |
+| ~~**basal ganglia** (striatum, pallidum)~~ **built by [E115](docs/experiments/E115-a-real-basal-ganglia.md), off by default** | selects among competing actions | **Built, and it changed nothing.** Real populations — GABAergic throughout, tonically active pallidum, inhibitory collaterals, selection by disinhibition, and a second build with parallel-channel topography. Motor-stub direction stability stayed at **0.9998 in every arm**; entropy and behaviour unmoved. `striatum=0, pallidum=0` by default; `Regions(striatum=64, pallidum=32)` builds it |
 | **dopaminergic midbrain** (VTA/SNc) | computes and broadcasts the reward-prediction error | **Yes.** The neuromodulator `m` is a scalar computed in `plasticity.py`, not a population. There is no circuit that could learn to represent value, only an oracle that hands one over |
 | **thalamus** (rotundus, ovoidalis) | relays and gates every sensory route to the forebrain | Probably. Afferents go straight into the sensory stub, so there is no stage at which attention or gating could act |
 | **cerebellum** | coordination, and forward models of one's own movement | Not yet — the coop is simple enough that `actuation.py` suffices. It would matter for any prediction-of-consequences work |
@@ -423,9 +423,9 @@ why the recurrent gain had to be tuned to two decimal places.
 **The honest summary.** Of six regions, two are stubs standing in for structures that
 hold most of a real chicken's neurons, one is idle unless a flag is set, one has never
 been used for anything, and the two that carry the work are the pallium and the
-hypothalamus. **The subpallium is absent entirely** — and the basal ganglia are the part
-of a real brain that does action selection, which is precisely the capability
-[E109](docs/experiments/E109-what-the-rule-writes.md) measured this model as lacking.
+hypothalamus. ~~**The subpallium is absent entirely** — and the basal ganglia are the part~~
+~~of a real brain that does action selection, which is precisely the capability~~
+~~[E109](docs/experiments/E109-what-the-rule-writes.md) measured this model as lacking.~~ **Built and tested by [E115](docs/experiments/E115-a-real-basal-ganglia.md): it made no measurable difference to selection or to behaviour. The anatomy gap was real and was not the reason.**
 
 ---
 
