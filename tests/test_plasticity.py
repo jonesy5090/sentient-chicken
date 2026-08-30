@@ -1241,3 +1241,100 @@ def test_the_repair_does_not_touch_the_learned_pathway():
     assert bool(jnp.array_equal(a.W, b.W))
     assert bool(jnp.array_equal(a.W_in, b.W_in))
     assert not bool(jnp.array_equal(a.reflex, b.reflex))
+
+
+# --- E115: the subpallium -------------------------------------------------
+
+
+def test_subpallium_is_absent_by_default_and_motor_stays_last():
+    """Both guards in one: size 0 at the default, and motor is the final region.
+
+    The ordering matters because `brain.step` reads the readout's presynaptic
+    population as `rate(x)[:, -n_motor:]`. Appending the subpallium after motor would
+    have pointed the readout at the pallidum, and it would have been invisible at the
+    default where both regions are empty -- the class of bug that survives because the
+    guard runs where it cannot appear.
+    """
+    default = regions.DEFAULT_REGIONS
+    assert default.striatum == 0 and default.pallidum == 0
+    assert default.total == 512
+    big = regions.Regions(striatum=64, pallidum=32)
+    assert big.bounds(regions.MOTOR)[1] == big.total, (
+        "the motor stub must end at N, or the readout reads the wrong population")
+    assert big.bounds(regions.STRIATUM)[1] <= big.bounds(regions.MOTOR)[0]
+
+
+def test_the_subpallium_is_gabaergic_and_the_rest_is_not():
+    """Striatum and pallidum 100% inhibitory; every other region still 80/20.
+
+    E022's bug was whole regions coming out one sign by accident, from E/I assigned by
+    flat index. This asserts the deliberate version and, just as importantly, that it
+    did not leak into the regions that must stay mixed.
+    """
+    reg = regions.Regions(striatum=64, pallidum=32)
+    p = connectome.build(jax.random.key(31), reg, n_hens=2)
+    dale = np.asarray(p.dale)
+    for r_id in (regions.STRIATUM, regions.PALLIDUM):
+        lo, hi = reg.bounds(r_id)
+        assert (dale[lo:hi] < 0).all(), f"region {r_id} must be entirely inhibitory"
+    for r_id in (regions.SENSORY, regions.PALLIUM, regions.HIPPOCAMPUS,
+                 regions.ARCOPALLIUM, regions.HYPOTHALAMUS, regions.MOTOR):
+        lo, hi = reg.bounds(r_id)
+        frac = float((dale[lo:hi] > 0).mean())
+        assert 0.6 < frac < 0.95, (
+            f"region {r_id} came out {frac:.2f} excitatory -- E022's bug, again")
+
+
+def test_pallidum_is_tonically_active_and_striatum_is_not():
+    """The circuit's whole point, asserted rather than left in a comment.
+
+    A pallidum that does not fire at rest holds nothing under inhibition, so there is
+    nothing for a striatal burst to release, and the loop is two ordinary populations
+    wearing anatomical names.
+    """
+    reg = regions.Regions(striatum=64, pallidum=32)
+    p = connectome.build(jax.random.key(32), reg, n_hens=4)
+    x = brain.initial_state(p, 4)          # membrane state at rest is `b`
+    r = np.asarray(jax.nn.sigmoid(x))
+    s_lo, s_hi = reg.bounds(regions.STRIATUM)
+    p_lo, p_hi = reg.bounds(regions.PALLIDUM)
+    striatal, pallidal = r[:, s_lo:s_hi].mean(), r[:, p_lo:p_hi].mean()
+    assert pallidal > 0.7, f"pallidum rests at {pallidal:.3f}; it must be tonically active"
+    assert striatal < 0.15, f"striatum rests at {striatal:.3f}; it must be near-silent"
+
+
+def test_the_loop_runs_pallium_to_striatum_to_pallidum_to_motor():
+    """Selection by disinhibition needs the projections to exist and to be signed.
+
+    Two inhibitory steps: striatum inhibits pallidum, pallidum inhibits motor. If
+    either link is missing or excitatory, a striatal burst suppresses the motor stub
+    instead of releasing it -- the opposite circuit.
+    """
+    reg = regions.Regions(striatum=64, pallidum=32)
+    p = connectome.build(jax.random.key(33), reg, n_hens=2)
+    w = np.asarray(p.W)[0]
+
+    def block(src, dst):
+        s_lo, s_hi = reg.bounds(src)
+        d_lo, d_hi = reg.bounds(dst)
+        return w[d_lo:d_hi, s_lo:s_hi]
+
+    for src, dst in ((regions.PALLIUM, regions.STRIATUM),
+                     (regions.STRIATUM, regions.PALLIDUM),
+                     (regions.PALLIDUM, regions.MOTOR)):
+        assert np.any(block(src, dst) != 0.0), f"no projection {src} -> {dst}"
+    # Predominantly excitatory, not exclusively. In a real brain the corticostriatal
+    # projection is made by pyramidal cells alone and carries no inhibition; here Dale
+    # is per-neuron and there is no separate class of projection neuron, so the
+    # pallium's 20% inhibitory cells project too. Special-casing this one pathway would
+    # make it the only sign-restricted long-range projection in the model, with no
+    # principle behind it, so the departure is recorded instead.
+    cortico = block(regions.PALLIUM, regions.STRIATUM)
+    exc_share = float((cortico > 0).sum() / max((cortico != 0).sum(), 1))
+    assert exc_share > 0.7, (
+        f"corticostriatal input is only {exc_share:.2f} excitatory; the striatum has to "
+        "be driven, not suppressed, or a burst can never happen")
+    for src, dst in ((regions.STRIATUM, regions.PALLIDUM),
+                     (regions.PALLIDUM, regions.MOTOR)):
+        assert (block(src, dst) <= 0).all(), (
+            f"{src} -> {dst} must be inhibitory, or selection is not disinhibition")
