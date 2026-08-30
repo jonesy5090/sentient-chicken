@@ -350,6 +350,85 @@ expectation and has its own open question.
 
 ---
 
+## The chicken brain, and how much of it we have actually built
+
+A bird brain is not a small mammal brain. It has no layered neocortex; the forebrain is
+organised as clusters of nuclei rather than sheets, and the tissue that does
+cortex-like work — the **nidopallium** and **mesopallium** — arrived at that job
+independently of ours. Everything below is the real structure first, then what this
+project has and has not built of it.
+
+### The real thing, by division
+
+**Forebrain (telencephalon).** The pallium holds the associative tissue: **nidopallium**
+and **mesopallium** for general-purpose processing, with primary sensory targets inside
+them — **entopallium** for vision (arriving from the optic tectum via the thalamic
+nucleus rotundus) and **Field L** for hearing (via nucleus ovoidalis). The
+**hyperpallium** or Wulst is a separate dorsal sheet handling a second visual route and
+somatosensation. The **arcopallium** is the forebrain's output stage, sending descending
+projections to the brainstem, with its posterior part serving as the amygdala homologue —
+fear and valence. The **hippocampal formation** sits medially and does space and memory.
+Beneath the pallium is the **subpallium**: the **striatum** and **pallidum**, the basal
+ganglia, which select among competing actions and are the target of dopamine from the
+midbrain.
+
+**Diencephalon.** The **thalamus** relays: rotundus for vision, ovoidalis for hearing.
+The **hypothalamus** holds the drive nuclei — hunger, thirst, temperature, reproduction —
+integrating over seconds to hours rather than milliseconds.
+
+**Midbrain.** The **optic tectum** is enormous in birds and retinotopic, with dedicated
+looming-sensitive cells; **MLd** is its auditory counterpart. The dopaminergic cells of
+**VTA/SNc** live here, and they are the physical substrate of a reward-prediction error.
+
+**Hindbrain.** The **cerebellum**, which is most of the neuron count, for coordination
+and forward models; the **brainstem** for the vocal and respiratory motor nuclei and for
+the noradrenaline and serotonin systems.
+
+**Not present in a chicken, and correctly absent here:** the telencephalic song nuclei
+(HVC, RA, LMAN, Area X). Those are a songbird specialisation. Chickens are vocal
+non-learners — Konishi's deafened chicks developed the normal repertoire — which is why
+this model hardwires call *production* and leaves usage and comprehension to plasticity.
+
+### What we have built
+
+Six regions, 512 neurons total (`hen/regions.py`), at roughly 10⁻⁵ scale:
+
+| region | size | real counterpart | what it does there | state here |
+|---|---|---|---|---|
+| **sensory** | 64 | optic tectum + entopallium/Field L | retinotopic vision, looming detection, auditory relay | **stub.** Receives the pre-computed 138-channel observation. Does no vision — `coop/sensing.py` computes bins and proximities analytically. E103 found its strictly-positive `W_in` buries situation in a common signal |
+| **pallium** | 256 | nidopallium + mesopallium | associative processing, the "cortex" | **built and plastic.** Densely recurrent, where the learned readout reads from. The only region learning genuinely shapes |
+| **hippocampus** | 80 | hippocampal formation | place, spatial memory | **built, idle by default.** Wired in the connectivity matrix, but nothing routes place information to it unless `place_to_hippocampus` is on (E086) |
+| **arcopallium** | 48 | arcopallium / posterior amygdala | descending motor output, fear and valence | **allocated but functionally anonymous.** It has a strong structural projection to motor (0.25, the "fear shortcut") and no fear-specific input, no code reads it by name, and no experiment has ever tested it |
+| **hypothalamus** | 16 | hypothalamic drive nuclei | hunger, thirst, temperature | **built.** Receives the interoceptive channels; runs at τ = 2 s against 0.05 s elsewhere, the only slow state in the brain |
+| **motor** | 48 | cerebellum + brainstem motor | coordination, forward models | **stub.** The 48 units the readout projects from. `coop/actuation.py` does the actual movement. Not a cerebellum in any structural sense |
+
+Excitation and inhibition are mixed **within** every region at 80/20, matching the
+roughly 20–30% GABAergic fraction of real avian pallium. That was not true until E022,
+and the bug — E/I assigned by flat array index, leaving the pallium 100% excitatory — is
+why the recurrent gain had to be tuned to two decimal places.
+
+### What is missing, and which gaps have bitten
+
+| missing | what it does in a chicken | has it cost us? |
+|---|---|---|
+| **basal ganglia** (striatum, pallidum) | selects among competing actions; the classic substrate for exactly the "which behaviour now" problem this project keeps failing at | **Yes, and this is the sharpest gap.** E102 added a "basal-ganglia gate" that is a weight matrix hung off the motor stub — a striatal *function* with no striatal *population*, no pallidum, no tonic inhibition, no loop back through the thalamus |
+| **dopaminergic midbrain** (VTA/SNc) | computes and broadcasts the reward-prediction error | **Yes.** The neuromodulator `m` is a scalar computed in `plasticity.py`, not a population. There is no circuit that could learn to represent value, only an oracle that hands one over |
+| **thalamus** (rotundus, ovoidalis) | relays and gates every sensory route to the forebrain | Probably. Afferents go straight into the sensory stub, so there is no stage at which attention or gating could act |
+| **cerebellum** | coordination, and forward models of one's own movement | Not yet — the coop is simple enough that `actuation.py` suffices. It would matter for any prediction-of-consequences work |
+| **optic tectum proper** | retinotopic vision, looming | Deliberately: this is the budget argument the whole project rests on |
+| **hyperpallium (Wulst)** | second visual route, somatosensation | No |
+| **septum, habenula, olfactory bulb** | social behaviour, negative reward, smell | Not tested |
+| **noradrenaline / serotonin systems** | arousal, mood, behavioural state | Not tested. There is no state variable that changes how the whole brain behaves |
+
+**The honest summary.** Of six regions, two are stubs standing in for structures that
+hold most of a real chicken's neurons, one is idle unless a flag is set, one has never
+been used for anything, and the two that carry the work are the pallium and the
+hypothalamus. **The subpallium is absent entirely** — and the basal ganglia are the part
+of a real brain that does action selection, which is precisely the capability
+[E109](docs/experiments/E109-what-the-rule-writes.md) measured this model as lacking.
+
+---
+
 ## What's built, what's a stand-in, and what's still to learn
 
 "Innate" gets used for three different things in this codebase, and the difference
