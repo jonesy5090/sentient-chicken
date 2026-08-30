@@ -156,12 +156,123 @@ output across channels; hunger and `caught/dive`; the full ethogram.
 
 ## 6. Result
 
-*To be filled after the run.*
+8 seeds, 16 hens, 30 min rearing. `scratchpad/e115_basal_ganglia.py`.
+`N` goes 512 → 608 when the subpallium is present.
+
+### 6a. The circuit is present and does what a basal ganglia does structurally
+
+| arm | striatum | pallidum | motor rate | stub stability | entropy |
+|---|---|---|---|---|---|
+| plain, frozen | — | — | 0.6369 | 0.9998 | 0.8034 |
+| plain, learning | — | — | 0.6352 | 0.9998 | 0.7921 |
+| **subpallium (random loop)** | 0.1728 | 0.6385 | **0.4304** | **0.9996** | 0.8019 |
+| **subpallium (topographic)** | 0.1705 | **0.7534** | **0.5809** | **0.9998** | 0.8026 |
+
+**Prediction 2 holds.** The motor stub is materially more suppressed with the loop
+present — 0.6369 → 0.4304 — which is tonic pallidal inhibition arriving exactly as
+described. The unit tests confirm the resting states are right: striatum 0.018, pallidum
+0.82, both regions entirely GABAergic, and the two inhibitory links present and correctly
+signed.
+
+**My manipulation falsifier fired, and it was mis-specified.** §4 demanded pallidal rate
+above 0.7 and striatal below 0.15. I wrote those as *resting* values and then measured
+them in a **running** flock, where the pallidum is being inhibited by the striatum and the
+striatum is being driven by the pallium — which is the circuit working, not failing. The
+resting values are asserted by `test_pallidum_is_tonically_active_and_striatum_is_not` and
+pass. This is the same class of error as E114's floored metric: a falsifier written
+without asking what regime it would be evaluated in.
+
+### 6b. Topography, added because the first loop was wired at random
+
+The first build connected striatum → pallidum → motor at random density. That cannot
+select: releasing one striatal cell disinhibits a scattering of unrelated motor units, so
+a burst does not correspond to an action. A real basal ganglia is organised in **parallel
+channels**. `subpallium_channels=8` cuts both inhibitory links to block-diagonal, leaving
+the corticostriatal input fully mixed — the loop's job is to *sort* a mixed input into
+channels.
+
+It works as a manipulation: pallidal rate rises 0.6385 → **0.7534**, now clearing the bar,
+because each pallidal cell receives from 8 striatal cells rather than 64 and is less
+saturated by inhibition. Edge counts fall from 817 to 102 (striatum→pallidum) and 622 to
+68 (pallidum→motor).
+
+**And it changes nothing else.**
+
+### 6c. No selection, in either build
+
+- **Motor-stub direction stability is 0.9998 in every arm**, including both subpallium
+  builds — identical to the plain brain and to what
+  [E107](E107-red-team-review-2026-08-24.md) measured. Prediction 3 is **wrong**.
+- **Normalised entropy** across the 12 motor channels: 0.8034 plain, 0.8019 random loop,
+  0.8026 topographic. Unmoved.
+- **Behaviour**, paired against the plain brain: subpallium vs plain frozen −0.0067
+  (t=−0.51) then +0.0068 (t=+0.58) on hunger; −0.0085 (t=−0.61) then +0.0056 (t=+0.20) on
+  `caught/dive`. Nothing, in either build, in either direction.
+- **Learning on the subpallium**: hunger +0.0020 (t=+0.25) random, −0.0188 (t=−1.80)
+  topographic; `caught/dive` +0.0061 (t=+0.41) then −0.0345 (t=−1.28). The topographic
+  arm's signs are the encouraging ones and neither clears 2.365, on one seed block, with
+  six contrasts in the table — a Bonferroni threshold near 3.5. **Claimed as nothing.**
+
+Prediction 4 holds: no behavioural win, as stated in advance.
 
 ## 7. Interpretation
 
-*To be filled after the run.*
+**The primary falsifier's condition is met, and per §4 that is the answer rather than a
+prompt to keep tuning.** A structurally faithful subpallium — correct populations,
+GABAergic throughout, tonically active pallidum, inhibitory striatal collaterals, and in
+the second build the parallel-channel topography that makes disinhibition mean *this*
+action — adds nothing measurable to selection or to behaviour.
+
+**The missing-structure explanation is closed**, the way E110 closed the wrong-postsynaptic-factor
+one. It was the best-motivated hypothesis this project has had: the anatomy gap and the
+measured deficit lined up precisely, three separate experiments described a model that
+cannot select, and the one place the structure was half-built (E102) was the one place
+learning half-worked. It was still wrong.
+
+**The number that should be stared at**: motor-stub direction stability is **0.9998** in
+plain, in random-loop and in topographic builds, frozen and learning alike. Six arms here,
+and every arm of E107 before them. In this architecture the readout's input is a fixed
+direction, and adding 96 neurons of correctly-wired subpallium does not perturb it by one
+part in five thousand. Only [E106](E106-recurrent-inhibition.md)'s pooled interneuron ever
+moved it (to 0.9651), and that bought no behaviour either.
+
+**What E102's success was, then.** Not a basal ganglia. E113 and E114 already narrowed it:
+a *multiplicative* gate whose benefit is carried by turn suppression — a locomotion
+effect. E115 completes that demotion. Building the actual circuit that E102's gate was
+named after does not reproduce E102's benefit, which means the benefit never came from
+anything basal-ganglia-like. **The name was doing work the structure was not.**
+
+**Six explanations have now been proposed for H2's null and all six have failed.** Five
+were about the learning rule or the readout. This one was about the anatomy, which is a
+genuinely different kind of hypothesis, and it failed in the same way: the intervention
+did what it was designed to do, measurably, and behaviour did not follow.
 
 ## 8. Consequence
 
-*To be filled after the run.*
+**Adopted, off by default.** `striatum=0, pallidum=0` in `Regions`, so `N` stays 512 and
+every prior result is untouched; `subpallium_channels=0` in `connectome.build`. Inertness
+bit-identical, 15/15 digests. Not recommended: it costs 19% of the neuron budget and buys
+nothing measured.
+
+It stays in the tree because it is **correct anatomy that the model was missing**, because
+the guard tests encode the circuit's properties (tonic pallidum, GABAergic subpallium,
+correctly-signed loop) so a future build cannot get them wrong silently, and because
+deleting it would make this null unreproducible.
+
+**`docs/hypothesis.md`.** H2 records that the missing-structure explanation has been
+tested and closed. H2b records that E102's benefit is not basal-ganglia-like, completing
+the narrowing E113 and E114 began.
+
+**Not adopted.** Turning it on by default; any further tuning of this circuit; and the
+reading that "it would work with a thalamus / D1-D2 split / dopaminergic population". Each
+of those is a seventh mechanism, and the base rate is now six from six.
+
+### Follow-ups
+
+1. **The strategic question is now live rather than rhetorical.** Fixing the brain has
+   been tried, with the best-motivated structural hypothesis available, and it failed. The
+   two remaining routes are **generational selection** (`docs/backlog.md` §4, never
+   started, and the only route that reaches H5) and **writing up the null** — which
+   [E111](E111-is-there-headroom.md) made informative by proving the headroom is real.
+2. **The trained-flock mute** (backlog §5, open since E032) tests H0 rather than H2 and is
+   unaffected by any of this.

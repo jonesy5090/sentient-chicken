@@ -871,6 +871,23 @@ new home.
 
 ## 8. Open items from experiments
 
+- **THE STRATEGIC QUESTION, now live rather than rhetorical.**
+  [E115](experiments/E115-a-real-basal-ganglia.md) tested the best-motivated structural
+  hypothesis this project has had — that the missing subpallium was why the model cannot
+  select actions — and it failed like the five before it. **Six explanations for H2's
+  null, six failures**, and the sixth was different in kind. Fixing the brain has now been
+  tried. The two routes that remain are:
+  1. **Generational selection** (§4 above, never started). H0 does not require
+     within-lifetime plasticity — H4 is `SUPPORTED` and runs with it *off*. Evolving
+     connectomes across generations sidesteps the whole H2 arc, and the transmission
+     bottleneck it needs is what H5 requires anyway. **It is the only route that reaches
+     H5 at all.**
+  2. **Write up the null.** [E111](experiments/E111-is-there-headroom.md) made it
+     informative by proving the headroom is real (0.21 hunger units, t≈7, replicated), so
+     "this rule in this architecture cannot acquire a foraging policy, and here is what
+     six mechanisms ruled out" is a result rather than an absence of one.
+  Adding a seventh mechanism is not on this list. The base rate is six from six.
+
 - **Why turning specifically?** [E114](experiments/E114-does-the-gate-work-through-vigilance.md)
   showed the gate's benefit is carried by turn suppression, not vigilance, and the obvious
   reading — straighter travel out of the strike radius — is untested. Path straightness and

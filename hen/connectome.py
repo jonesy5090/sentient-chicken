@@ -54,6 +54,43 @@ class BrainParams(NamedTuple):
     dale: jax.Array       # (N,) +1 excitatory / -1 inhibitory
 
 
+def _topographic_subpallium(mask, reg: Regions, n_channels: int):
+    """Organise the subpallial loop into parallel channels (E115b).
+
+    E115's first build wired striatum -> pallidum -> motor at random. The circuit was
+    structurally correct -- GABAergic, tonically active pallidum, motor stub suppressed
+    from 0.637 to 0.430 exactly as predicted -- and it selected nothing: motor-stub
+    direction stability 0.9996 against a plain brain's 0.9998.
+
+    Random wiring is why. Releasing one striatal cell disinhibits a scattering of
+    unrelated motor units, so a burst cannot correspond to an action. A real basal
+    ganglia is organised in **parallel channels**: a striatal population maps to a
+    specific pallidal population maps to a specific motor target, and that topography is
+    what makes disinhibition mean "this action rather than that one".
+
+    So the two inhibitory links are cut to block-diagonal. Everything upstream --
+    pallium and sensory into striatum -- stays fully mixed, because the whole point is
+    that the loop *sorts* a mixed input into channels.
+    """
+    lo_s, hi_s = reg.bounds(regions.STRIATUM)
+    lo_p, hi_p = reg.bounds(regions.PALLIDUM)
+    lo_m, hi_m = reg.bounds(regions.MOTOR)
+    chan = np.zeros(mask.shape[0], dtype=np.int32) - 1
+    for lo, hi in ((lo_s, hi_s), (lo_p, hi_p), (lo_m, hi_m)):
+        width = hi - lo
+        chan[lo:hi] = (np.arange(width) * n_channels) // max(width, 1)
+    same = jnp.asarray(chan[:, None] == chan[None, :])
+    # Only the two inhibitory links are made topographic.
+    src = np.zeros(mask.shape[0], dtype=bool)
+    src[lo_s:hi_s] = True
+    src[lo_p:hi_p] = True
+    dst = np.zeros(mask.shape[0], dtype=bool)
+    dst[lo_p:hi_p] = True
+    dst[lo_m:hi_m] = True
+    loop = jnp.asarray(dst)[:, None] & jnp.asarray(src)[None, :]
+    return mask & (~loop | same)
+
+
 def _region_pools(reg: Regions, n: int) -> jax.Array:
     """The recurrent regions each get their own pooled inhibitory interneuron (E106).
 
@@ -148,6 +185,7 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
           gakel_peck_weight: float | None = None,
           hunger_peck_weight: float = 0.0,
           arrival_peck_weight: float = 0.0,
+          subpallium_channels: int = 0,
           shared_place_map: bool = False,
           testimony_gain: float = 0.5,
           balanced_ei: bool = False,
@@ -246,6 +284,9 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     # sprout onto the sensory stub however well correlated the two happen to be.
     growable = jnp.asarray(p_ij > 0.0) & ~jnp.eye(n, dtype=bool)
 
+    if subpallium_channels:
+        mask = _topographic_subpallium(mask, reg, subpallium_channels)
+
     if modality_segregated:
         mask = _segregate_modality(mask, reg, aud_fraction)
         growable = _segregate_modality(growable, reg, aud_fraction)
@@ -265,7 +306,13 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
     dale_np = np.empty(n, dtype=np.float32)
     for r_id, size in enumerate(reg.sizes):
         lo, hi = reg.bounds(r_id)
-        n_exc = int(round(regions.EXCITATORY_FRACTION * size))
+        # E115: the subpallium overrides the flock-wide 80/20. Striatum and pallidum
+        # are 100% inhibitory because both are GABAergic -- see `REGION_EXCITATORY`,
+        # which also records why this is the anatomy and not a recurrence of E022's
+        # indexing bug.
+        frac = regions.REGION_EXCITATORY[r_id]
+        frac = regions.EXCITATORY_FRACTION if frac is None else frac
+        n_exc = int(round(frac * size))
         signs = np.full(size, -1.0, dtype=np.float32)
         signs[:n_exc] = 1.0
         rng_dale.shuffle(signs)
@@ -471,7 +518,11 @@ def build(key: jax.Array, reg: Regions = regions.DEFAULT_REGIONS,
         lateral_pool=_lateral_pool(reg, n, place_to_hippocampus),
         region_pools=_region_pools(reg, n),
         pred_src=pred_src,
-        b=jnp.full((n,), -2.0),
+        # Per-region resting bias (E115). Every pre-existing region is -2.0, so this is
+        # the same uniform vector the model always had; the subpallium is where it
+        # differs, and it has to -- a pallidum that is not tonically active is not a
+        # pallidum.
+        b=jnp.asarray(np.asarray(regions.REGION_BIAS, dtype=np.float32)[rid]),
         tau=tau,
         reflex=jnp.asarray(
             innate.reflex_matrix(auditory_scaffold, scaffold_gain, legacy_food_call,
