@@ -42,6 +42,12 @@ class EvoConfig(NamedTuple):
     n_parents: int = 4             # truncation selection: top 4 of 16
     mutation: float = 0.05         # sigma, as a fraction of each matrix's own scale
     select: bool = True            # False = parents drawn at random, the control
+    # Uniform crossover: each child draws every synapse from one of two parents (E118).
+    # Recombination makes new *combinations* of variation that already exists, where
+    # mutation can only add noise to a tuned connectome -- and E116 found the loop
+    # stalling by generation 3 because truncation consumes standing variation faster than
+    # sigma=0.05 replaces it.
+    recombine: bool = False
     # Weight on the predation term of `fitness`, chosen by measurement rather than
     # guessed -- see that function. 0.10 equalises the two terms' spreads.
     caught_weight: float = 0.10
@@ -110,22 +116,46 @@ def _breed(p, scores, key, evo: EvoConfig):
     are matched exactly and the only difference is whether fitness is consulted.
     """
     n_hens = scores.shape[0]
-    k_pick, k_mut = jax.random.split(key)
+    k_pick, k_mut, k_mate, k_cross = jax.random.split(key, 4)
     if evo.select:
         parents = jnp.argsort(-scores)[:evo.n_parents]
     else:
         parents = jax.random.choice(k_pick, n_hens, (evo.n_parents,), replace=False)
-    # Each parent contributes an equal share of the next generation.
+    # Each parent contributes an equal share of the next generation. `W_parent` /
+    # `Wout_parent` are captured *before* re-indexing, because the second parent below is
+    # named by its index in the parent generation, not in the offspring array.
     child_parent = jnp.repeat(parents, n_hens // evo.n_parents)[:n_hens]
+    w_parent, wout_parent = p.W, p.W_out
     p = p._replace(W=p.W[child_parent], W_out=p.W_out[child_parent],
                    W_pred=p.W_pred[child_parent], W_gate=p.W_gate[child_parent],
                    W_str=p.W_str[child_parent])
+
+    if evo.recombine:
+        # Second parent for each child, drawn from the same selected pool, then a
+        # per-synapse coin flip deciding which of the two parents that synapse comes from.
+        #
+        # Dale is not re-enforced here and does not need to be: both parents inherit the
+        # flock-wide `dale` vector, so every candidate weight for a given presynaptic
+        # neuron already carries that neuron's sign, and choosing between two same-signed
+        # values cannot flip one. `_mutate` below enforces it regardless.
+        mate = jax.random.choice(k_mate, parents, (n_hens,))
+        k_w, k_o = jax.random.split(k_cross)
+        take_w = jax.random.bernoulli(k_w, 0.5, p.W.shape)
+        take_o = jax.random.bernoulli(k_o, 0.5, p.W_out.shape)
+        p = p._replace(W=jnp.where(take_w, p.W, w_parent[mate]),
+                       W_out=jnp.where(take_o, p.W_out, wout_parent[mate]))
+
     return _mutate(p, k_mut, evo.mutation), child_parent
 
 
 def run_lineage(key, cfg: CoopConfig, evo: EvoConfig, reg=None,
                 pc: plasticity.PlasticConfig = NO_LEARNING):
-    """One lineage. Yields a record per generation.
+    """One lineage. Returns (record per generation, the final connectome).
+
+    The final connectome comes back so a caller can assay the evolved flock's behaviour
+    directly -- E118 needs the motor profile to tell adaptation from the saturated
+    everything-at-once regime E117 found at `readout_scale=1.0`.
+
 
     The world is reset every generation from the *same* key, so a fitness difference
     between generations is a difference between connectomes and not between coops.
@@ -157,8 +187,11 @@ def run_lineage(key, cfg: CoopConfig, evo: EvoConfig, reg=None,
             # this collapses there is nothing left for selection to act on and a plateau
             # says nothing about the search.
             diversity=jnp.mean(jnp.abs(p.W_out[:, None] - p.W_out[None, :])),
+            # Selection acts on `W` as well as `W_out`, and E116 only ever tracked the
+            # readout. A search can exhaust one and not the other.
+            diversity_w=jnp.mean(jnp.std(p.W, axis=0)),
             parents=prev_scores,
         ))
         p, child_parent = _breed(p, scores, jax.random.fold_in(k_run, 1000 + gen), evo)
         prev_scores = jnp.asarray(scores)[child_parent]
-    return history
+    return history, p

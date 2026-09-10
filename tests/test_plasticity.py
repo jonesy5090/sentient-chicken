@@ -1400,3 +1400,46 @@ def test_the_unselected_control_is_matched_except_for_selection():
     # Selection must actually pick the best; the control must not.
     best = int(jnp.argmax(scores))
     assert best in np.asarray(sel_parents), "selection did not choose the fittest hen"
+
+
+def test_recombination_mixes_two_parents_and_respects_dale():
+    """Uniform crossover must draw every synapse from one of two selected parents (E118).
+
+    Three things can go wrong and each has a precedent in this repo. The child could
+    silently be a copy of one parent (the feature does nothing, and a null about
+    recombination would be a null about the harness -- E024's shuffled control). The
+    crossover could index the *offspring* array rather than the parent generation, since
+    `_breed` re-indexes before recombining, in which case the "second parent" is whatever
+    happened to land in that slot. And it could break Dale's law, which mutation is held
+    to and there is no reason recombination should be exempt from.
+    """
+    from run import evolve
+    p = connectome.build(jax.random.key(0), regions.DEFAULT_REGIONS, n_hens=16)
+    scores = jnp.asarray(np.arange(16, dtype=np.float32))      # hen 15 is fittest
+    evo = evolve.EvoConfig(recombine=True, mutation=0.0)
+    kid, _ = evolve._breed(p, scores, jax.random.key(3), evo)
+
+    # `mutation=0.0` is not quite the identity: `_mutate` also clips to `w_max`, and
+    # `connectome.build` draws weights up to ~1.39 against a cap of 0.5. Compare against
+    # the clipped parents, not the raw ones.
+    ref = plasticity._enforce_dale(p.W, p.dale, plasticity.PlasticConfig().w_max)
+    parents = np.asarray(jnp.argsort(-scores)[:evo.n_parents])
+
+    # Every weight in every child must be traceable to some selected parent.
+    for h in range(p.W.shape[0]):
+        match = jnp.zeros(kid.W[h].shape, dtype=bool)
+        for q in parents:
+            match = match | (jnp.abs(kid.W[h] - ref[q]) < 1e-6)
+        assert bool(jnp.all(match)), f"child {h} has a weight from no selected parent"
+
+    # At least some children must genuinely be mixtures, or crossover is inert. Only
+    # ~13.85% of `W` is live and half of that is swapped, so the expected fraction of
+    # differing entries is ~7% -- assert on "mixed at all" rather than on that number.
+    plain, _ = evolve._breed(p, scores, jax.random.key(3),
+                             evo._replace(recombine=False))
+    mixed = [float(jnp.mean(kid.W[h] != plain.W[h])) for h in range(p.W.shape[0])]
+    assert sum(m > 0.01 for m in mixed) >= 8, \
+        f"crossover changed almost nothing: {mixed}"
+
+    # Dale's law, the invariant learning is held to.
+    assert int(jnp.sum(jnp.sign(kid.W) * p.dale[None, None, :] < 0)) == 0

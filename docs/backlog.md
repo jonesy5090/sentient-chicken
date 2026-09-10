@@ -871,14 +871,41 @@ new home.
 
 ## 8. Open items from experiments
 
-- **Where does standing variation come from? This is now the binding constraint.**
-  [E116](experiments/E116-generational-selection.md) found that a flock built by
-  `connectome.build` has fitness repeatability of **~0** — a hen's score carries no
-  information about her brain — and that amplifying between-hen variation 2.7× takes it to
-  **+0.473**. With variation supplied, selection produces the project's first replicated
-  behavioural improvement. Without it, no adaptive process can act, learning included.
-  **This is a question about how the founding population is built, not about search**, and
-  nobody has made it deliberately.
+- ~~**Where does standing variation come from? This is now the binding constraint.**~~
+  **Answered and closed ([E117](experiments/E117-where-standing-variation-comes-from.md)):
+  it comes from audibility, not from anatomy.** Over 16 genomes in two disjoint blocks, a
+  flock from `connectome.build` has r(−drives) = **−0.014 ± 0.053**. Giving each hen her
+  own connectivity draw varies **22.65%** of her synapses and does nothing
+  (**+0.055 ± 0.050**, null in both blocks) — per-hen anatomy is now a *measured* dead end
+  rather than an untried idea. What works is amplifying what already differs, either at
+  the weights (`founder_sigma=2.0` → **+0.628 ± 0.090**) or at the channel they speak
+  through (`readout_scale` 0.05→0.25 → **+0.511 ± 0.101**); the two are equivalent within
+  one SE. **The band is about one order of magnitude wide**: `readout_scale=1.00`
+  saturates the bird (every motor channel near 1.0, zero hens caught in 144 dives) and
+  scores +0.881 because being broken is reproducible. **Every arm that made hens
+  distinguishable made them worse** — selectability and competence trade off, and nothing
+  tested gave a flock both.
+
+- **New (E117): separate spread from operating point properly.** The `shared_shift`
+  control reaches the same operating point with between-hen spread untouched and still
+  scores **+0.172 ± 0.049 (t=3.57)** — about a quarter of `founder2`'s effect. So the
+  dissociation is partial, and the two are confounded in both successful arms because
+  raising the volume moves the mean as well as the spread. The clean arm is a
+  **mean-preserving** one: scale each hen's deviation from the flock-mean `W_out` while
+  holding the mean magnitude fixed. Cheap, and it decides whether "make the pallium
+  louder" is really the lever or whether half of it is just "move off the reflex arc's
+  operating point".
+
+- **New (E117), and it blocks the H0 ladder: `evolve.fitness` is mostly noise.**
+  Predation repeatability is not significant in **any of eleven arm-by-block
+  measurements**, while at `hawk_period_s=50` the predation term supplies ~**74%** of the
+  criterion's variance. Selection on it spends three-quarters of its differential on luck
+  — E116's own first smoke test hit exactly this pathology. Two ways out, neither tested:
+  drop or downweight the term (but an alarm channel exists *for* predation, so H0's ladder
+  would then be scored on something the channel cannot help with), or raise predator
+  density until catches become a property of the bird rather than of the day. **Measure
+  r(predation) against predator rate before running the ladder** — this is
+  "does the instrument work" and today the answer is no.
 - **Diversity collapse in the generational loop.** Truncation selection consumes standing
   variation faster than σ=0.05 mutation replaces it: 12–13% of founding diversity by
   generation 15, and all improvement happens by generation 3. Higher mutation, more
