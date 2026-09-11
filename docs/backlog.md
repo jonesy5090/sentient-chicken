@@ -906,13 +906,51 @@ new home.
   density until catches become a property of the bird rather than of the day. **Measure
   r(predation) against predator rate before running the ladder** — this is
   "does the instrument work" and today the answer is no.
-- **Diversity collapse in the generational loop.** Truncation selection consumes standing
-  variation faster than σ=0.05 mutation replaces it: 12–13% of founding diversity by
-  generation 15, and all improvement happens by generation 3. Higher mutation, more
-  parents, or recombination — untested and cheap.
+- ~~**Diversity collapse in the generational loop.**~~ **Answered and closed
+  ([E118](experiments/E118-diversity-collapse.md)) — it was the wrong diagnosis.** All
+  three named fixes were run against matched controls over 8 lineages in two blocks.
+  Three arms preserved diversity far above baseline (`parents_8` 17–33%, `mut_0.15` 37%,
+  `mut_0.30` **79%** against baseline's 11–14%) and **none improved on baseline**
+  (−0.0008 t=−0.06; +0.0120 t=+0.78; −0.0556 t=−3.19, worse). Recombination — now built,
+  `run/evolve.py`, uniform crossover with Dale enforced — neither preserved diversity
+  (12.3%) nor helped (t=1.14). The arm that *did* improve kept 11–13%, the same collapse
+  as baseline. **The pre-registered falsifier fired: diversity collapse is a correlate of
+  the plateau, not its cause.** What worked instead was E117's criterion correction,
+  which touches the search not at all: `caught_weight` 0.10→0.0 took selected lineages
+  from 4-of-8 improving to **8-of-8**, +0.0299 ± 0.0093 (t=3.21) against baseline.
+  Recombination is **not** adopted as a default.
+
+- **New (E118): what actually stops the search at generation 2?** Even `drives_only` does
+  90% of its work by generation 1.5 and ends at 11–13% of founding diversity. Four
+  candidate causes are now ruled out (mutation supply, truncation strength,
+  recombination, diversity itself) and the survivor is unnamed. Any proposal here should
+  be pre-registered against E118's own lesson: the last four were all about the search
+  and the answer was about the scoreboard.
+
+- **New (E118), methodological, and it belongs in every future generational design:**
+  `selected − control` is treacherous across arms whose mutation rates differ, because the
+  control degrades under mutation load — a bigger σ hands selection more damage to repair
+  and inflates the difference without selection being more effective. `mut_0.15` tops that
+  ranking (pooled t=5.78) while being level with baseline on the outcome that matters
+  (t=0.78). **Compare selected trajectories across arms; reserve `sel − ctl` for within-arm
+  "did selection do anything".** E116 used it, and so did E118's own pre-registration.
+
+- **New (E118): E116's headline does not reproduce.** At the nearest recoverable
+  configuration its own `baseline` gives selected−control **+0.0196 ± 0.0183, t=1.07**,
+  4 of 8 lineages improving, where E116 reported a pooled t=−3.71. E116's script was never
+  committed so its coop cannot be matched exactly; recorded as a failure to reproduce
+  rather than a refutation, and a reason to commit run scripts.
+
 - **Then the H0 ladder, on the substrate E116 built**: evolve flocks with an intact
   channel against a yoked one. This is the experiment `run/evolve.py` exists for, and it
-  is the first route to H5.
+  is the first route to H5. **Blocked pending
+  [E119](experiments/E119-can-an-alarm-channel-be-selected-for.md)**: E117 measured
+  predation repeatability at zero, E118's working criterion deletes predation entirely,
+  and `coop/world.py` attaches **no physiological cost to being caught** — hunger moves
+  only with `at_food_any & pecking`. So the criterion that makes selection work is
+  indifferent to hawks, and plausibly hostile to anti-predator behaviour, since crouching
+  costs foraging time. An alarm channel may have nothing here to be selected for. Measure
+  that before running the ladder.
 - ~~**THE STRATEGIC QUESTION, now live rather than rhetorical.**~~ **Answered by E116:
   generational selection, and it works.**
   [E115](experiments/E115-a-real-basal-ganglia.md) tested the best-motivated structural
