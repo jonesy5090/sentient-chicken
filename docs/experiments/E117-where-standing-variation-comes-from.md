@@ -244,6 +244,15 @@ through the same near-silent readout into the same shared reflex arc.
 
 ### 6f. Getting caught is not a property of the hen
 
+> **Corrected by [E119](E119-can-an-alarm-channel-be-selected-for.md): true at
+> `hawk_period_s=50`, false at 10.** Everything in this section was measured at one
+> predator density, and the conclusion drawn from it — that the H0 ladder is blocked —
+> was drawn one density too early. At 10 s, r(caught) is **+0.478 ± 0.079 (t=6.57)**
+> against the +0.049 measured here. Catches are rare events sampled around a hen-specific
+> rate; at 1.75 catches per life the sampling noise buries the rate, at 4.67 it does not.
+> **Eleven measurements of the same under-powered configuration are one measurement.**
+> The numbers below stand as measured; the generalisation does not.
+
 Predation repeatability was measured in all seven arms across both blocks — **eleven
 arm-by-block measurements, and not one reaches significance.** Block 1 scatters slightly
 negative (−0.110 to +0.099), block 2 slightly positive (−0.008 to +0.174, largest t=1.98).
