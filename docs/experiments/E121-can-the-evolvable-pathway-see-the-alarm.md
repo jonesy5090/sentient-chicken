@@ -110,12 +110,166 @@ PYTHONPATH=. python scratchpad/e121_can_wout_see_the_alarm.py
 
 ## 6. Result
 
-*(written after the run)*
+### 6a. The evolvable pathway is not blind — prediction 3 was wrong
+
+AUC for "an aerial alarm is audible", among hen-steps where she cannot see a hawk herself.
+8 genome seeds, `hawk_period_s=20`.
+
+| region | best single unit | pooled (LDA) |
+|---|---|---|
+| sensory stub | 0.8611 ± 0.0231 | 0.8457 ± 0.0213 |
+| pallium | 0.6629 ± 0.0172 | 0.7376 ± 0.0222 |
+| **motor stub** | 0.6090 ± 0.0136 | **0.6871 ± 0.0187** |
+
+Predictions 1 (>0.80 at the stub) and 2 (0.60–0.75 at the pallium) hold. **Prediction 3 —
+below 0.60 at the motor stub — is wrong.** It is 0.687, comfortably above chance and just
+under the 0.70 I had set as "E120's explanation is wrong".
+
+This is not an abstract information measure. `brain.step` computes
+`cortical = einsum(W_out, motor_stub)`, which is a pooled linear readout of the motor
+stub — the same class of operation as the LDA that scores 0.687. **So 0.687 is what
+`W_out` can actually read, in the units `W_out` works in.** E120's leading explanation, as
+stated, is too strong: the substrate is dim, not blind.
+
+Where the signal dies is also informative: **0.846 → 0.738 → 0.687**. Almost the entire
+loss is in the *first* synapse, sensory stub → pallium. E103 measured the same thing from
+the other side — "situation-specific signal drops from 31% to 2.2% in ONE synapse". The
+pallium → motor step costs only 0.05.
+
+### 6b. And it is unusable anyway — plant buys nothing over a matched scramble
+
+Writing the motor-stub discriminant into `W_out`'s `M_CROUCH` row, against a scramble with
+identical norm, identical channel and identical DC treatment. Unplanted: 3.375 catches/hen,
+crouch 0.399.
+
+| gain | plant caught | scram caught | crouch (plant / scram) | **plant − scram** |
+|---|---|---|---|---|
+| 0.01 | 3.453 | 3.203 | 0.430 / 0.429 | +0.250 ± 0.270, t=+0.93 |
+| 0.02 | 2.953 | 3.109 | 0.455 / 0.455 | −0.156 ± 0.244, t=−0.64 |
+| 0.05 | 2.711 | 2.336 | 0.546 / 0.546 | +0.375 ± 0.317, t=+1.18 |
+| 0.10 | 1.750 | 1.867 | 0.660 / 0.658 | −0.117 ± 0.258, t=−0.45 |
+| 0.25 | 0.984 | 0.930 | 0.796 / 0.790 | +0.055 ± 0.190, t=+0.29 |
+
+**The scramble is matched to three decimal places on crouch rate at every gain**, which is
+the control working exactly as designed, and **plant − scram alternates sign with every
+|t| < 1.2.** Planting the alarm-aligned direction buys nothing whatsoever over a direction
+carrying no alarm information at all. Catches track *how much she crouches*, not *when*.
+
+**Decodability is not usability.** AUC 0.687 implies a discriminability of about 0.69
+standard deviations, so the alarm-driven swing in the projection is smaller than its own
+noise. To move crouching during alarms by a behaviourally useful amount, the same weights
+move it during everything else by more. E081 named this distinction for the pallium; this
+is it at the readout.
+
+### 6c. The first sweep was degenerate, and the control is what showed it
+
+Gains 0.5–4.0 were run first. There, catches fell to **8–14%** of unplanted and crouch sat
+at **0.85–0.89** — the hen crouching most of her life, catches on the floor with no room to
+differ (CLAUDE.md check 5). The scramble captured almost the whole benefit
+(−2.60 against the plant's −2.91 at gain 0.5).
+
+Reported rather than discarded, because had only the plant arm been run it would have read
+as "planting comprehension into `W_out` cuts predation by 86%" — a spectacular result that
+is entirely an artefact of breaking the bird in a direction that happens to score well.
+Same shape as E117's `readout_1.00` and E118's `mut_0.30`.
+
+### 6d. The real finding: unconditional vigilance pays, and needs no information
+
+Using the scramble arm — which carries *no* information by construction — and E120's
+calibrated `caught_weight=0.1049`:
+
+| crouch rate | catches | hunger | Δfit (predation) | Δfit (hunger) | **net** |
+|---|---|---|---|---|---|
+| 0.399 | 3.375 | 0.4593 | — | — | — |
+| 0.546 | 2.336 | 0.4626 | +0.1090 | −0.0032 | **+0.1058** |
+| 0.658 | 1.867 | 0.4698 | +0.1582 | −0.0104 | **+0.1477** |
+| 0.790 | 0.930 | 0.4829 | +0.2565 | −0.0235 | **+0.2330** |
+
+**Doubling the crouch rate is worth +0.233 fitness and requires no information at all.**
+There is a large, communication-free hill in this fitness landscape. Both arms of E120's
+ladder climb it, equally, and it dwarfs anything a channel could contribute.
+
+### 6e. A defect I reported and then disproved
+
+I read `actuation.py`'s comment — *"Crouching is freezing… invisible to the hawk, but not
+foraging and not going anywhere"* — against `world.py`'s `fed = at_food_any & pecking`,
+concluded that crouch suppresses only `mobility` and therefore a hen could crouch and eat
+simultaneously, and drafted this as a defect: vigilance is free, so the trade-off the
+many-eyes literature rests on was never in the model.
+
+**Measured, it is false.** P(fed | at food, crouching) = **0.3632** against **0.6896**
+upright: a crouching hen feeds at **52.7%** of the upright rate, **−0.3264 ± 0.0195,
+t=−16.71**. The comment is approximately right and my reading of the code was not.
+
+The reconciliation with §6d is a third number: **a hen is at a food patch only 4.5% of the
+time.** So a 47% local penalty lands on a twentieth of her life, and the aggregate cost of
+crouching twice as much is 0.024 hunger against 2.4 catches saved. **The trade-off is real
+locally and weak globally** — which is a subtler and more interesting fact than the defect
+I thought I had found, and one I would have got wrong twice over by reading rather than
+measuring.
 
 ## 7. Interpretation
 
-*(written after the run)*
+**E120's null now has a mechanism, and it is not the one E120 proposed.** The evolvable
+pathway can see the alarm (AUC 0.687 at exactly the stage `W_out` reads). What it cannot do
+is *act on it selectively*: at that signal-to-noise, any readout strong enough to make her
+crouch when warned makes her crouch when not, and a scrambled direction of equal magnitude
+delivers the same predation benefit. So E120's explanation survives only in a weakened
+form — the substrate is not blind, it is too noisy for conditional behaviour — and a new,
+stronger explanation sits above it.
+
+**The stronger explanation: the task does not require communication.** Unconditional
+crouching is worth +0.233 fitness here with no information involved. An alarm call is
+valuable precisely when vigilance is expensive enough that you want it *only when
+warranted*. In this coop the aggregate cost of vigilance is small — not because crouching
+is mechanically free (it halves feeding) but because hens spend 4.5% of their lives on a
+patch — so "always crouch" beats "crouch when told", and the channel has nothing to add
+that the flock could not get for free. **A communication experiment whose optimal policy is
+unconditional is not a communication experiment.**
+
+That indicts the *task*, not the brain, and it is the first explanation in this arc that
+does. It also reframes every predation-based result the project has: E120's ladder, and
+arguably H4 itself, were run in a world where the behaviour an alarm recommends is worth
+doing regardless.
+
+**What would fix it**, and both are changes to `coop/`, not to `hen/`:
+
+1. **Make vigilance expensive in aggregate**, by raising time-on-patch — slower feeding,
+   larger patches, or a longer dwell requirement — until unconditional crouching stops
+   paying. The target is measurable and stated: the net fitness gain of doubling the crouch
+   rate should be ≈ 0, not +0.233. Then re-run E120's ladder.
+2. **Give a strike a real homeostatic cost** (E119's standing item), so predation stops
+   being a scoring convention chosen by me and the weighting stops being mine to set.
+
+**What I cannot rule out.** That a better readout than a diagonal-covariance LDA would
+extract more from the motor stub — the 0.687 is a lower bound on decodability, though it is
+the right bound for `W_out`, which is itself a linear readout. And that longer selection
+would find the conditional solution even though it is a smaller prize than the
+unconditional one; E118 found the search exhausted by generation 2, which argues against it
+but does not exclude it.
+
+**A caveat for T1.** T1 is `SUPPORTED as a narrower claim` — no intake benefit, a real
+safety benefit. §6d and §6e together suggest why: in a coop where vigilance costs 4.5% of a
+hen's life, a safety benefit is cheap and an intake benefit has almost no room to appear.
+T1's result is not overturned, but its interpretation should be read against a
+vigilance/foraging trade-off that is much weaker than the literature it is checked against.
 
 ## 8. Consequence
 
-*(written after the run)*
+**`docs/hypothesis.md`.** H0 records the refined mechanism for E120's null: the evolvable
+pathway sees the alarm and cannot act on it selectively, *and* the task rewards
+unconditional vigilance. T1 gains a pointer to §6d/§6e.
+
+**`docs/backlog.md` §8.** "Make the reflex arc heritable" is **demoted** — E120's stated
+rationale for it (the pathway cannot see the alarm) is now measured false. Promoted in its
+place: raise the aggregate cost of vigilance until unconditional crouching stops paying,
+then re-run the ladder. E119's strike-cost item is promoted alongside it.
+
+**E120 §7 corrected in place** with a pointer here: its leading explanation was too strong.
+
+**No code changes.** `hen/` and `coop/` are untouched; `actuation.py`'s comment is
+vindicated and stays as written.
+
+**Code.** `scratchpad/e121_can_wout_see_the_alarm.py`,
+`scratchpad/e121c_is_crouching_free.py`, `scratchpad/e121_cache_firstsweep.json` (the
+degenerate sweep, kept deliberately).

@@ -952,7 +952,26 @@ new home.
   H0's direction; three of the next four blocks had the wrong sign. **Run the power
   calculation before the blocks, not after the ones that look good.**
 
-- **New (E120), the successor and the most direct test: make the reflex arc heritable.**
+- **New (E121), and now the top item: the task does not require communication.** Measured
+  at E120's own density, **doubling the crouch rate is worth +0.233 fitness with no
+  information involved** (catches 3.375 → 0.930 for 0.024 hunger, at `caught_weight`
+  0.1049). Unconditional vigilance beats conditional vigilance, so an alarm call has
+  nothing to add that the flock cannot get for free — and both arms of E120's ladder climb
+  that same hill. **A communication experiment whose optimal policy is unconditional is not
+  a communication experiment.** The repair is in `coop/`, not `hen/`: raise the *aggregate*
+  cost of vigilance until the net gain from doubling crouch is ≈ 0 rather than +0.233, then
+  re-run the ladder. Note the cost is not mechanical — crouching already halves feeding
+  (52.7% of the upright rate, t=−16.71) — it is that a hen is on a patch only **4.5%** of
+  the time, so the penalty lands on a twentieth of her life. Slower feeding, larger
+  patches, or a dwell requirement all raise it.
+
+- ~~**New (E120), the successor and the most direct test: make the reflex arc heritable.**~~
+  **Demoted by [E121](experiments/E121-can-the-evolvable-pathway-see-the-alarm.md): its
+  stated rationale is measured false.** E120 justified it by "the alarm never reaches the
+  pathway selection can touch"; the alarm is decodable at the motor stub at **AUC 0.687**,
+  which is exactly what `W_out` reads. The pathway is dim, not blind — and planting the
+  alarm direction into `W_out` buys **nothing** over a magnitude-matched scramble at any
+  gain, so more access to the arc is not obviously the lever. Kept below for the record.
   `evolve._mutate` touches only `W` and `W_out`, while the one demonstrated route from an
   alarm call to a crouch runs through `p.reflex` — never plastic, never mutated, and E027
   found H4's effect surviving a full `W_out` lesion. The ladder asked selection to rebuild

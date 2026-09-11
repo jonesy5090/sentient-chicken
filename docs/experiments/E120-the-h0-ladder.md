@@ -221,6 +221,15 @@ demonstrably produces improvement, at the one predator density where an alarm ca
 demonstrably save a hen, with a control that demonstrably destroys 91% of the channel's
 information, produced no advantage for hearing your flockmates.
 
+> **Corrected by [E121](E121-can-the-evolvable-pathway-see-the-alarm.md).** The explanation
+> below — that the alarm never reaches the pathway selection can touch — is **too strong**.
+> Measured, the alarm is decodable at the motor stub at **AUC 0.687**, which is precisely
+> what `W_out` reads. What E121 found instead is that the signal is legible but unusable
+> (a planted direction buys nothing over a magnitude-matched scramble), *and* — the larger
+> point — that **unconditional crouching is worth +0.233 fitness with no information at
+> all**, so both arms of this ladder climb a communication-free hill that dwarfs anything
+> the channel could add. The null stands; its mechanism is the task, not the anatomy.
+
 **What the null is about, and what it is not about.** It is not about whether communication
 could help this flock — §6a C proves it could, by 1.195 catches per hen. It is about
 whether *this evolvable substrate can find that mapping*. The distinction matters because
