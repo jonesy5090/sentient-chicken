@@ -952,7 +952,30 @@ new home.
   H0's direction; three of the next four blocks had the wrong sign. **Run the power
   calculation before the blocks, not after the ones that look good.**
 
-- **New (E121), and now the top item: the task does not require communication.** Measured
+- **New (E122), and it is now the top item: give the hen persistence that is not
+  crouching.** E122 tried to make vigilance expensive through coop parameters and failed
+  across nine settings of patch size × intake rate — the drives cost of crouching is ~0 in
+  every one, and re-scoring with the cumulative `n_fed` counter changes nothing. **The
+  mechanism is that crouching is camping**: `actuation.py` sets `mobility = 1 - crouch`, so
+  raising the crouch bias takes patch dwell **15.2 → 29.3 chunks (+92%)** and locomotion
+  −47% while time-at-food is unchanged. The anti-predator action is also the best foraging
+  action, so vigilance is free and no alarm call can pay. **This is the same fact E112
+  found from the other side** ("what the camped oracle does that the repaired hen still
+  cannot is stay on its patch") — the model has exactly one persistence mechanism and it is
+  the predator reflex. Three candidate repairs, none tested:
+  1. **Persistence without freezing** — if staying on a patch did not require crouching,
+     crouching would stop being a foraging aid. E112's owed item, now doubly motivated.
+  2. **Freezing genuinely excludes feeding** (`fed = at_food_any & pecking & ~crouched`),
+     which is what `actuation.py`'s comment already claims. Weaker: a frozen hen still
+     holds position and resumes after.
+  3. **A cost for crouching that is not foraging** — metabolic, or protection contingent on
+     cover rather than unconditional.
+
+- ~~**New (E121): raise the aggregate cost of vigilance.**~~ **Closed as attempted and
+  failed (E122): not reachable through coop parameters.** Kept below for the reasoning.
+
+- **From E121, superseded in mechanism but not in substance: the task does not require
+  communication.** Measured
   at E120's own density, **doubling the crouch rate is worth +0.233 fitness with no
   information involved** (catches 3.375 → 0.930 for 0.024 hunger, at `caught_weight`
   0.1049). Unconditional vigilance beats conditional vigilance, so an alarm call has
