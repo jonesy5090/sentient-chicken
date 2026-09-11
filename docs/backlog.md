@@ -941,16 +941,45 @@ new home.
   committed so its coop cannot be matched exactly; recorded as a failure to reproduce
   rather than a refutation, and a reason to commit run scripts.
 
-- **Then the H0 ladder, on the substrate E116 built**: evolve flocks with an intact
-  channel against a yoked one. This is the experiment `run/evolve.py` exists for, and it
-  is the first route to H5. **Blocked pending
-  [E119](experiments/E119-can-an-alarm-channel-be-selected-for.md)**: E117 measured
-  predation repeatability at zero, E118's working criterion deletes predation entirely,
-  and `coop/world.py` attaches **no physiological cost to being caught** — hunger moves
-  only with `at_food_any & pecking`. So the criterion that makes selection work is
-  indifferent to hawks, and plausibly hostile to anti-predator behaviour, since crouching
-  costs foraging time. An alarm channel may have nothing here to be selected for. Measure
-  that before running the ladder.
+- ~~**Then the H0 ladder, on the substrate E116 built**~~ **Run and closed
+  ([E120](experiments/E120-the-h0-ladder.md)): NOT SUPPORTED, informatively.** 24 lineages
+  per arm at `hawk_period_s=20`. Primary +0.0350 ± 0.0201, CI [−0.0066, +0.0765]; final
+  flocks re-assayed on an intact world −0.3385 ± 0.3131, CI [−0.986, +0.309], **12 of 24
+  lineages favouring intact**. Confound checks clean. **The null is informative because the
+  planted ceiling (−1.195 catches/hen) falls outside the CI** and the design needed only 13
+  lineages to detect it — this excludes an effect as large as hand-wiring comprehension
+  provides, which no previous null here could do. Blocks 1–2 alone gave −0.78 and −1.02 in
+  H0's direction; three of the next four blocks had the wrong sign. **Run the power
+  calculation before the blocks, not after the ones that look good.**
+
+- **New (E120), the successor and the most direct test: make the reflex arc heritable.**
+  `evolve._mutate` touches only `W` and `W_out`, while the one demonstrated route from an
+  alarm call to a crouch runs through `p.reflex` — never plastic, never mutated, and E027
+  found H4's effect surviving a full `W_out` lesion. The ladder asked selection to rebuild
+  in the pathway it can reach a benefit only ever shown through one it cannot. Letting
+  mutation touch the arc is a small change to `_mutate` and tests this directly. **It
+  crosses a stated design invariant** ("the reflex arc is never plastic, as in a real
+  bird"), so it must be argued for explicitly rather than slipped in: evolution changing an
+  innate arc across generations is biologically correct in a way within-lifetime plasticity
+  changing it is not.
+
+- **New (E120): decouple `hawk_dive_s` from `hawk_period_s`.** A 12 s dive against a 20 s
+  interval leaves the sky busy 37% of the time, and at 10 s it overlaps outright. This is
+  why the channel carries r=+0.194 here against E026's +0.56, and why the positive control
+  is null at high density. A warning interval needs an empty sky to warn about.
+
+- **New (E120): plant-then-select.** Give founders the auditory scaffold and ask whether
+  selection *retains* it. If selection cannot hold onto a comprehension it is handed, the
+  problem is the criterion's grip rather than the search's reach — and that is a much
+  cheaper question than the one the ladder asked.
+
+- **New (E119), and it undercuts the whole predation story:** being caught costs a hen
+  **nothing physiologically**. Hunger moves with `at_food_any & pecking` and nothing else;
+  `n_caught_any` feeds the fitness function and `strike_penalty` and no state variable of
+  the hen. Predation enters fitness at a weight chosen by the experimenter, so selecting on
+  it models a preference rather than an injury. Giving a strike a real homeostatic cost —
+  a period of impaired foraging, say, as sickness already has — is the principled repair
+  and would make every predation result since E001 mean something firmer.
 - ~~**THE STRATEGIC QUESTION, now live rather than rhetorical.**~~ **Answered by E116:
   generational selection, and it works.**
   [E115](experiments/E115-a-real-basal-ganglia.md) tested the best-motivated structural

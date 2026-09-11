@@ -136,12 +136,149 @@ it is the only density where a planted comprehension saves hens — **1.195 catc
 That it is also the density E026/E030 independently chose for H4 is a convergence worth
 noting.
 
-*(ladder result to follow)*
+### 6b. The ladder: null, at 24 lineages
+
+Six blocks of 4 lineages per arm, `hawk_period_s=20`, 16 generations, founders matched
+between arms (same genome key, same world key per lineage).
+
+| intact − yoked, pooled over 24 lineages | estimate | 95% CI | t (bar 2.069) |
+|---|---|---|---|
+| **primary:** reduction in catches/dive | **+0.0350 ± 0.0201** | [−0.0066, +0.0765] | +1.74 — **null** |
+| final flock, catches/hen | **−0.3385 ± 0.3131** | [−0.986, +0.309] | −1.08 — **null** |
+| final flock, catches/dive | −0.0169 ± 0.0172 | [−0.0525, +0.0186] | −0.99 — **null** |
+| confound: hunger improvement | +0.0117 ± 0.0106 | — | +1.11 — null |
+| confound: final hunger | +0.0028 ± 0.0093 | — | +0.30 — null |
+
+15 of 24 lineages favour intact on the primary; **12 of 24 on the final assay — a coin
+flip.**
+
+### 6c. The effect shrank as lineages were added, exactly as E021 warns
+
+| block | primary | final catches/hen |
+|---|---|---|
+| 1 | +0.0777 | **−0.781** |
+| 2 | +0.0393 | **−1.016** |
+| 3 | −0.0051 | +0.094 |
+| 4 | +0.0208 | +0.313 |
+| 5 | −0.0142 | +0.422 |
+| 6 | +0.0915 | −1.063 |
+
+The first two blocks looked like a result — −0.78 and −1.02 catches per hen, both in H0's
+direction, agreeing with each other. Three of the next four blocks had the **wrong sign**.
+Pooled, it is nothing. Had I stopped at 8 lineages, as E116's own bar and this project's
+recent habit would have allowed, I would have reported a promising effect. **This is E021's
+lesson (a t=3.84 evaporating on fresh seeds) reproduced almost exactly, and the only reason
+it was caught is that a power calculation said 8 lineages was not enough and I ran 24.**
+
+### 6d. And this null is informative — which is the whole point of the last five experiments
+
+Everything CLAUDE.md §3 demands was established *before* this contrast ran:
+
+- **The manipulated variable varies.** Aerial channel 0.1445 at rest, 0.2704 with a hawk
+  on her (§6a A).
+- **The control destroys what it claims to.** 8.7% of the information retained, re-measured
+  at this configuration (§6a B).
+- **A positive result is physically reachable.** A planted comprehension is worth **−1.195
+  catches per hen** here (§6a C).
+- **Selection works on this substrate.** E118: 8 of 8 lineages improved on the corrected
+  criterion.
+- **The flock is selectable at all.** E117: repeatability +0.628 with founder variation,
+  −0.014 without.
+
+And the design had the power to see it. The per-lineage standard deviation of the
+final-assay difference is **1.534**, so detecting the planted ceiling of −1.195 at 80%
+power needs **13 lineages**; 24 were run. The smallest effect this design could reliably
+detect is **0.877 catches per hen** — and the planted ceiling, −1.195, **falls outside the
+95% confidence interval** [−0.986, +0.309].
+
+**So the ladder can exclude an effect as large as a hand-wired comprehension provides.**
+That sentence is what five experiments were built to make sayable, and no previous null in
+this project could say it.
+
+### 6e. Predictions scored
+
+The §3 prediction was "a null or a very small effect", with a numeric bound of **below
++0.005** on the primary and a stated "if it clears +0.01 I will have been clearly wrong".
+
+**The substance holds and the bound does not.** The primary is +0.0350 — seven times the
+bound — but its confidence interval includes zero, so there is no established effect to
+have been wrong about. Scored honestly: right that the ladder would return a null, wrong
+to have put the bound that tight, and the CI is the number to quote rather than either.
+
+The *mechanism* predicted in §3 survives and is now the leading explanation: the only
+comprehension this project has ever demonstrated lives in `p.reflex`, which
+`evolve._mutate` never touches, and E027 already found H4's effect surviving a full
+`W_out` lesion. Selection was asked to rebuild in `W`/`W_out` a benefit only ever shown
+through a pathway it cannot reach, and it did not.
 
 ## 7. Interpretation
 
-*(written after the run)*
+**The generational route to H0 has been tried and has failed on its own terms.** Not
+because the instrument was broken — it was measured working, five different ways, before
+the contrast ran — and not because the flock could not be selected, which E117 and E118
+established it can. Sixteen generations of selection on a substrate where selection
+demonstrably produces improvement, at the one predator density where an alarm can
+demonstrably save a hen, with a control that demonstrably destroys 91% of the channel's
+information, produced no advantage for hearing your flockmates.
+
+**What the null is about, and what it is not about.** It is not about whether communication
+could help this flock — §6a C proves it could, by 1.195 catches per hen. It is about
+whether *this evolvable substrate can find that mapping*. The distinction matters because
+it points somewhere specific rather than to a general discouragement:
+
+- Mutation touches only `W` and `W_out`. The reflex arc, `W_in`, `dale` and the biases are
+  flock-wide constants and permanently outside selection's reach.
+- The one demonstrated route from an alarm call to a crouch runs *through the reflex arc*
+  (E027: H4's effect survives lesioning `W_out` entirely).
+- So the ladder asked selection to build a second, independent route through a pallium
+  that E107 measured as emitting a near-fixed direction and E109 measured as confined to
+  the arc's own direction.
+
+**Three explanations I cannot separate**, and the honest position is that they are
+alternatives rather than a conclusion:
+
+1. **The substrate.** `W`/`W_out` cannot express an alarm→crouch mapping at all, in which
+   case making the reflex arc heritable is the experiment, not more generations.
+2. **The signal.** r(channel) is +0.194 here against E026's +0.56; the channel may simply
+   carry too little for selection to latch onto, and the 12 s dive against a 20 s interval
+   still leaves the sky busy 37% of the time.
+3. **The search.** E118 found 90% of all improvement arriving by generation 2 with
+   diversity down to ~12%, so 16 generations may be 14 generations of nothing. Against
+   this: E118 ruled out four separate attempts to extend that horizon.
+
+**What would distinguish them**, in the order I would run them: make `p.reflex` heritable
+and re-run the ladder (tests 1 directly, and it is a small change to `_mutate`); decouple
+`hawk_dive_s` from `hawk_period_s` so warning intervals exist without a permanently busy
+sky (tests 2, and is a change to `coop/spec.py` rather than to the brain); and a
+plant-then-select control, where founders carry the scaffold and selection must merely
+*retain* it — if selection cannot even hold onto a comprehension it is handed, the problem
+is the criterion's grip, not the search's reach.
+
+**A caveat that applies to the whole chain.** Being caught still costs a hen nothing
+physiologically (E119 §6b) — hunger moves only with `at_food_any & pecking`. Predation
+enters fitness because I put it there at a weight I chose. A reader is entitled to ask
+whether selecting on a cost the organism does not experience models evolution or models a
+preference, and the answer remains the latter. Giving a strike a real homeostatic cost is
+the principled repair and remains unattempted.
 
 ## 8. Consequence
 
-*(written after the run)*
+**`docs/hypothesis.md`.** H0's generational route is recorded as **tried and NOT
+SUPPORTED**, with the power statement attached — this design excludes an effect the size
+of a hand-planted comprehension. H4 is untouched: it is a separate claim about the reflex
+arc and this says nothing about it.
+
+**`docs/backlog.md` §8.** E116's follow-up 3 is **closed**. Three successor items, in
+priority order: heritable reflex arc; decouple dive duration from dive frequency; and the
+plant-then-select control.
+
+**No code changes.** `run/evolve.py` is unchanged by this experiment; the recombination
+added in E118 stays non-default.
+
+**A methodological note worth more than the result.** Blocks 1–2 (8 lineages, E116's own
+bar) showed −0.78 and −1.02 catches per hen in H0's direction and would have been reported
+as promising. Sixteen more lineages took it to −0.34 with 12 of 24 favouring intact. **Run
+the power calculation before the blocks, not after the ones that look good.**
+
+**Code.** `scratchpad/e120_ladder_checks.py`, `scratchpad/e120b_density_tradeoff.py`,
+`scratchpad/e120c_ladder.py`, `scratchpad/e120d_pool.py`.
